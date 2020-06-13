@@ -1,0 +1,243 @@
+<template>
+	<view class="content-white main-content">
+		<mescroll-body  @init="initMescroll" @down="dowmCallBack" @up="upCallback">
+			<view>
+				<!-- 轮播swiper -->
+				<swiper v-if="bannerList.length" class="swiper" indicator-dots circular indicator-color="#FFFFFF"
+				 indicator-active-color="#43917A" :interval="3000" :duration="1000">
+					<swiper-item class="item" v-for="(item,index) in bannerList" :key="index" @click="bannerClick(item)">
+						<image class="top-image" :src="item.photo" mode="aspectFill"></image>
+					</swiper-item>
+				</swiper>
+				<image v-else class="top-image" src="/static/img/index/plateform/banner.png" mode="aspectFill"></image>
+				<!--获取分类-->
+				<view class="category-view">
+					<image class="image" src="/static/img/index/plateform/tourism.png" @tap="toTourism"></image>
+					<image class="image" src="/static/img/index/plateform/zsyd.png" style="box-shadow:0px 3px 10px rgba(231,183,129,0.8);" @tap="toHotel"></image>
+				</view>
+				
+				<scroll-navi-bar ref="naviBar" class="top-scroll" style="top: -2rpx;" :itemList="topList" @naviItemClick="naviItemClick"></scroll-navi-bar>
+				<shop-list ref="myShopList" ></shop-list>
+			</view>
+			
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	import scrollNaviBar from "@/components/navi-bar/scroll-navi-bar.vue"
+	import shopList from '@/components/tableList-component/tableList-component.vue'; 
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		components: {
+			scrollNaviBar,
+			shopList
+			
+		},
+
+		data() {
+			return {
+				mescroll: "",
+				topList: [],
+				cellList:[],
+				topClickItem:{},
+				keyword:'',
+				longtitude: '', //经纬度
+				latitude: '',
+				bannerList: [],
+				type:"0"//0为附近 1为精选推荐
+			}
+		},
+		onShow() {
+			const app = getApp();
+			if(app.globalData.plateform){
+				this.bannerList=app.globalData.plateform;
+			}
+		},
+		onLoad(option) {
+			this.type = option.type;
+			this.getLocation();
+		},
+		onNavigationBarSearchInputConfirmed(e){
+			this.keyword = e.text;
+			this.mescroll.num = 1;
+			this.upCallback(this.mescroll,false);
+			uni.hideKeyboard();
+		},
+		onNavigationBarSearchInputChanged(e){
+			if(!e.text){
+				this.keyword = "";
+				this.mescroll.num = 1;
+				this.upCallback(this.mescroll,false);
+				uni.hideKeyboard();
+			}
+		},
+		
+		methods: {
+			bannerClick: function(item) {
+				this.util.bannerClick(item);
+			},
+			getLocation:function(){
+				var self = this;
+				uni.getLocation({
+					type: 'gcj02',
+					success: function(res) {
+						self.longtitude = res.longitude;
+						self.latitude = res.latitude;
+					}
+				});
+			},
+			naviItemClick:function(item){
+				this.topClickItem = item;
+				this.mescroll.num = 1;
+				this.mescroll.size = 10;
+				this.upCallback(this.mescroll,true);
+			},
+			initMescroll: function(mescroll) {
+				this.mescroll = mescroll;
+			},
+			dowmCallBack: function(mescroll) {
+				let url = '/memberapi/api/platform/querySubjectLabels.do';
+				let data = {
+					platformSubjectId: 1 //游洪城
+				};
+				this.request.get(url, data, mescroll).then(res => {
+					this.topList = [];
+					var labelIds = [];
+					for (let item of res.list) {
+						labelIds.push(item.labelId);
+					}
+					var recomendItem = {
+						essenceType: 1,
+						labelName: "精选推荐",
+						labelId:labelIds.join(",")
+					}
+					
+					var nearItem = {
+						labelName: "附近",
+						labelId: labelIds.join(",")
+					}
+					this.topList.push(nearItem);
+					this.topList.push(recomendItem);
+					this.topList = this.topList.concat(res.list);
+					if(this.type == "1"){
+						this.$refs.naviBar.moveToItem(1,recomendItem);
+						this.topClickItem.content = this.topList[1];
+					}else{
+						// this.topClickItem.content = this.topList[0];
+						if(!this.topClickItem.content) this.topClickItem.content = this.topList[0];
+					}
+					mescroll.resetUpScroll();
+				})
+			},
+			upCallback: function(mescroll,showLoading) { //获取店铺信息列表
+				console.log("upCallbackupCallbackupCallback");
+				let url = '/memberapi/api/shops/shopsAndExtendsList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					keyword: this.keyword,
+					sortFlag:'score-desc'
+				};
+				if (this.topClickItem.content.labelId){
+					data.platformLabels = this.topClickItem.content.labelId;
+				}
+				if (this.topClickItem.content.typeId) {//精选推荐不用传platformTypeId
+					data.platformTypeId = this.topClickItem.content.typeId;
+				}
+				if (this.topClickItem.content.labelName == "精选推荐") {//是否精选
+					data.essenceType = 1;
+				}
+				if (this.topClickItem.content.labelName == "附近" && this.longtitude && this.latitude) {
+					url = "/memberapi/api/shops/queryShopList.do";
+					data.coordinate = this.longtitude + "," + this.latitude;
+					// //data.distance = "5000";; //前端不传距离
+				}
+				this.request.get(url, data, mescroll, showLoading).then(res => {
+					this.$refs.myShopList.formattingList(res.list,mescroll);
+				})
+			},
+
+			toTourism: function() {
+				uni.navigateTo({
+					url: "/pages/scenic/scenicList"
+				})
+			},
+			toHotel: function() {
+				uni.navigateTo({
+					url: "/pages/hotel/hotelList"
+				})
+			}
+			
+		}
+	}
+</script>
+
+<style lang="scss">
+	
+	.top-image{
+		width: 100vw;
+		height: 280rpx;
+	}
+	.top-scroll {
+		display: flex;
+		flex-direction: row;
+		white-space: nowrap;
+		z-index: 100000;
+		position: -webkit-sticky;
+		position: sticky;
+		top: -2rpx;
+		background-color: #FFFFFF;
+	}
+	.category-view {
+		width: 100vw;
+		display: flex;
+		flex-direction: row;
+		align-content: center;
+		justify-content: space-between;
+		padding: 40rpx 30rpx 30rpx 30rpx;
+		.image{
+			width: 324rpx;
+			height: 136rpx;
+			border-radius: 15px;
+			box-shadow: 0px 3px 10px rgba(132, 179, 230, 0.5);
+		}
+		
+	}
+	// 以下为左右滑动swiper测试
+	/* #ifndef APP-PLUS */
+	page {
+		width: 100%;
+		height: 100%;
+	}
+	/* #endif */
+	.main-content {
+		.search_box {
+			width: 550rpx;
+			height: 60rpx;
+			line-height: 60rpx;
+			background: rgba(230, 231, 233, 1);
+			opacity: 0.85;
+			border-radius: 30rpx;
+			color: #4a4a4a;
+			text-align: center;
+			font-size: 24rpx;
+			font-weight: 400;
+		}
+		
+		.swiper {
+			height: 280rpx;
+
+			.swiper-item {
+				width: 100%;
+				height: 100%;
+
+				.image {
+					width: 100%;
+					height: 100%;
+				}
+			}
+		}
+	}
+</style>

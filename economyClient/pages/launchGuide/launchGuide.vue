@@ -1,0 +1,91 @@
+<template>
+	<view class="conten-view">
+		<!-- indicator-dots indicator-color='#D8D8D8'  indicator-active-color='#EA5504' -->
+		<swiper class="launch-swiper">
+			<swiper-item  v-for="(item,index) in images" :key="index">
+				<image v-if="index==(images.length-1)" class="launch-image" :src="item" mode="aspectFill" @click="gotoIndexPage"></image>
+				<image v-else class="launch-image"  :src="item" mode="aspectFill" ></image>
+			</swiper-item>
+		</swiper>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				images:[],
+			}
+		},
+		onShow() {
+			const app = getApp();
+			this.images = app.globalData.guide;
+			// 如果没有图片的话使用默认的图片
+			if(this.images.length == 0){
+				this.images = [
+					"/static/img/guide/guide_1.png",
+					"/static/img/guide/guide_2.png",
+					"/static/img/guide/guide_3.png"
+				]
+			}
+			// if(app.globalData.guide.length>0){
+			// 	this.images=app.globalData.guide;
+			// }else{
+			// 	this.images = [
+			// 		"/static/img/guide/guide_1.png",
+			// 		"/static/img/guide/guide_2.png",
+			// 		"/static/img/guide/guide_3.png"
+			// 	]
+			// }
+		},
+		onLoad() {
+		},
+		methods: {
+			gotoIndexPage:function(){
+				uni.setStorageSync("launchGuide","hide");
+				uni.switchTab({
+					// url:"/pages/index/index5"
+					url:"/pages/newPage/newcultrue/newcultrue"
+				})
+			},
+		}
+	}
+</script>
+
+<style>
+	.conten-view{
+		width: 100vw;
+		height: 100vh;
+	}
+	.launch-swiper{
+		width: 100vw;
+		height: 100vh;
+		z-index: 1000;
+	}
+	
+	.launch-image{
+		width: 100vw;
+		height: 100vh;
+		z-index: 1001;
+		padding-bottom: 0rpx;
+	}
+	.next-button{
+		position: absolute;
+		z-index: 2;
+		bottom: 120rpx;
+		left: 140rpx;
+		width: 470rpx;
+		height: 84rpx;
+		line-height: 84rpx;
+		font-weight: 400;
+		font-size: 30rpx;
+		color:rgba(34,138,220,1);
+		background-color: #43917A;
+		color: #FFFFFF;
+		border-radius: 10rpx;
+		text-align: center;
+		/* border: 2rpx solid #FFFFFF; */
+		z-index: 1002;
+		
+	}
+</style>

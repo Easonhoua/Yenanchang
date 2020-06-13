@@ -1,0 +1,107 @@
+<template>
+	<view class="refundProcess match">
+		<mescroll-body @down="downCallBack" @init ="initMescroll" @up="upCallback">
+			<view class="re-top">
+				<view class="timebox" v-for="(item,index) in activityReserveList" :key="index" @tap="toDetail(item)">
+						<view class="address-list">
+							<view class="re-cell title" style="margin-bottom:0;">
+								<view class="list">
+									<image class="img" :src="item.thumbnailPath"></image>
+									<text>{{item.shopName}}</text>
+								</view>
+							</view>
+							<view class="bs-item-detail">
+								<view class="item-title">
+									<image class="img" :src="item.imagePath"></image>
+									<text>体育场</text>
+									<image class="arrow-right" src="/static/img/common/right-choose-arrow.png"></image>
+								</view>
+								<view class="txt">参赛时间：{{item.startDate}}-{{item.endDate}}</view>
+								<view class="txt">人数：1人</view>
+								<view class="txt" v-if="item.activityCost >0">总价：{{item.activityCost}}</view>
+								<view class="txt" v-else>总价：免费</view>
+								<view class="link">
+									<text class="btn"  v-on:click.stop="viewButton(item)">查看券码</text>
+								</view>
+							</view>
+						</view>
+				</view>
+			</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		data() {
+			return {
+				mescroll : '',
+				activityReserveList:[],
+			}
+		},
+		methods: {
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.activityList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				//获取菜品信息列表
+				let url = '/memberapi/api/activityReserve/list.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+				};
+				var that = this;
+				this.request.post(url,data,mescroll).then(res=>{
+					const newData = res.list;
+					newData.forEach(item => {
+						if(item.imagePath){
+							let imagePath = that.util.formatImagePaths(item.imagePath);
+							item.imagePath = imagePath[0]
+						}
+						
+						if(item.thumbnailPath){
+							item.thumbnailPath = that.util.formatImagePath(item.thumbnailPath);
+						}else{
+							item.thumbnailPath = that.util.formatImagePath(item.logo);
+						}
+					});
+					if(res.list.length === 0 || this.mescroll.num === 1)  this.activityReserveList = [];
+					this.activityReserveList = this.activityReserveList.concat(newData); //追加新数据
+				})
+			},
+			//明细
+			toDetail:function(item){
+				 
+				uni.navigateTo({
+					//url:"/pages/activity/activityDetail?activityId="+activityId+"&statusStr="+statusStr
+				})
+			},
+			//查看券码
+			viewButton:function(item){
+				uni.navigateTo({
+					url:"voucher"
+				})
+			}
+		}
+	}
+</script>
+
+<style>
+	.re-top{
+		background: none;
+	}
+	.match .timebox .address-list{
+		padding:0;
+	}
+	.match .timebox .address-list .title{
+		padding:30rpx;
+	}
+</style>

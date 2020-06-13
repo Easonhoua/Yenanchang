@@ -1,0 +1,127 @@
+<template>
+	<view>
+		<mescroll-body @down="downCallBack" @init ="initMescroll" @up="upCallback">
+			<!-- 要在加上一层view否则滚动到某个地方就会失效 -->
+			<view >
+				<view class="literature-top">
+					<!-- 轮播swiper -->
+					<swiper v-if="bannerList.length" class="swiper" style="height: 260rpx;margin-bottom: 20rpx;" indicator-dots circular indicator-color="#FFFFFF"
+					 indicator-active-color="#43917A" :interval="3000" :duration="1000">
+						<swiper-item class="item imgbox" v-for="(item,index) in bannerList" :key="index" @click="bannerClick(item)">
+							<image class="imgbox-img" style="height: 270rpx;" :src="item.photo" mode="aspectFill"></image>
+						</swiper-item>
+					</swiper>
+					<view v-else class="imgbox">
+						<image class="imgbox-img" src="/static/img/science/scienceMain.png"></image>
+					</view>
+					<!-- 注释掉名师授课和在线听书 -->
+					<!-- <view class="top-slider-place" style="padding-top: 10rpx;">
+						<image class="top-slider-place-left" src="/static/img/science/mssk.png" style="height: 136rpx;box-shadow:0px 4px 10px rgba(55,170,159,0.5);border-radius: 15rpx;" @tap="toSk"></image>
+						<image class="top-slider-place-right" style="height: 136rpx;box-shadow:0px 4px 10px rgba(253,187,119,0.5);border-radius: 15rpx;" src="/static/img/science/zxts.png" @tap="toLiteraList"></image>
+					</view> -->
+				</view>
+				<!--tabbars-->
+				<platformLabels-component class="top-scroll" ref='labelsUtil' @refreshTableList="refreshTableList" :platformSubjectId="platformSubjectId" essenceType="1"></platformLabels-component>
+				
+				<!--list-->
+				<tableList-component ref='tableList'></tableList-component>
+			</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	import platformLabelsComponent from "@/components/platformLabels-component/platformLabels-component.vue";
+	import tableListComponent from "@/components/tableList-component/tableList-component.vue";
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		components: {
+			platformLabelsComponent,
+			tableListComponent
+		},
+		data() {
+			return {
+				mescroll : '',
+				keyword:'', //关键字
+				platformSubjectId: "5", //习科普
+				platformLabels:'0',// 标签编号 有标签时以逗号分隔
+				nearby:2, //附近
+				bannerList: []
+			}
+		},
+		onShow() {
+			const app = getApp();
+			if(app.globalData.science){
+				this.bannerList=app.globalData.science;
+			}
+		},
+		onLoad() {
+			var that = this;
+		},
+		methods: {
+			bannerClick: function(item) {
+				this.util.bannerClick(item);
+			},
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.sportsList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				this.$refs.tableList.queryList(mescroll,this.platformLabels,this.nearby,this.keyword);
+			},
+			//名师授课
+			toSk() {
+				var url = encodeURIComponent('https://m.ke.qq.com/courseList.html?mt=1004&st=2027&tt=3245&word=&_bid=167&_wv=1');
+				uni.navigateTo({
+					url: '../webView/webView2?webUrl=' + url + '&webTitle='
+				});
+			},
+			//在线听书
+			toLiteraList() {
+				var url = encodeURIComponent('http://m.lrts.me/category/label?title=人文&index=-2&type=105&rootId=9083');
+				uni.navigateTo({
+					url: '../webView/webView2?webUrl=' + url + '&webTitle='
+				});
+			},
+			//tabar搜索
+			onNavigationBarSearchInputConfirmed(e){
+				this.keyword = e.text;
+				this.downCallBack(this.mescroll);
+				uni.hideKeyboard();
+			},
+			onNavigationBarSearchInputChanged(e){
+				if(!e.text){
+					this.keyword = e.text;
+					this.downCallBack(this.mescroll);
+					uni.hideKeyboard();
+				}
+			},
+			//根据标签更新list表
+			refreshTableList: function(data){
+				this.platformLabels = data.labelIds;
+				this.nearby = data.nearby;
+				this.$refs.tableList.platformSubjectId= this.platformSubjectId;
+				this.downCallBack(this.mescroll);
+			}
+		}
+	}
+</script>
+
+<style>
+	.top-scroll {
+		display: flex;
+		flex-direction: row;
+		white-space: nowrap;
+		z-index: 99;
+		position: -webkit-sticky;
+		position: sticky;
+		top: 0;
+		background-color: #FFFFFF;
+	}
+</style>

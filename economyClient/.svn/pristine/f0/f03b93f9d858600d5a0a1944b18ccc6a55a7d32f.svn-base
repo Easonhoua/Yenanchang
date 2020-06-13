@@ -1,0 +1,123 @@
+<template>
+	<view>
+		<mescroll-body @down="downCallBack" @init ="initMescroll" @up="upCallback">
+			<!-- 要在加上一层view否则滚动到某个地方就会失效 -->
+			<view >
+				<view class="literature-top">
+					<!-- 轮播swiper -->
+					<swiper v-if="bannerList.length" class="swiper" style="height: 260rpx;" indicator-dots circular indicator-color="#FFFFFF"
+					 indicator-active-color="#43917A" :interval="3000" :duration="1000">
+						<swiper-item class="item imgbox" v-for="(item,index) in bannerList" :key="index" @click="bannerClick(item)">
+							<image class="imgbox-img" style="height: 270rpx;" :src="item.photo" mode="aspectFill"></image>
+						</swiper-item>
+					</swiper>
+					<view v-else class="imgbox">
+						<image class="imgbox-img" src="/static/img/purchase/purchaseMain.png"></image>
+					</view>
+					<!-- style="box-shadow:0px 4px 10px rgba(254,213,214,1);border-radius: 15rpx;" -->
+					<view class="top-slider-place" style="padding-top: 10rpx;">
+						<image class="top-slider-place-left" style="height: 136rpx;box-shadow:0px 4px 10px rgba(255,243,190,0.9);border-radius: 15rpx;" src="/static/img/purchase/xsms.png" @tap="toTypeList"></image>
+						<image class="top-slider-place-right" style="height: 136rpx;box-shadow:0px 4px 10px rgba(254,204,193,0.9);border-radius: 15rpx;" src="/static/img/purchase/mrbk.png" @tap="toTypeList"></image>
+					</view>
+				</view>
+				<!--tabbars-->
+				<platformLabels-component class="top-scroll" ref='labelsUtil' @refreshTableList="refreshTableList" :platformSubjectId="platformSubjectId" essenceType="1"></platformLabels-component>
+				<!--list-->
+				<tableList-component ref='tableList' ></tableList-component>
+			</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	import platformLabelsComponent from "@/components/platformLabels-component/platformLabels-component.vue";
+	import tableListComponent from "@/components/tableList-component/tableList-component.vue";
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		components: {
+			platformLabelsComponent,
+			tableListComponent
+		},
+		data() {
+			return {
+				mescroll : '',
+				keyword:'', //关键字
+				platformSubjectId: "4", //购潮货
+				platformLabels:'0',// 标签编号 有标签时以逗号分隔
+				nearby:2, //附近
+				bannerList: []
+			}
+		},
+		onShow() {
+			const app = getApp();
+			if(app.globalData.purchase){
+				this.bannerList=app.globalData.purchase;
+			}
+		},
+		onLoad() {
+			var that = this;
+		},
+		methods: {
+			bannerClick: function(item) {
+				this.util.bannerClick(item);
+			},
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.sportsList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				this.$refs.tableList.queryList(mescroll,this.platformLabels,this.nearby,this.keyword);
+			},
+			toTypeList:function(){
+				uni.navigateTo({
+					url:'home'
+				})
+			},
+			//店铺详情
+			toDetail: function(obj) {
+				uni.navigateTo({
+					url:'purchaseDetail?shopId='+obj.shopId
+				})
+			},
+			//tabar搜索
+			onNavigationBarSearchInputConfirmed(e){
+				this.keyword = e.text;
+				this.downCallBack(this.mescroll);
+				uni.hideKeyboard();
+			},
+			onNavigationBarSearchInputChanged(e){
+				if(!e.text){
+					this.keyword = e.text;
+					this.downCallBack(this.mescroll);
+					uni.hideKeyboard();
+				}
+			},
+			//根据标签更新list表
+			refreshTableList: function(data){
+				this.platformLabels = data.labelIds;
+				this.nearby = data.nearby;
+				this.$refs.tableList.platformSubjectId= this.platformSubjectId;
+				this.downCallBack(this.mescroll);
+			}
+		}
+	}
+</script>
+
+<style>
+	.top-scroll {
+		display: flex;
+		flex-direction: row;
+		white-space: nowrap;
+		z-index: 99;
+		position: -webkit-sticky;
+		position: sticky;
+		top: 0;
+		background-color: #FFFFFF;
+	}
+</style>

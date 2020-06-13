@@ -1,0 +1,242 @@
+<template>
+	<view class="layout">
+		<mescroll-body @down="downCallBack" @init ="initMescroll" @up="upCallback">
+			<view>
+				<view class="consultDetail-top">
+					<view class="consultDetail-top-content">
+						<view class="consultDetail-title">{{guideData.guideTitle}}</view>
+						<view class="consultDetail-base">
+							<text class="consult-news font-12 consult-detail">{{guideData.userName}}</text>
+							<text class="consult-date font-10">{{guideData.createTime}}</text>
+						</view>
+					</view>
+				</view>
+				<!-- 第一部分结束 -->
+				<view class="swiper-banner-imgbox" style="padding: 0 30rpx;">
+					<swiper-banner :swiperList="guideData.thumbnailPath"></swiper-banner>
+				</view>
+				<view class="detail-content">
+					<rich-text :nodes="guideData.guideDetail"></rich-text>
+				</view>
+				<!-- 详情结束 -->
+				<view class="divid-line"></view>
+				
+				<commentComponent ref="myComment" :relationId="guideId" :commentType="3" :commentNum="guideData.commentNum" :canFavorite="guideData.canFavorite"></commentComponent>
+				<!--点赞、评论、分享-->
+				<comment-navi :relationId="guideId" :goodType="3" :likeNum="guideData.likeNum?guideData.likeNum:0" :commentNum="guideData.commentNum" :canFavorite="guideData.canFavorite" :canGoodInfo="guideData.canGoodInfo"  @refresComment="refresComment"></comment-navi>
+				
+			</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import commentComponent from '@/components/commentList-component/commentList-component.vue';
+	import commentNavi from "@/components/commentList-component/comment-navi.vue";
+	import swiperBanner from "@/components/swiper-banner/swiper-banner.vue";
+	export default {
+		components: {
+			commentComponent,
+			commentNavi,
+			swiperBanner
+		},
+		data() {
+			return {
+				mescroll : '',
+				guideId:0,
+				guideData:{},
+				clickIndex:0, //点击列表进来的index
+			}
+		},
+		onLoad(option){
+			if(option.guideId){
+				this.guideId = Number(option.guideId);
+				this.guideData.guideId = option.guideId;
+				this.queryDetail(option.guideId);
+			}
+			if(option.clickIndex){
+				this.clickIndex = option.clickIndex;
+			}
+		},
+		methods: {
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.$refs.myComment.commentList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				this.$refs.myComment.queryCommentData(mescroll,this.guideId ,3);
+			},
+			
+			queryDetail:function(guideId){
+				let url = '/memberapi/api/guide/read.do';
+				let data = {
+					guideId: guideId, //攻略编号
+				};
+				var that = this;
+				this.request.get(url, data).then(res => {
+					if(res.returncode == 0){
+						that.guideData = res.data;
+						that.guideData.thumbnailPath = that.util.formatImagePaths(that.guideData.thumbnailPath);
+						that.guideData.guideDetail = that.guideData.guideDetail.replace(/\<img/g,'<img style="width:100%;height:auto;display:block"').replace(/\width: (\d*)px/g,'').replace(/\height: (\d*)px/g,'');
+					}
+				})
+			},
+			refresComment: function(obj){
+				this.guideData.commentNum = obj.commentNum;
+				this.guideData.likeNum = obj.likeNum;
+				if(obj.canGoodInfo){
+					this.guideData.canGoodInfo =obj.canGoodInfo;
+				}
+				if(obj.canFavorite){
+					this.guideData.canFavorite =obj.canFavorite;
+				}
+				this.downCallBack(this.mescroll);
+				//跟新主页面点赞数
+				var pages = getCurrentPages();
+				var prevPage = pages[pages.length - 2]; //上一个页面
+				prevPage.$refs.guideList.updateLikeNumList(Number(this.clickIndex), obj.likeNum);
+			},
+		}
+	}
+</script>
+
+<style>
+	.consultDetail-top{
+		width: 750rpx;
+		border-top: 1rpx solid #F2F2F2;
+	}
+	.consultDetail-top-content{
+		margin: 30rpx 30rpx 30rpx 30rpx;
+	}
+	.consultDetail-title{
+		width: 690rpx;
+		/* height: 100rpx; */
+		line-height: 150%;
+		font-size: 36rpx;
+		font-weight: bold;
+		color: #4A4A4A;
+		/* white-space: nowrap; */
+		/* text-overflow: ellipsis;
+		overflow: hidden; */
+	}
+	.consultDetail-base{
+		margin-top: 30rpx;
+	}
+	.detail-content{
+		margin: 30rpx 30rpx 40rpx 30rpx;
+		font-size: 32rpx;
+		color: #4A4A4A;
+		line-height: 50rpx;
+	}
+	.detail-content image{
+		width: 690rpx;
+		height: 240rpx;
+		margin-top: 30rpx;
+		margin-bottom: 30rpx;
+	}
+	.review{
+		width: 750rpx;
+		border-bottom: 3rpx solid #F2F2F2;
+	}
+	.review-dis{
+		margin: 30rpx 30rpx 30rpx 30rpx;
+	}
+	.review-title{
+		text-align: center;
+	}
+	.review-about{
+		font-size: 32rpx;
+		color: #4A4A4A;
+		margin-left: 16rpx;
+		margin-right: 16rpx;
+		vertical-align: middle;
+	}
+	.review-about-line{
+		height: 3rpx;
+		width: 94rpx;
+		background-color: #979797;
+		display: inline-block;
+		vertical-align: middle;
+	}
+	.review-photo{
+		width:66rpx;
+		height:66rpx;
+		display: inline-block;
+		
+		margin-top:4rpx;
+		vertical-align: middle;
+		margin-right: 20rpx;
+	}
+	.review-dz{
+		width:46rpx;
+		height:46rpx;
+		display: inline-block;
+		margin-left:20rpx;
+		margin-top:14rpx;
+		position: absolute;
+		right:32rpx;
+		vertical-align: middle;
+	}
+	.review-name{
+		color: #989898;
+		vertical-align: middle;
+	}
+	.review-dznum{
+		color: #545454;
+		position: absolute;
+		right: 90rpx;
+		vertical-align: middle;
+		margin-top: 20rpx;
+	}
+	.review-content{
+		margin: 10rpx 0 20rpx 86rpx;
+		font-size: 28rpx;
+		color: #4A4A4A;
+	}
+	.hot-review{
+		width: 65rpx;
+		height: 30rpx;
+		border-radius: 6rpx;
+		background-color: #E96E6E;
+		font-size: 20rpx;
+		color: #FFFFFF;
+		margin-left: 86rpx;
+		display: inline-block;
+		text-align: center;
+	}
+	.review-date{
+		font-size: 24rpx;
+		color: #989898;
+		margin-left: 30rpx;
+		margin-right: 50rpx;
+	}
+	.reply-tip{
+		font-size: 24rpx;
+		color: #000000;
+	}
+	.reply-content{
+		width: 600rpx;
+		margin: 30rpx 30rpx 30rpx 86rpx;
+		padding: 10rpx 10rpx 20rpx 10rpx;
+		background-color: #E8EBF2;
+		border-radius: 10rpx;
+	}
+	.reply-name{
+		color: #989898;
+		font-size: 24rpx;
+		margin-left: 23rpx;
+		vertical-align: middle;
+	}
+	.send-reply-logo{
+		width:46rpx;
+		height:46rpx;
+		display: inline-block;
+		margin-left:20rpx;
+		margin-top:4rpx;
+	}
+</style>

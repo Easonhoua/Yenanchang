@@ -1,0 +1,125 @@
+<template>
+	<view class="center">
+		<mescroll-body @down="downCallBack" @init ="initMescroll" @up="upCallback">
+			<!-- 要在加上一层view否则滚动到某个地方就会失效 -->
+			<view >
+				<view class="literature-top">
+					<!-- 轮播swiper -->
+					<swiper v-if="bannerList.length" class="swiper" indicator-dots circular indicator-color="#FFFFFF"
+					 indicator-active-color="#43917A" :interval="3000" :duration="1000">
+						<swiper-item class="item imgbox" v-for="(item,index) in bannerList" :key="index" @click="bannerClick(item)">
+							<image class="imgbox-img" style="height: 284rpx;" :src="item.photo" mode="aspectFill"></image>
+						</swiper-item>
+					</swiper>
+					<view v-else class="imgbox">
+						<image class="imgbox-img" src="/static/img/literature/banner.png"></image>
+					</view>
+					
+					<!-- <view class="top-slider-place">
+						<image class="top-slider-place-left" src="/static/img/literature/ycgp.png" @tap="toShowList()"></image>
+						<image class="top-slider-place-right" src="/static/img/literature/wydk.png" @tap="toLiteraList()"></image>
+					</view> -->
+				</view>
+				<!--tabbars-->
+				<platformLabels-component class="top-scroll" ref='labelsUtil' @refreshTableList="refreshTableList" :platformSubjectId="platformSubjectId" essenceType="1"></platformLabels-component>
+				
+				<!--list-->
+				<tableList-component ref='tableList'></tableList-component>
+			</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	import platformLabelsComponent from "@/components/platformLabels-component/platformLabels-component.vue";
+	import tableListComponent from "@/components/tableList-component/tableList-component.vue";
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		components: {
+			platformLabelsComponent,
+			tableListComponent
+		},
+		data() {
+			return {
+				mescroll : '',
+				keyword:'', //关键字
+				platformSubjectId: "2", //赏文创
+				platformLabels:'0',// 标签编号 有标签时以逗号分隔
+				nearby:2, //附近
+				bannerList: []
+			}
+		},
+		onShow() {
+			const app = getApp();
+			if(app.globalData.literature){
+				this.bannerList=app.globalData.literature;
+			}
+		},
+		onLoad() {
+		},
+		methods: {
+			
+			bannerClick: function(item) {
+				this.util.bannerClick(item);
+			},
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.sportsList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				this.$refs.tableList.queryList(mescroll,this.platformLabels,this.nearby,this.keyword);
+			},
+			//购票演出
+			toShowList: function() {
+				uni.navigateTo({
+					url: 'literaturelistms'
+				})
+			},
+			//文艺大咖
+			toLiteraList:function(){
+				uni.navigateTo({
+					url:'literaturelist'
+				})
+			},
+			//tabar搜索
+			onNavigationBarSearchInputConfirmed(e){
+				this.keyword = e.text;
+				this.downCallBack(this.mescroll);
+				uni.hideKeyboard();
+			},
+			onNavigationBarSearchInputChanged(e){
+				if(!e.text){
+					this.keyword = e.text;
+					this.downCallBack(this.mescroll);
+					uni.hideKeyboard();
+				}
+			},
+			//根据标签更新list表
+			refreshTableList: function(data){
+				this.platformLabels = data.labelIds;
+				this.nearby = data.nearby;
+				this.$refs.tableList.platformSubjectId= this.platformSubjectId;
+				this.downCallBack(this.mescroll);
+			}
+		}
+	}
+</script>
+
+<style>
+	.top-scroll {
+		display: flex;
+		flex-direction: row;
+		white-space: nowrap;
+		z-index: 99;
+		position: -webkit-sticky;
+		position: sticky;
+		top: 0;
+		background-color: #FFFFFF;
+	}
+</style>

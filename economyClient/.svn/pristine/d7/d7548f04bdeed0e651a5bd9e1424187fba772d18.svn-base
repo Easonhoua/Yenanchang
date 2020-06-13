@@ -1,0 +1,129 @@
+<template>
+	<view class="submitOrder fillorder payment">
+		<view class="order-cellbox">
+			<view class="order-cell-top">
+				<view class="order-cell-imgbox"><image src="../../static/img/details/f_pic1.png"></image></view>
+				<view class="order-cell-bd">
+					<view class="name">{{cashData.cashName}}</view>
+					<view class="tip">{{cashData.cashDateTypeName}}</view>
+					<view class="labelbox">
+						<text class="label" v-if="cashData.buyLimitNum == 0 ">不限张数</text>
+						<text class="label" v-else>单次限制使用{{cashData.buyLimitNum}}张</text>
+						<text class="label" v-if="cashData.refundRule == 1 ">随时退</text>
+						<text class="label" v-else>{{cashData.refundCondition}}</text>
+						<text class="label">过期自动退</text>
+					</view>
+					<text class="price">￥{{cashData.cashAmount * cashData.discountPercent/100 }}</text>
+				</view>
+			</view>
+			<view class="order-cell">
+				<view class="order-cell-bd">
+					数量
+				</view>
+				<view class="order-cell-right">
+					<view class="number"><text class="reduce" @click="reduce">-</text><input class="input" v-model="num" /><text class="add" @click="add">+</text></view>
+				</view>
+			</view>
+			<view class="order-cell">
+				<view class="order-cell-bd">
+					小计
+				</view>
+				<view class="order-cell-right orange">
+					¥{{orderTotalAmount}}
+				</view>
+			</view>
+		</view>
+		<view class="order-cellbox">
+			<view class="order-cell">
+				<view class="order-cell-bd">
+					实付金额
+				</view>
+				<view class="order-cell-right orange">
+					¥{{orderTotalAmount}}
+				</view>
+			</view>
+		</view>
+		<view class="order-cellbox" style="border:none;">
+			<view class="order-cell">
+				<view class="order-cell-bd">
+					手机号
+				</view>
+				<view class="order-cell-right">
+					{{contactPhone}}
+				</view>
+			</view>
+		</view>
+		<view class="bottombar">
+			<view class="btn" @tap="buyCash">确认支付</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				cashData:{},
+				cashId:'',
+				num:1,
+				contactPhone:'',
+				orderTotalAmount:0
+			}
+		},
+		onLoad(e) {
+			if(e.cashId){
+				this.cashId = e.cashId;
+				this.initData(e.cashId);
+			}
+			
+			let user = uni.getStorageSync("user");
+			this.contactPhone = user.mobilePhone.replace(/(\d{3})\d{4}(\d{4})/,"$1****$2");
+		},
+		methods: {
+			initData:function(cashId){
+				//获取商家订座配置
+				const url = '/memberapi/api/cash/read.do';
+				var sendData = {
+					cashId:cashId
+				}
+				this.request.get(url, sendData).then(res => {
+					this.cashData = res.data;
+					
+					this.orderTotalAmount = this.cashData.discountAmount * this.num;
+					this.orderTotalAmount = this.orderTotalAmount.toFixed(2);
+				});
+			},
+			reduce:function(){
+				this.num--;
+				if(this.num < 1){
+					this.num =1;
+				}
+				this.orderTotalAmount = this.cashData.discountAmount * this.num;
+				this.orderTotalAmount = this.orderTotalAmount.toFixed(2);
+			},
+			add:function(){
+				this.num++;
+				this.orderTotalAmount = this.cashData.discountAmount * this.num;
+				this.orderTotalAmount = this.orderTotalAmount.toFixed(2);
+			},
+			buyCash:function(){//提交订单
+				//获取商家订座配置
+				const url = '/memberapi/api/cash/createOrder.do';
+				var sendData = {
+					cashId:this.cashId,
+					cashNum:this.num
+				}
+				this.request.post(url, sendData).then(res => {
+					//提交订单
+					uni.navigateTo({
+						url:"/pages/payment/payment?orderId="+res.data.orderId+"&payTotalAmount="+res.data.payTotalAmount
+					});
+				});
+			}
+		}
+	}
+	
+</script>
+
+<style>
+</style>

@@ -1,0 +1,92 @@
+<template>
+	<view>
+		<mescroll-body @down="downCallBack" @init ="initMescroll" @up="upCallback">
+			<view class="voucher">
+				<view class="couponbox" v-for="(item,index) in activityReserveList" :key="index" @tap="toDetail(item)">
+					<view class="name">
+						<image class="img" :src="item.imagePath"></image>
+						<view class="name-bd">
+							<view>{{item.activityTitle}}</view>
+							<view class="time">有效期至：{{item.endDate}}</view>
+							<view class="time">使用状态：{{item.useStatusName}}</view>
+						</view>
+						<image class="arrow-right" src="/static/img/common/right-choose-arrow.png"></image>
+					</view>
+					<view class="coupon-bd">
+						<view class="password"><text class="label">密码:{{item.reserveNum}}</text></view>
+						<view class="codebox"><image class="code" :src="item.img"></image></view>
+					</view>
+				</view>
+			</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import wxqrcode from "@/common/js/wxqrcode.js" // 二维码生成器
+	export default {
+		data() {
+			return {
+				activityId:0, //活动编号
+				mescroll : '',
+				activityReserveList:[],
+			}
+		},
+		onLoad(e) {
+			if(e.activityId){
+				this.activityId = e.activityId;
+			}
+		},
+		methods: {
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.activityList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				//获取菜品信息列表
+				let url = '/memberapi/api/activityReserve/list.do';
+				let data = {
+					activityId:this.activityId,
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+				};
+				var that = this;
+				this.request.post(url,data,mescroll).then(res=>{
+					const newData = res.list;
+					newData.forEach(item => {
+						if(item.imagePath){
+							let imagePath = JSON.parse(item.imagePath)[0];
+							if(imagePath.filePath_220){
+								item.imagePath = that.request.getBaseImagePath() + imagePath.filePath_220;
+							}else{
+								item.imagePath = that.request.getBaseImagePath() + imagePath.filePath;
+							}
+						}
+						item.img = wxqrcode.createQrCodeImg(item.reserveNum.toString(), {
+							size: parseInt(300) //二维码大小  
+						});
+					});
+					if(res.list.length === 0 || this.mescroll.num === 1)  this.activityReserveList = [];
+					this.activityReserveList = this.activityReserveList.concat(newData); //追加新数据
+				})
+			},
+			toDetail:function(item){
+				let url='/pages/activity/activityReserveDetails?activityId='+item.activityId+'&reserveId='+item.reserveId
+				if(item.orderId){
+					url='/pages/activity/activityReserveOrderDetails?activityId='+item.activityId+'&reserveId='+item.reserveId+'&orderId='+item.orderId
+				}
+				uni.navigateTo({
+					url:url
+				})
+			}
+		},
+	}
+</script>
+
+<style>
+</style>

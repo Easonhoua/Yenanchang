@@ -1,0 +1,128 @@
+<template>
+	<view class="content">
+		<mescroll-body @down="downCallBack" @init ="initMescroll" @up="upCallback">
+			<view class="list-item" v-for="(item,index) in orderList" :key="index">
+				<view class="display-row">
+					<image class="list-item-icon" :src="item.thumbnailPath"></image>
+					<view class="list-item-name">{{item.shopName}}</view>
+					<view class="list-item-state">{{item.orderStatusName}}</view>
+				</view>
+				
+				<view class="list-item-detail">
+					<view class="display-row">
+						<view class="text-edit" style="margin-right: 50rpx;">时间人数</view>
+						<view class="text-detail">{{item.bookDate +'  '+item.bookTime+' ' + item.dinersNum}}人</view>
+					</view>
+					<view class="display-row">
+						<view class="text-edit" style="margin-right: 50rpx;">位置要求</view>
+						<view class="text-detail">{{item.bookRoomTypeName}}</view>
+					</view>
+					<view class="display-row">
+						<view class="text-edit" style="margin-right: 50rpx;">联系方式</view>
+						<view class="text-detail">{{item.occupant +" "+ item.contactPhone}}</view>
+					</view>
+				</view>
+				<view class="order-button-view display-row">
+					<view v-if="item.delicacyOrderStatus <= 3" class="order-button" @tap="canceOrder(item.orderId)">取消订单</view>
+				</view>
+			</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		data() {
+			return {
+				mescroll:'',
+				orderList:[]
+			}
+		},
+		onLoad() {
+		},
+		methods: {
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.orderList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				this.initData(mescroll);
+			},
+			initData:function(mescroll){
+				let that=this;
+				//获取商家订座配置
+				const url = '/memberapi/api/delicacy/orders/list.do';
+				var sendData = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size
+				}
+				this.request.post(url, sendData,mescroll).then(res => {
+					let currListData = res.list;
+					that.util.formatShopList(currListData)
+					that.orderList = that.orderList.concat(currListData); //追加新数据
+				});
+			},
+			canceOrder:function(orderId){
+				//提交订单
+				uni.navigateTo({
+					url:"/pages/food/cancelFoodOrder?orderId="+orderId
+				});
+			}
+		}
+	}
+</script>
+
+<style>
+	.list-item{
+		margin: 20rpx 20rpx 0rpx 20rpx;
+		width: 710rpx;
+		height: 400rpx;
+		border-radius: 15rpx;
+		background-color: #FFFFFF;
+	}
+	
+	.list-item-icon{
+		width: 80rpx;
+		height: 80rpx;
+		border-radius: 34rpx;
+		margin: 30rpx 20rpx 20rpx 20rpx;
+	}
+	.list-item-name{
+		font-size: 36rpx;
+		font-weight: 500;
+	}
+	.list-item-state{
+		color: #FF8B1E;
+		font-size: 32rpx;
+		margin-left: auto;
+		margin-right: 30rpx;
+	}
+	.list-item-detail{
+		margin-left: 100rpx;
+		border-top: 1rpx solid #EEEEEE;
+		height: 180rpx;
+		line-height: 50rpx;
+		font-size: 28rpx;
+		padding-top: 20rpx;
+	}
+	.order-button-view{
+		width: 600rpx;
+		height: 100rpx;
+		margin-left: auto;
+		justify-content: flex-end;
+	}
+	.order-button{
+		font-size: 28rpx;
+		color: #4A4A4A;
+		border:1rpx solid #EEEEEE;
+		padding: 7rpx 21rpx;
+		margin-right: 30rpx;
+	}
+</style>

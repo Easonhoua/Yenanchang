@@ -1,0 +1,259 @@
+<template>
+	<div class="mask" @click="wrapperClick()">
+		<div class="mask-content">
+			<text class="title">用户协议及隐私政策</text>
+			<scroller class="scroller-view">
+				<text class="describle">{{describle1}}</text>
+				<text class="deal-text" v-on:click.stop="readPrivacy">《ye南昌隐私政策》</text>
+				<text class="deal-text" v-on:click.stop="readUserDeal">《ye南昌用户协议》</text>
+				<text class="describle">{{describle2}}</text>
+			</scroller>
+			<text class="tip">如果您同意请点击下面的按钮以接受我们的服务</text>
+			
+			<div v-if="isAndroid" class="buttons">
+				<text class="button-left" v-on:click.stop="disAgreeButtonClick()">不同意</text>
+				<text class="button-right" v-on:click.stop="agreeButtonClick()">同意并继续</text>
+			</div>
+			
+			<text v-else class="button-text" v-on:click.stop="agreeButtonClick">我知道了</text>
+			
+			<div v-if="disAgree" class="mask" style="background-color: rgba($color: #000000, $alpha: 0.55);">
+				<div class="tip-view">
+					<text class="tip-view-title">您需要同意《ye南昌隐私政策》和《ye南昌用户协议》,才能继续使用我们的服务</text>
+					<div class="tip-view-buttons">
+						<text class="tip-view-left"  v-on:click.stop="cancel()">暂不</text>
+						<text class="tip-view-right"  v-on:click.stop="sure()">去同意</text>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</template>
+
+<script>
+	
+	import request from "../../api/index.js"
+	import util from "../../common/js/util.js"
+	export default {
+		data() {
+			return {
+				describle1: "亲爱的用户，感谢您一直以来的支持!为更好地保护您的权益，同时遵守相关监管要求，我们更新了",
+				describle2: "特向您说明如下:\n1.为向您提供基本服务，我们会遵循正当、合法、必要的原则收集和使用必要的信息；\n2.基于您的授权我们可能会收集和使用您的位置信息和设备信息，您有权拒绝或取消授权;\n3.未经您的授权同意，我们不会将您的信息共享给第三方或用于您未授权的其他用途；\n4.您可以对上述信息进行访问、更正、删除、以及注销账户。",
+				disAgree:false,
+				isAndroid:false,
+			}
+		},
+		// created() {
+		// 	const subNVue = uni.getCurrentSubNVue();
+		// 	subNVue.addEventListener("maskClick", function() {
+		// 		//console.log("遮罩点击");
+		// 		const subNVue = uni.getSubNVueById('userDealPrivacy');
+		// 		subNVue.hide('slide-in-top', 250);
+		// 		// subNVue.setStyle({
+		// 		// mask: "none"
+		// 		// });
+		// 	}, false);
+		// },
+		onShow() {
+			if (uni.getSystemInfoSync().platform == "ios") {
+				//console.log("苹果");
+			}else
+			{
+				this.isAndroid = true;
+				//console.log("安卓");
+			}
+		},
+		methods: {
+			wrapperClick: function() {
+
+			},
+			cancel:function(){
+				//console.log("5555555");
+				plus.runtime.quit();
+				//console.log("777777");
+				// #ifdef APP-PLUS
+					plus.runtime.quit();
+				// #endif
+			},
+			sure:function(){
+				//console.log("666666");
+				this.disAgree = false;
+			},
+			disAgreeButtonClick: function(){
+				//console.log("不同意不同意不同意");
+				this.disAgree = true;
+				uni.showModal({
+					title:"您需要同意《ye南昌隐私政策》和《ye南昌用户协议》，才能继续使用我们的服务",
+					cancelText:"暂不",
+					confirmText:"去同意",
+					complete(res) {
+						if(res.cancel){
+							
+						}
+					}
+				})
+				
+			},
+			agreeButtonClick: function() {
+				uni.setStorageSync("agreeUserDeal",true);
+				const subNVue = uni.getSubNVueById('userDealPrivacy');
+				subNVue.hide();
+			},
+			readPrivacy: function() {
+				let webUrl = request.getBaseUrl() + "/html/privacyUser.html";
+				util.gotoWebView(webUrl, "ye南昌隐私政策");
+			
+			},
+			readUserDeal: function() {
+				let webUrl = request.getBaseUrl() + "/html/yhtk.html";
+				util.gotoWebView(webUrl, "ye南昌用户协议");
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.mask {
+		align-items: center;
+		justify-content: center;
+		top: 0rpx;
+		bottom: 0rpx;
+		right: 0rpx;
+		position: fixed;
+		width: 750rpx;
+		background-color: rgba($color: #000000, $alpha: 0.4);
+	}
+	
+	.mask-content{
+		width: 550rpx;
+		height: 760rpx;
+		background-color: #FFFFFF;
+		border-radius: 20rpx;
+		z-index:-1;
+		overflow: hidden;
+	}
+	.title {
+		height: 100rpx;
+		line-height: 100rpx;
+		flex: 0;
+		text-align: center;
+		font-size: 36rpx;
+		font-weight: bold;
+	}
+
+	.scroller-view {
+		width: 550rpx;
+		height: 460rpx;
+		height: 460rpx;
+		padding: 0rpx 30rpx 0rpx 35rpx;
+	}
+	.describle{
+		font-size: 26rpx;
+		color: #333333;
+		text-align: left;
+		line-height: 40rpx;
+	}
+	
+	.tip{
+		width: 550rpx;
+		height: 80rpx;
+		font-size: 26rpx;
+		padding: 20rpx 35rpx;
+		margin-bottom: 10rpx;
+		color: #333333;
+		background-color: #FFFFFF;
+		z-index:3;
+	}
+	
+	.deal-text {
+		margin-left: -10rpx;
+		font-size: 24rpx;
+		color: #43917A;
+		line-height: 40rpx;
+	}
+	
+	.buttons{
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		height: 90rpx;
+		padding: 20rpx 30rpx;
+	}
+	.button-left{
+		font-size: 30rpx;
+		width: 220rpx;
+		height: 70rpx;
+		line-height: 65rpx;
+		color: #333333;
+		background-color: #F5F5F5;
+		border-radius: 12rpx;
+		text-align: center;
+	}
+	.button-right {
+		
+		font-size: 30rpx;
+		width: 220rpx;
+		height: 70rpx;
+		line-height: 65rpx;
+		color: #FFFFFF;
+		background-color: #43917A;
+		border-radius: 12rpx;
+		text-align: center;
+	}
+	.button-text {
+		border-top-style: solid;
+		border-top-width: 2rpx;
+		border-top-color: #F5F5F5;
+		font-size: 30rpx;
+		font-weight: bold;
+		width: 550rpx;
+		height: 100rpx;
+		line-height: 100rpx;
+		color:  #43917A;
+		text-align: center;
+	}
+	
+	.tip-view{
+		width: 460rpx;
+		height: 240rpx;
+		background-color: #FFFFFF;
+		border-radius: 20rpx;
+		z-index:2;
+		overflow: hidden;
+	}
+	.tip-view-title{
+		width: 460rpx;
+		padding: 30rpx 20rpx 30rpx 25rpx;
+		font-size: 30rpx;
+		font-weight: bold;
+	}
+	.tip-view-buttons{
+		width: 460rpx;
+		margin-top: 0rpx;
+		flex-direction: row;
+		border-top-style: solid;
+		border-top-width: 1rpx;
+		border-top-color: rgba(207,207,207,1);
+	}
+	.tip-view-left{
+		font-size: 30rpx;
+		width: 230rpx;
+		height: 80rpx;
+		line-height: 80rpx;
+		color: #57ADFE;
+		text-align: center;
+		border-right-width: 1rpx;
+		border-right-style: solid;
+		border-right-color: rgba(207,207,207,1);
+	}
+	.tip-view-right {
+		font-size: 30rpx;
+		width: 230rpx;
+		height: 80rpx;
+		line-height: 80rpx;
+		color: #57ADFE;
+		text-align: center;
+	}
+	
+</style>

@@ -1,0 +1,397 @@
+<!--话题详情-->
+<template>
+	<view class="layout">
+		<mescroll-uni @down="downCallBack" @init ="initMescroll" @up="upCallback">
+			<!-- 头图 -->
+			<view class="swiper-item">
+				<image class="image" :src="topicData.thumbnailPath" mode="aspectFill"></image>
+				<view class="swiper-item-bd">
+					<!-- mulit-limit-one -->
+					<view class="title text-two-line-hide">{{topicData.topicTitle}}</view>
+					<view class="read">参与量：{{topicData.attendNum}}</view>
+					<view class="read">主持人：{{topicData.userName}}</view>
+				</view>
+			</view>
+			<!-- 简介-->
+			<view style="border-top: 10px solid #F2F2F2;"></view>
+			<view class="view-content">
+				<view>{{topicData.topicRemark}}</view>
+			</view>
+			<view style="border-top: 10px solid #F2F2F2;"></view>
+			<!-- 动态-->
+			<view class="column col-tabcon">
+				<text class="title" style="padding-top: 30rpx;">动态</text>
+				<view class="list-cell" v-for="(item,index) in topicDynamicList" :key="index" @click="gotoTopicDetail(item)">
+					<view class="inner">
+						<view class="user">
+							<!-- <text class="gz">+关注</text> -->
+							<image class="img" :src="util.formatImagePath(item.photo)" mode="aspectFill">
+							<view class="right-txt">
+								<!-- <label class="label">{{item.gradeName}}</label> -->
+								<view class="line-h"><text class="name">{{item.userName}}</text></view>
+								<text class="time">{{item.publishTime}}</text>
+							</view>
+						</view>
+						<view class="txt">
+							{{item.dynamicRemark}}
+						</view>
+						<view v-if="item.dynamicImg && item.dynamicImg.length >1" class="imgbox">
+							<view  v-for="(itemImage,indexImage) in item.dynamicImg" :key="indexImage">
+								<image class="img"  :src="itemImage" style="margin-right: 20rpx;" mode="aspectFill"></image>
+							</view>
+						</view>
+						
+						<view v-if="item.dynamicImg && item.dynamicImg.length == 1" class="imgboxbig">
+							<image class="img" :src="item.dynamicImg[0]" mode="aspectFill"></image>
+						</view>
+						 
+						<!--点赞、评论、分享-->
+						<topic-navi :topicDynamic="item"></topic-navi>
+					</view>
+				</view>
+			</view>
+			<view class="bottom-corner-button" @click="addTopicDynamic">立即参与</view>
+			
+		</mescroll-uni>
+		<uni-popup ref="popup" type="bottom">
+		<view>
+			<textarea class="textarea textarea-h" placeholder="写评论" :focus="true" v-model="dynamicRemark"></textarea>
+		</view>
+		<view class="uni-popup-grou-button">
+			<view class="uni-popup-cancel-button" @click="cancelBtn('popup')">取消</view>
+			<view class="uni-popup-confirm-button" @click="confirmBtn('popup')">确定</view>
+		</view>
+		</uni-popup>
+	</view>
+</template>
+
+<script>
+	import uniPopup from '@/components/uni-popup/uni-popup.vue';
+	import topicNavi from "@/pages/topic/topic-navi.vue"
+	export default {
+		components: {
+			uniPopup,
+			topicNavi
+		},
+		data() {
+			return {
+				topicData:{}, 
+				dynamicId:0,
+				clickIndex:0,
+				dynamicRemark:'', //评论内容
+				mescroll : '',
+				topicDynamicList:[], //最新话题动态
+			}
+		},
+		onLoad(e){
+			if(e.topicId){
+				this.topicData.topicId =e.topicId;
+				this.queryDetail(e.topicId);
+			}
+		},
+		onNavigationBarButtonTap() {
+			var self = this;
+			uni.showActionSheet({
+				itemList: ["投诉举报"],
+				complete(res) {
+					if (res.tapIndex == 0) {
+						self.util.tipOff();
+					}
+				}
+			})
+		},
+		methods: {
+			queryDetail:function(topicId){
+				let url = '/memberapi/api/topic/read.do';
+				let data = {
+					topicId: topicId,
+				};
+				// var that = this;
+				this.request.get(url, data).then(res => {
+					if(res.returncode == 0){
+						this.topicData = res.data;
+						if(this.topicData.thumbnailPath){
+							this.topicData.thumbnailPath = this.util.formatImagePath(this.topicData.thumbnailPath);
+						}
+						// if(that.topicData.thumbnailPath){
+						// 	let thumbnailPath = JSON.parse(that.topicData.thumbnailPath);
+						// 	if(thumbnailPath.filePath_220){
+						// 		that.topicData.thumbnailPath = that.request.getBaseImagePath() + thumbnailPath.filePath_220;
+						// 	}else{
+						// 		that.topicData.thumbnailPath = that.request.getBaseImagePath() + thumbnailPath.filePath;
+						// 	}
+						// }
+					}
+				})
+			},
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.topicDynamicList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				//获取最新的话题信息
+				const url = '/memberapi/api/topicDynamic/list.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					topicId: this.topicData.topicId,
+				};
+				var that = this;
+				this.request.get(url,data,mescroll).then(res=>{
+					let newData = res.list;
+					newData.forEach(item => {
+						// if(item.photo){
+						// 	let photo = JSON.parse(item.photo);
+						// 	if(photo.filePath_220){
+						// 		item.photo = that.request.getBaseImagePath() + photo.filePath_220;
+						// 	}else{
+						// 		item.photo = that.request.getBaseImagePath() + photo.filePath;
+						// 	}
+						// }
+						// if(item.dynamicImg){
+						// 	item.dynamicImg =JSON.parse(item.dynamicImg);
+						// }
+						
+						if(item.dynamicImg){
+							item.dynamicImg = this.util.formatImagePaths(item.dynamicImg);
+						}
+						if (item.publishTime) {
+							item.publishTime = this.util.formatMinutesDay(item.publishTime.replace(/-/ig, "/"));
+						}
+					});
+					if(res.list.length === 0 || this.mescroll.num === 1)  this.topicDynamicList = [];
+					this.topicDynamicList = this.topicDynamicList.concat(newData); //追加新数据
+				})
+			}, 
+			gotoTopicDetail:function(item){
+				uni.navigateTo({
+					url: "/pages/topic/topicdynamicView?dynamicId=" +item.dynamicId
+				})
+			},
+			//话题动态添加
+			addTopicDynamic:function(){
+				uni.navigateTo({
+					url:"topicdynamicInfo?topicId="+this.topicData.topicId
+				}) 
+			},
+			//动态评价添加
+			addTopicDynamicComment:function(item,index){
+				this.dynamicId = item.dynamicId;
+				this.clickIndex = index;
+				this.$refs['popup'].open();
+			},
+			//评论取消
+			cancelBtn(type) {
+				this.$refs[type].close();
+			},
+			//评论提交
+			confirmBtn(type) {
+				let url = '/memberapi/api/topicDynamicComment/add.do';
+				let data = {
+					dynamicId: this.dynamicId,
+					dynamicRemark:this.dynamicRemark,
+				};
+				var that = this;
+				this.request.post(url, data).then(res => {
+					if (res.returncode === 0) {
+						that.request.toastTips("新增成功");
+						that.$refs[type].close();
+					}else{
+						that.request.toastTips("新增失败");
+					}
+				})
+			},
+		}
+	}
+</script>
+
+<style lang="scss">
+	.swiper-item {
+		height: 300rpx;
+		width: 100%;
+		background: #FFFFFF;
+		padding: 32rpx 32rpx 32rpx 32rpx;
+		display: flex;
+		flex-direction: row;
+		display: -webkit-flex;
+
+		.swiper-item-bd {
+			// padding-top: 40rpx;
+			padding-left: 30rpx;
+
+			.title {
+				font-size: 42rpx;
+				color: #000000;
+				font-weight: 650;
+				margin-bottom: 30rpx;
+			}
+
+			.read {
+				font-size: 28rpx;
+				color: #000000;
+				padding: 3rpx 0;
+			}
+		}
+
+		.image {
+			width: 160rpx;
+			min-width: 160rpx;
+			max-width: 160rpx;
+			// width : 240rpx;
+			height: 240rpx;
+		}
+	}
+
+	.view-content {
+		margin: 30rpx 30rpx 30rpx 30rpx;
+		font-size: 32rpx;
+		color: #4A4A4A;
+		line-height: 50rpx;
+	}
+
+	.review {
+		border-top: 20rpx solid #F2F2F2;
+		width: 750rpx;
+	}
+
+	.review-dis {
+		margin: 30rpx 30rpx 30rpx 30rpx;
+	}
+
+	.review-title {
+		text-align: left;
+	}
+
+	.review-about {
+		font-size: 32rpx;
+		color: #4A4A4A;
+		margin-left: 16rpx;
+		margin-right: 16rpx;
+		vertical-align: middle;
+	}
+
+	.review-about-line {
+		height: 3rpx;
+		width: 94rpx;
+		background-color: #979797;
+		display: inline-block;
+		vertical-align: middle;
+	}
+
+	.review-photo {
+		width: 66rpx;
+		height: 66rpx;
+		display: inline-block;
+		margin-top: 4rpx;
+		vertical-align: middle;
+		margin-right: 20rpx;
+		margin-left: 15px;
+	}
+
+	.review-dz {
+		width: 36rpx;
+		height: 36rpx;
+		display: inline-block;
+		margin-left: 20rpx;
+		margin-top: 14rpx;
+		position: absolute;
+		right: 32rpx;
+		vertical-align: middle;
+	}
+
+	.review-name {
+		color: #9D9D9D;
+		vertical-align: middle;
+	}
+
+	.review-name .label {
+		width: 28px;
+		height: 10px;
+		line-height: 10px;
+		background: #E6C036;
+		border-radius: 7px;
+		font-size: 9px;
+		color: #FFFFFF;
+		display: inline-block;
+		text-align: center;
+		vertical-align: middle;
+	}
+
+	.review-dznum {
+		color: #545454;
+		position: absolute;
+		right: 90rpx;
+		vertical-align: middle;
+		margin-top: 20rpx;
+	}
+
+	.review-content {
+		margin: 10rpx 0 20rpx 86rpx;
+		font-size: 28rpx;
+		color: #4A4A4A;
+	}
+
+	.review-date {
+		font-size: 24rpx;
+		color: #989898;
+		margin-left: 30rpx;
+		margin-right: 50rpx;
+	}
+
+	.reply-tip {
+		margin-left: 86rpx;
+		font-size: 24rpx;
+		color: #000000;
+	}
+
+	.review-line {
+		padding-bottom: 17px;
+		border-bottom: 2rpx solid #F2F2F2;
+	}
+
+	.bottom-btn-outter-gp {
+		width: 100vw;
+		height: 98rpx;
+		line-height: 98rpx;
+		background-color: #FFFFFF;
+		bottom: 0rpx;
+		position: fixed;
+		z-index: 100;
+	}
+
+	.bottom-btn-gp {
+		width: 275rpx;
+		height: 64rpx;
+		line-height: 64rpx;
+		font-size: 32rpx;
+		text-align: center;
+		border-radius: 0;
+		position: fixed;
+		color: #FFFFFF;
+		background-color: #425257;
+		z-index: 9999;
+		border-radius: 15rpx;
+		margin: 17rpx 30rpx 17rpx 445rpx;
+	}
+	.uni-popup-grou-button {
+		margin-top: 10px;
+		display: flex;
+	}
+	.uni-popup-cancel-button {
+		width: 100%;
+		text-align: left;
+		font-size: 14px;
+		color: #3b4144;
+	}
+	.uni-popup-confirm-button{
+		width: 100%;
+		text-align: right;
+		font-size: 14px;
+		color: #007AFF;
+	}
+</style>

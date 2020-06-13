@@ -1,0 +1,95 @@
+<template>
+	<view>
+		<mescroll-uni @down="downCallBack" @init="initMescroll" @up="upCallback" >
+			<view class="tab-con">
+				<!-- <view class="mapbox">
+				地图区域
+				</view> -->
+				<view class="module">
+					<view class="list play">
+						<view class="item" v-for="(item,index) in nearShopList" :key="index" @click="toShopDetail(item)">
+							<view class="imgbox">
+								<image class="img" :src="item.thumbnailPath" mode="aspectFill"></image>
+							</view>
+							<view class="txt">
+								<view class="item-title font32 txt-cut">{{item.shopName?item.shopName:'店铺名称'}}</view>
+								<view class="bottom-bar">
+									<view class="assist-color font24 txt-cut"><image class="dingwei" src="../../static/img_new/common/location_black@3x.png"></image>{{item.address}}</view>
+									<view class="assist-color font24"><image class="icon-dz" src="../../static/img_new/common/dz_icon_nor@3x.png"></image><text>{{item.likeNum}}</text></view>
+								</view>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</mescroll-uni>
+	</view>
+</template>
+
+<script>
+	export default {
+		props:{
+			// 坐标
+			coordinate:{
+				type:String,
+				default:"115.857963,28.683016"
+			},
+			subjectId:{
+				type:String,
+				default:""
+			},
+			platformTypeId:{
+				type:String,
+				default:""
+			},
+		},
+		data() {
+			return {
+				mescroll:'',
+				keyword:'',
+				nearShopList: [], //附近的店铺
+				
+			}
+		},
+		methods:{
+			initMescroll:function(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack:function(mescroll){
+				mescroll.resetUpScroll();
+			},
+			upCallback:function(mescroll){
+				this.queryNearHotel(mescroll);
+			},
+			queryNearHotel: function(mescroll) {
+				let url = '/memberapi/api/shops/queryShopList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					keyword:this.keyword,
+					coordinate: this.coordinate,
+					essenceType:1,
+					distance: "5000",
+					sortFlag: "distance-asc",
+					subjectId:this.subjectId,
+					platformTypeId:this.platformTypeId
+				};
+				this.request.get(url, data, mescroll).then(res => {
+					let shopList = res.list;
+					this.util.formatShopList(shopList);
+					if (mescroll.num == 1) this.nearShopList = [];
+					this.nearShopList = this.nearShopList.concat(shopList);
+				})
+			},
+			//店铺明细
+			toShopDetail:function(item){
+				this.util.gotoShopDetail(item); 
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "../../common/css/other.scss"; 
+</style>

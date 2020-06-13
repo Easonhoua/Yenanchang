@@ -1,0 +1,91 @@
+<template>
+	<view class="content activity">
+		<mescroll-body @down="downCallBack" @init ="initMescroll" @up="upCallback">
+			<!-- 列表开始 -->
+			<view class="listbox">
+				<view class="list" v-for="(item,index) in activityList" :key="index" @tap="toDetail(item)">
+					<view class="list-img"><image :src="item.imagePath"></image></view>
+					<view class="list-bd">
+						<view class="title">{{item.activityTitle}}</view>
+						<view class="txt">时间：{{item.activityTime}} </view>
+						<view class="txt"><text>状态： </text><text class="blue">{{item.endDateStr}}</text></view>
+						<view class="read"><text>浏览量 {{item.pageView}}</text><text>报名数 {{item.maxNum}}</text></view>
+						<view class="link" v-on:click.stop="viewButton(item)">查看券码</view>
+					</view>
+				</view>
+			</view>	
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		data() {
+			return {
+				mescroll : '',
+				activityList:[],
+			}
+		},
+		methods: {
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.activityList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				//获取菜品信息列表
+				let url = '/memberapi/api/activity/myAactivityList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+				};
+				var that = this;
+				this.request.post(url,data,mescroll).then(res=>{
+					const newData = res.list;
+					newData.forEach(item => {
+						if(item.imagePath){
+							let imagePath = JSON.parse(item.imagePath)[0];
+							if(imagePath.filePath_220){
+								item.imagePath = that.request.getBaseImagePath() + imagePath.filePath_220;
+							}else{
+								item.imagePath = that.request.getBaseImagePath() + imagePath.filePath;
+							}
+						}
+						if(item.endDate &&  item.endDate >= that.util.formatDate(new Date())){
+							//item.endDate = item.endDate.replace(/-/ig, "/");
+							item.endDateStr = '报名进行中';
+							item.statusStr=1;
+						}else{
+							item.endDateStr = '报名已结束';
+							item.statusStr=2;
+						}
+					});
+					if(res.list.length === 0 || this.mescroll.num === 1)  this.activityList = [];
+					this.activityList = this.activityList.concat(newData); //追加新数据
+				})
+			},
+			//明细
+			toDetail:function(item){
+				uni.navigateTo({
+					url:"/pages/activity/activityDetail?activityId="+item.activityId
+				})
+			},
+			//查看券码
+			viewButton:function(item){
+				uni.navigateTo({
+					url:'/pages/activity/voucher?activityId='+item.activityId
+				})
+			}
+		}
+	}
+</script>
+
+<style>
+	 
+</style>

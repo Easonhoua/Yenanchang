@@ -1,0 +1,163 @@
+<template>
+	<view class="page searchpage tidepurchase">
+		<view class="searchpage">
+			<view class="header">
+				<view class="back" @click="goBack()">
+					<image class="icon" src="/static/img/common/back.png"></image>
+				</view>
+				<view class="searchbox">
+					<image class="icon" src="/static/img_new/common/search.png"></image>
+					<input class="input" placeholder="" v-model="keyword"  placeholder-style="color:#888888" @blur="queryShopList"  @confirm="queryShopList"/>
+				</view>
+			</view>
+		</view>
+		<!-- 头部结束 top="88rpx" :topbar="true" -->
+		<mescroll-body @down="downCallBack" @init ="initMescroll" @up="upCallback" >
+		<view class="topbanner2">
+			<image v-if="banner" class="img" :src="banner.photo" mode="aspectFill"></image>
+			<image v-else class="img" src="/static/img_new/shopping/img2@3x.png" mode="aspectFill"></image>
+		</view>
+		<view class="tab-con">
+			<view class="panel">
+				<view class="title"><text class="txt">好店推荐</text></view>
+				<view class="panel-con listbox2">
+					<view class="list" v-for="(item,index) in recommendList" :key="index" @tap="toShopDetail(item)">
+						<view class="imgbox">
+							<image class="img" :src="item.thumbnailPath"></image>
+						</view>
+						<view class="righttxt">
+							<view class="name txt-cut">{{item.shopName}}</view>
+							<view class="scorebox">
+								<view class="score">
+									<uni-rate :value="item.score" disabled="true" size="14" style="margin-right: 20rpx;"></uni-rate>
+									<text>{{item.likeNum}}条</text>
+								</view>
+								<view class="pay">消费：{{item.standardPrice}}</view>
+							</view>
+							<view class="tagbox">
+								<view class="tag txt-cut">
+									<text class="txt">{{item.address}}</text><text class="txt">{{item.platformLabelsName}}</text>
+								</view>
+								<text class="">{{item.distance?item.distance:'0'}}km</text>
+							</view>
+							<!-- <view class="Ranking">
+								青山湖区超市/便利店热门榜第1名
+							</view>
+							<view class="evaluation">
+								<view class="userbox">
+									<image class="user img1" src="/static/img_new/shopping/b_img1@3x.png"></image>
+									<image class="user img2" src="/static/img_new/shopping/b_img1@3x.png"></image>
+									<image class="user img3" src="/static/img_new/shopping/b_img1@3x.png"></image>
+								</view>
+								<view class="txt txt-cut">“美食等,二三楼才是超市,产品挺丰富的”</view>
+							</view> -->
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		</mescroll-body>
+		
+	</view>
+</template>
+
+<script>
+	
+	import uniRate from "@/components/uni-rate/uni-rate.vue";
+	export default {
+		components: {
+			uniRate,
+		},
+		data() {
+			return {
+				mescroll : '',
+				recommendList:[], //list列表
+				loading:false,
+				subjectId:4,
+				keyword:'',
+				bannerList:[],
+				banner:{}
+			}
+		},
+		onLoad() {
+			const app = getApp();
+			if(app.globalData.purchaseRecommend){
+				this.bannerList=app.globalData.purchaseRecommend;
+				this.banner = this.bannerList[0];
+			}
+		},
+		methods: {
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.recommendList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				
+				const url = '/memberapi/api/shops/queryShopList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					subjectId: this.subjectId,
+					keyword: this.keyword
+				};
+				
+				if (this.longitude && this.latitude) {
+					data.coordinate = this.longitude + "," + this.latitude;
+					// //data.distance = "5000";; //距离
+				}
+				
+				var that = this;
+				this.request.get(url, data,mescroll).then(res => {
+					var currtList = res.list;
+					that.util.formatShopList(currtList);
+					this.recommendList = this.recommendList.concat(currtList);
+				})
+			},
+			queryShopList(){
+				this.downCallBack(this.mescroll);
+			},
+			toShopDetail(item){
+				this.util.gotoShopDetail(item);
+			},
+			goBack:function(){
+				uni.navigateBack({
+				})
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "../../common/css/other_new.scss";
+	
+	.tidepurchase .searchpage .header{
+		background: #fff;
+	}
+	.tidepurchase .tab-con{
+		margin-top:0;
+		padding:0;
+	}
+	.tidepurchase .searchpage .header{
+		padding-bottom:50rpx;
+	}
+	.tidepurchase .tab-con .panel{
+		padding:0;
+	}
+	.tidepurchase .tab-con .panel .panel-con{
+		display: inherit;
+	}
+	.searchpage .tab-con .list{
+		width:100%;
+	}
+	.tidepurchase .tab-con .panel .title{
+		padding:20rpx;
+		margin-bottom:0;
+		padding-bottom:0;
+	}
+</style>

@@ -1,0 +1,163 @@
+// 模块1-带标题/more
+.module{
+	padding:$space28;
+	.title{
+		font-size:$font36;
+		@extend %flex-justify-content;
+		margin-bottom:$bottom20;
+	}
+	.more{
+		font-size:$font28;
+		position: relative;
+		padding-right:20rpx;
+	}
+	.more:after{
+		width:12rpx;
+		height:20rpx;
+		background: url(~@/static/img_new/common/right_arrow@3x.png) no-repeat right center;
+		background-size:12rpx 20rpx ;
+		position: absolute;
+		display: inline-block;
+		content: '';
+		top:12rpx;
+		right:0;
+	}
+	.bottom-bar{
+		@extend %flex-justify-content
+	}
+	.icon-dz{
+		width:32rpx;
+		height:26rpx;
+		vertical-align: middle;
+		margin-top:-4rpx;
+		margin-right:8rpx;
+	}
+	.addressbox{
+		width: 100%;
+		position: absolute;
+		padding: 5px 20rpx;
+		bottom: 0;
+		z-index: 1;
+		color:$white;
+		.item-title{
+			color:$white;
+		}
+		.location-icon{
+			width: 8px;
+			height: 10px;
+			margin-right: 4px;
+		}
+		.address{
+			color:$white;
+		}
+	}
+	.play{
+		display:flex;
+		.item{
+			width:610rpx;
+			height:600rpx;
+			/* #ifdef APP-PLUS */
+			height:650rpx;
+			/* #endif */
+			background: #fff;
+			box-shadow: 0rpx 4rpx 16rpx rgba(13,25,43,.1);
+			margin-right:34rpx;
+			.imgbox{
+				width:610rpx;
+				}
+			.txt{
+				padding:10rpx 30rpx 20rpx 30rpx;
+				.item-title{
+					font-weight: 650;
+					margin-bottom:16rpx;
+				}
+			}
+		}
+	}
+	.play_h{
+		height:650rpx;
+		/* #ifdef APP-PLUS */
+		height:670rpx;
+		/* #endif */
+	}
+}
+// 瀑布流布局
+.masonry{
+		-moz-column-count:2; /* Firefox */
+		-webkit-column-count:2; /* Safari 和 Chrome */
+		column-count:2;
+		-moz-column-gap: 34rpx;
+		-webkit-column-gap: 34rpx;
+		column-gap: 34rpx;
+		width: 100%;
+		padding-bottom:20rpx;
+		.item{
+			-moz-page-break-inside: avoid;
+			-webkit-column-break-inside: avoid;
+			break-inside: avoid;
+			background: #fff;
+			@extend %box-show;
+			margin-bottom:30rpx;
+			.txt{
+				padding:0 20rpx 20rpx 20rpx;
+				.bottom-bar{
+					@extend %flex-justify-content;
+					margin-top:30rpx;
+					.userbox{
+						@extend %flex-justify-content;
+						flex: 1;
+						width:70rpx;
+						.userimg{
+							width:40rpx;
+							height:40rpx;
+							border-radius: 100%;
+							.img{
+								width:40rpx;
+								height:40rpx;
+								border-radius: 100%;
+								margin-right:18rpx;
+								display: inline-block;
+							}
+						}
+						.name{
+							flex: 1;
+							text-align: left;
+							margin-left:12rpx;
+						}
+					}
+					.assist-color{
+						flex: 1;
+						width:30rpx;
+						text-align: right;
+					}
+				}
+			}
+		}
+	}
+	// 固定头部搜索框
+	.search-form{
+		// height:70rpx;
+		width:100%;
+		padding:20rpx 28rpx;
+		box-sizing: border-box;
+		z-index: 10;
+		.inner{
+			height:65rpx;
+			background: rgba(184,180,169,.2);
+			border-radius: 50rpx;
+			position:relative;
+			.search-icon{
+				width:45rpx;
+				height:45rpx;
+				position:absolute;
+				left:10px;
+				top:10rpx;
+			}
+			.input{
+				height:70rpx;
+				width:100%;
+				border-radius: 50rpx;
+				padding-left:70rpx;
+			}
+		}
+	}

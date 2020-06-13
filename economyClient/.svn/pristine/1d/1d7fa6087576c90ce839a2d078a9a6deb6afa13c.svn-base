@@ -1,0 +1,143 @@
+<template>
+	<view class="page commentpage">
+		<view class="header">
+			<text class="cancel" @click="goBack()">取消</text>
+			<text class="txt">{{orderData.shopName}}</text><!--店铺名称-->
+			<view class="btn" @click="submitButtonClick">发表</view>
+		</view>
+		<view class="score line-bottom">
+			<text class="txt">评分</text>
+			<view class="iconbox">
+				<block v-for="(star, index) in max"  :key="index">
+					<image class="icon" :src="valueSync >0 && valueSync>index?'/static/img_new/scenic/pl.png':'/static/img_new/scenic/pl_nor.png'" @click="_onClick(index)" :type="iconsList[index]"></image>
+				</block>
+				
+				 
+				<!-- <image class="icon" src="/static/img_new/scenic/pl.png"></image>
+				<image class="icon" src="/static/img_new/scenic/pl_nor.png"></image>
+				<image class="icon" src="/static/img_new/scenic/pl_nor.png"></image>
+				<image class="icon" src="/static/img_new/scenic/pl_nor.png"></image>
+				<image class="icon" src="/static/img_new/scenic/pl_nor.png"></image> -->
+			</view>
+			<text class="tiptxt">点击来评分</text>
+		</view>
+		<view class="txtbox line-bottom">
+			<textarea class="textarea" maxlength=500 placeholder="这里值得去吗？有什么亮点？大家都期待你的点评~" placeholder-style="color:#b3b3b3" v-model="commentData.commentText"></textarea>
+			<view class="tip">最多还可以输入{{500-commentData.commentText.length}}字</view> 
+		</view>
+		<view class="addimg" style="margin-top: -60rpx;">
+			<!-- <image class="img" src="/static/img_new/scenic/add.png"></image> -->
+			<photo-component  photoTip="上传评论图片,最多4张" maxPhotoCount="4" :showTitle="false" :attachments="commentData.photoPath" ref = "photoUtil" style="background-color: #FFFFFF;margin-left: -30rpx;"></photo-component>
+			<text class="txt">上传照片</text>
+		</view>
+		<!-- <view class="agreement">
+			<radio class='blue radio' :class="radio?'checked':''" :checked="radio?true:false" value=false  style="margin-left: -40rpx;"></radio>
+			我理解并接受<text class="blue" @click="readPrivacy">《ye南昌隐私政策》</text>及<text class="blue" @click="readUserDeal">《ye南昌用户协议》</text>
+			</radio-group>
+		</view> -->
+	</view>
+</template>
+
+<script>
+	import photoComponent from "@/components/photo-component/photo-component.vue"
+	export default {
+		components:{
+			photoComponent
+		},
+		data() {
+			return {
+				orderData:{},
+				commentData:{
+					shopId:'',
+					scoreLevel:"5",
+					commentText:"",
+					anonymousStatus:"2"
+				}	,
+				max: 5, //最大评分
+				valueSync: 5,//默认5分
+				iconsList:[false,false,false,false,false],
+				radio: false,
+			}
+		},
+		onLoad() {
+			this.orderData = uni.getStorageSync("orderDataItem");
+			this.commentData.shopId = this.orderData.shopId;
+			this.commentData.orderId = this.orderData.orderId;
+			this.commentData.productType = this.orderData.orderType;
+			this.commentData.productId = this.orderData.itemList[0].productId;
+		},
+		methods: {
+			// 返回
+			goBack:function(){
+				uni.navigateBack({
+				})
+			},
+			readPrivacy: function() {
+				let webUrl = this.request.getBaseUrl() + "/html/privacyUser.html";
+				this.util.gotoWebView(webUrl,"ye南昌隐私政策");
+				
+			},
+			readUserDeal:function(){
+				let webUrl = this.request.getBaseUrl() + "/html/yhtk.html";
+				this.util.gotoWebView(webUrl,"ye南昌用户协议");
+			},
+			_onClick(index) {
+				this.iconsList[index] = !this.iconsList[index];
+				console.info("index:"+index+"--"+this.iconsList[index]);
+				this.valueSync = index + 1;
+				for (let i = 0; i < this.max; i++) {
+					if(i <= index){
+						this.iconsList[i] = true;
+					}else{
+						this.iconsList[i] = false;
+					}
+				}
+				this.commentData.scoreLevel = this.valueSync ;
+				//console.info("this.valueSync:"+this.valueSync+"--"+JSON.stringify(this.iconsList));
+			},
+			RadioChange:function(){
+				this.radio = !this.radio;
+			},
+			scoreChange:function(item){
+				//console.log('itemitem = ',item);
+				this.commentData.scoreLevel = String(item.value);
+			},
+			// changeAnonymous:function(event){
+			// 	this.commentData.anonymousStatus = this.commentData.anonymousStatus=="2"? "1" : "2";
+			// },
+			submitButtonClick:function(){
+				//console.log("this.commentData == ",this.commentData);
+				if(!this.commentData.commentText||this.commentData.commentText.length == 0){
+					this.request.toastTips("请您输入要评论的内容");
+					return;
+				}
+				if(this.commentData.commentText.length > 500){
+					this.request.toastTips("评论最多可输入500字");
+					return;
+				}
+				this.$refs.photoUtil.uploadAttachments("inform").then(res=>{
+					if(res){
+						this.commentData.photoPath = res;
+					}
+					this.submitComment();
+				})
+			},
+			submitComment:function(){
+				this.request.post('/memberapi/api/goodComment/add.do',this.commentData).then(res =>{
+					this.request.toastTips("评价成功，谢谢您的参与");
+					uni.$emit("updateOrderData");
+					setTimeout(function() {
+						uni.navigateBack({
+						
+						})
+					}, 1000);
+				})
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "@/common/css/other_new.scss";
+</style>

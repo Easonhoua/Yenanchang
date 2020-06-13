@@ -1,0 +1,146 @@
+<template>
+	<view class="releaselist">
+		<!-- #ifdef APP-PLUS -->
+		<view class="status_bar">
+			<view class="top_view"></view>
+		</view>
+		<!-- #endif -->
+		<view class="header-search">
+			<image class="back" src="/static/img_new/common/back_black.png" @click="goBack()"></image>
+			<view class="searchbox">
+				<image class="icon" src="/static/img_new/common/search.png"></image>
+				<input class="input" placeholder="搜索目的地/景点/酒店/餐厅等" placeholder-style="color:#999999" confirm-type="search" v-model="keyword"  @confirm="searchShop" />
+			</view>
+		</view>
+		<view class="search-con-box">
+			<mescroll-body @down="downCallBack" @init="initMescroll" @up="upCallback" top="180rpx">
+				<view class="search-con" v-for="(item, index) in shopsList" :key="index" v-on:click.stop="clickShop(item)">
+					<image class="icon" :src="getImgSrc(item)"></image>
+					<view class="search-con-txt line-bottom">
+						<text class="title">{{item.shopName}}</text>
+						<text class="address">{{item.address}}</text>
+					</view>
+				</view>
+			</mescroll-body>
+			<!-- 			<view class="search-con">
+				<image class="icon" src="/static/img_new/topic/s_dw@3x.png"></image>
+				<view class="search-con-txt line-bottom">
+					<text class="title">江西/南昌</text>
+					<text class="address">西湖区仿古路68号</text>
+				</view>
+			</view> -->
+		</view>
+
+	</view>
+</template>
+
+<script>
+	export default {
+		components: {},
+		data() {
+			return {
+				keyword: '',
+				mescroll: '',
+				subjectId:'',
+				shopsList: [], //店铺选择
+				imgSrc: ''
+			}
+		},
+		onLoad(e) {
+			if(e.subjectId){
+				this.subjectId=e.subjectId;
+			}
+		},
+		methods: {
+			initMescroll(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll) {
+				this.shopsList = [];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll) {
+				const url = '/memberapi/api/shops/queryRecommendShopList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					keyword: this.keyword,
+					subjectId:this.subjectId
+				};
+				var that = this;
+				this.request.get(url, data, mescroll).then(res => {
+					if (res.list.length === 0 || this.mescroll.num === 1) this.shopsList = [];
+					this.shopsList = this.shopsList.concat(res.list); //追加新数据
+					console.log(this.shopsList);
+				})
+			},
+			goBack: function() {
+				uni.navigateBack({})
+			},
+			getImgSrc: function(item) {
+				switch (item.platformTypeId) {
+					case 1:
+						// 美食
+						return '/static/img_new/topic/s_ms@3x.png';
+					case 2:
+						// 酒店
+						return '/static/img_new/topic/s_zs@3x.png';
+					case 7:
+						// 景区
+						return '/static/img_new/topic/s_jd@3x.png';
+					case 3:
+						// 演出
+					case 4:
+						// 休闲
+					case 5:
+						// 学习
+					case 6:
+						// 健体
+					case 8:
+						// 购物
+					case 9:
+						// 文化
+					default:
+						return '/static/img_new/topic/s_dw@3x.png';
+				}
+			},
+			clickShop(item) {
+				let data = {
+					destination: item.shopName,
+					shopId: item.shopId
+				};
+				uni.$emit('common_destination', data);
+				uni.navigateBack({});
+			},
+			//搜索
+			searchShop: function(event) {
+				this.keyword = event.detail.value;
+				this.downCallBack(this.mescroll);
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.status_bar {
+		height: var(--status-bar-height);
+		width: 100%;
+		background-color: #FFFFFF;
+	}
+
+	.top_view {
+		height: var(--status-bar-height);
+		width: 100%;
+		position: fixed;
+		background-color: #FFFFFF;
+		top: 0;
+		z-index: 999;
+	}
+
+	.search-con {
+		padding: 0 15px;
+	}
+
+	/*其他scss */
+	@import "../../common/css/other_new.scss";
+</style>

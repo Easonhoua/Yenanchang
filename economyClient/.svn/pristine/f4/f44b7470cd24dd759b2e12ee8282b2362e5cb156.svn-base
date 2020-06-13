@@ -1,0 +1,25 @@
+@font-face {font-family: "iconfont";
+  src: url('iconfont.eot?t=1587087031534'); /* IE9 */
+  src: url('iconfont.eot?t=1587087031534#iefix') format('embedded-opentype'), /* IE6-IE8 */
+  url('data:application/x-font-woff2;charset=utf-8;base64,d09GMgABAAAAAAPgAAsAAAAACCQAAAOTAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHEIGVgCDBgqEBINCATYCJAMMCwgABCAFhG0HQBsSB1FUTZJkPzV5UhuDfMiGsWwpCyNwtlsQURMAABACAADx8LWGvr+7dwFGl3geH4XQsqwxQEpV2E51het4NuL+d01/kd0wIyrJIauiW196Te6u5VwKmwI0csIBKnaopljO1a0Yx//ab2Gyi0kiqVQaFZpYYkgMEc7k1S/tRK2KSuhHuvr3j3unTfH5WppIiHMN/NQFGAcU2FiTujzgAknQG8auvIj9BNpNG6Q6nF+NgFFhDAvEa1nEYEzplZrS0CrUJXOL+MKrtKa3glcAn/3vx38IhpGkyoyxR0/nUjD5y/1XEm6STZcuiicYzwq2iIxNoBDXpfZTmjC+SaNdkWvrc2tFSGOFSIPPV6W1+YdHEkTNKO4Eq0iWTkpg82MFhsKzFtzc4Bod+IofomGQ8bJKXTdqTVaEFXK5BRWBTw+ahXhwEAYUiOrjCXr7lRWUBwZiLaZL0R0c2NmIBcDv76cH+cAXNu0kAj7VZxAg4PfVWJXA1/iFNr6mD8u0A75DuXf+nL5chIUL6mwuNf7OftomPpi36vxy7xK1AqvRvafeZ/oVXjL09f42r38q9JZ6C+1kPjI7M2bYPbyNv2X2fv+2jv5mPz6cfzyoYQmEtzgLQUlkaxIeyKZsxC2cvbbtx7cCYdUAxTq48qGrHoALCniq9v1WRs+duD3AlrEej8XrTpBxY2hb9WktRZuXNWSGJ/PUPItYj1qj1ehB9LBvpv2DjC3ozuMNs/41NPn4aHN8TrzWzLmuY4x8TGD1Vm9gG3uqvL6jRzBT481NtwCN/J85QDMHhE1/9jdefpeohGP032gp4OddzzWe0yiQ3wBolWgt+I+ClnVFFRmGXGS+zdcD2Z1/ZU1ALjdrkLvfb3/nEIitoZULICQtpiBrtYgu+E2odNiGWqsdaLdhYXGHAYxGlDas2wMQeh1D0u0bZL3e0AX/A5Vhdaj1hgbaHYdnzQ7LIZtnGMGcpFByHclCIU8tEzcHpSEilrOYJUU+IUaYIodQwOvPphZInrAxJigVMcg5RZQVcmgeHEay2QIqskKaCNwrcV4c9vlo2ZO8QiEHZgcYAuOIFCRpHSITFORRtzlnzn0+hBCVZWGsBlFhjSEYhdw+EuDlb4FekOdbIa7lEUWFKIjjKIRiCnKQeWAlsma8ACmW90ojBJyX1CNaNMyHGtG2cu/8ytzzbYF2RnWOFDmKrhthkhQB5xO1+iqRNyQZAAA=') format('woff2'),
+  url('iconfont.woff?t=1587087031534') format('woff'),
+  url('iconfont.ttf?t=1587087031534') format('truetype'), /* chrome, firefox, opera, Safari, Android, iOS 4.2+ */
+  url('iconfont.svg?t=1587087031534#iconfont') format('svg'); /* iOS 4.1- */
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-richscan_icon:before {
+  content: "\e661";
+}
+
+.icon-weizhi:before {
+  content: "\e612";
+}
+

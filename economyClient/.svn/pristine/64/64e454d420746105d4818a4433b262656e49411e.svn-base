@@ -1,0 +1,84 @@
+<template>
+	<view v-if='cashList.length>0'>
+		<view class="addressbox yuding" v-for="(item,index) in cashList" :key="index">
+			<view class="left left-fx left-fx-line">
+				<view class="address ticketpurchase">
+					<text class="txt">{{item.cashName}}</text>
+					<text class="txttip">随时退 免费预约 过期自动退</text>
+				</view>
+			</view>
+			<view class="right">
+				<view class="btn-yuding" @click="toCashDetail(item.cashId)">抢购</view>
+				<text class="txttip">已售1374</text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		props:{
+			cashList:{
+				type:[Array],
+				default:''
+			}
+		},
+		data() {
+			return {
+				
+			}
+		},
+		created() {
+			console.log(this.cashList)
+		},
+		methods: {
+			toCashDetail(cashId) {
+				uni.navigateTo({
+					url: "/pages/food/cashCoupon?cashId=" + cashId
+				})
+			},
+		}
+	}
+</script>
+
+<style>
+@import "../../common/css/other_new.scss";
+.yuding{
+	display: flex;
+	padding: 16px;
+	background-color: #FFFFFF;
+	-webkit-border-radius: 14px;
+	border-radius: 14px;
+	margin: 10px 0;
+}
+.left{
+	flex: 1;
+}
+.address{
+	font-size: 16px;
+	margin-bottom: 5px;
+}
+.txttip{
+	font-size: 13px;
+	color: #999999;
+	display: block;
+}
+..right{
+	width: 72px;
+	text-align: center;
+	color: #595959;
+}
+.btn-yuding{
+	text-align: center;
+	padding: 2px 5px;
+	-webkit-border-radius: 16px;
+	border-radius: 16px;
+	background-color: #df2725;
+	color: #FFFFFF;
+}
+.txttip{
+	font-size: 13px;
+	color: #999999;
+	display: block;
+}
+</style>

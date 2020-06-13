@@ -1,0 +1,366 @@
+<template>
+	<view class="page shoppingcart fillorder">
+		<!-- <view class="shoplogo">
+			<view class="back" @tap="backPage()">
+				<image class="icon" src="../../static/img/common/icon_back.png"></image>
+			</view>
+			<view class="shoplogo-bd">购物车</view>
+			<view class="iconbox" @click="manager()">{{buttonTitle}}</view>
+		</view> -->
+		<mescroll-uni @down="downCallBack" @init ="initMescroll" @up="upCallback"  bottom="55">
+		<view class="card" v-for="(item,index) in shopCartList" :key="index">
+			<view class="card-bd">
+				<view class="card-bd-title uni-cell-b">
+					<view class="checkbox">
+						<checkbox class='round blue' :class="item.checked?'checked':''" :checked="item.checked?true:false" @click="checkboxShopChange(item.shopId)" :value="item.shopId+''"></checkbox>
+					</view>
+					<view class="prodetail" ><text class="arrow-title">{{item.shopName}}</text></view>
+				</view>
+				<view class="card-bd-con" v-for="(product,itemIndex) in item.shoppingCartsList" :key="itemIndex">
+					<view class="checkbox"><checkbox class='round blue' :class="product.checked?'checked':''" @click="checkboxChange(product)" :checked="product.checked?true:false" :value="product.shopCartId+''"></checkbox></view>
+					<view class="prodetail">
+						<view class="imgbox"><image class="img" :src="product.imagePath"></image></view>
+						<view class="righttxt">
+							<view class="name">{{product.productName}}</view>
+							<view class="nature"><text class="nature-inner">{{product.modelName}}</text></view>
+							<view class="amountbar">
+								<view class="price">￥{{product.price}}</view>
+								<view class="order-cell-right" style="text-align: right;">
+									<view class="number">
+										<text class="reduce" :class="product.quantity > 1?'active':''" @click="reduce(product.shopCartId)">-</text>
+										<input type="number" @blur="inputBlur" @input="inputChange" class="input" :data-id="product.shopCartId" v-model="product.quantity" />
+										<text class="add" @click="add(product.shopCartId)">+</text>
+									</view>
+								</view>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		</mescroll-uni>		
+		<view class="settle-accounts" style="z-index: 9;border-top: 1rpx solid #F5F5F5;">
+			<view class="total">
+				<view class="cu-form-group">
+					<checkbox class='round blue' :class="isAllChecked?'checked':''" :checked="isAllChecked" @click="allChekced()" value="all"></checkbox>
+				</view>全选
+				
+			</view>
+			<view class="btnbar">
+				<view style="width: 160rpx;float: left;" >
+					<text class="btn btn-del" @click="deleteShoppCart()">删除({{sttleCount}})</text>
+				</view>
+				<view style="float: right;" >
+					<text>合计:<text class="orange">￥{{totalAmount}}</text></text>
+					<text class="btn" @click="settleOrder">结算({{sttleCount}})</text>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				shopId:'',
+				mescroll : '',
+				loading: false,
+				shopCartList:[],
+				totalAmount:0,
+				isAllChecked:false,
+				sttleCount:0,
+				buttonTitle:'管理',
+				isDelete:false
+			}
+		},
+		onLoad(e) {
+			if(e.shopId){
+				this.shopId = e.shopId;
+			}
+		},
+		methods: {
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.shopCartList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				//获取菜品信息列表
+				let url = '/memberapi/api/shoppingCarts/list.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					shopId: this.shopId
+				};
+				var that = this;
+				this.request.post(url,data,mescroll).then(res=>{
+					if(res.list.length === 0 || this.mescroll.num === 1)  this.shopCartList = [];
+					let currListData = res.list;
+					currListData.forEach(item => {
+						if(item.shoppingCartsList){
+							item.shoppingCartsList.forEach(product=>{
+								if(product.imagePath){
+									product.imagePath = this.util.formatImagePath(product.imagePath) ;
+								}
+								product.checked = false;
+							});
+							item.checked=false;
+						}
+					});
+					
+					this.shopCartList = this.shopCartList.concat(currListData); //追加新数据
+				})
+			},
+			// 单个商品的勾选
+			checkboxChange(cart){
+				this.totalAmount = 0;
+				this.sttleCount = 0;
+				this.shopCartList.forEach(item => {
+					var cartLength = item.shoppingCartsList.length;
+					var checkedCount = 0;
+					item.shoppingCartsList.forEach(product=>{
+						if(product.shopCartId == cart.shopCartId){
+							product.checked = !product.checked;
+						}
+						if(product.checked){
+							this.sttleCount++;
+							checkedCount++;
+							this.totalAmount += product.quantity * product.price;
+						}
+					});
+					if(checkedCount == cartLength){
+						item.checked = true;
+					}else{
+						item.checked = false;
+					}
+					this.isAllChecked = item.checked;
+				});
+			},
+			updateShoppCart(shopCartId,quantity){
+				//获取菜品信息列表
+				let url = '/memberapi/api/shoppingCarts/update.do';
+				let data = {
+					shopCartId: shopCartId,
+					quantity: quantity
+				};
+				var that = this;
+				this.request.post(url,data).then(res=>{
+						
+				});
+			},
+			// 每个店铺的头部全选
+			checkboxShopChange(shopId){
+				this.totalAmount = 0;
+				this.sttleCount = 0;
+				this.shopCartList.forEach(item => {
+					if(shopId == item.shopId){
+						item.shoppingCartsList.forEach(product=>{
+							product.checked = !item.checked;
+							if(product.checked){
+								this.sttleCount++;
+								this.totalAmount += product.quantity * product.price;
+							}
+						});
+						item.checked = !item.checked;
+						this.isAllChecked = item.checked;
+					}
+				});
+			},
+			// 底部全选
+			allChekced(){
+				this.totalAmount = 0;
+				this.sttleCount = 0;
+				let that = this;
+				this.shopCartList.forEach(item => {
+					item.shoppingCartsList.forEach(product=>{
+						product.checked = !that.isAllChecked;
+						if(product.checked){
+							this.sttleCount++;
+							this.totalAmount += product.quantity * product.price;
+						}
+					});
+					item.checked = !that.isAllChecked;
+				});
+				this.isAllChecked = !this.isAllChecked;
+			},
+			reduce:function(shopCartId){
+				this.totalAmount = 0;
+				this.shopCartList.forEach(item => {
+					item.shoppingCartsList.forEach(product=>{
+						if(product.shopCartId == shopCartId){
+							product.quantity--;
+							if(product.quantity < 1){
+								product.quantity =1;
+							}
+							this.updateShoppCart(shopCartId,product.quantity);
+						}
+						if(product.checked){
+							this.totalAmount += product.quantity * product.price;
+						}
+					});
+				});
+			},
+			add:function(shopCartId){
+				this.totalAmount = 0;
+				this.shopCartList.forEach(item => {
+					item.shoppingCartsList.forEach(product=>{
+						if(product.shopCartId == shopCartId){
+							product.quantity++;
+							this.updateShoppCart(shopCartId,product.quantity);
+						}
+						if(product.checked){
+							this.totalAmount += product.quantity * product.price;
+						}
+					});
+				});
+			},
+			settleOrder(){
+				var shopCartIds =[];
+				this.shopCartList.forEach(item => {
+					item.shoppingCartsList.forEach(product=>{
+						if(product.checked){
+							shopCartIds.push(product.shopCartId);
+						}
+					});
+				});
+				if(shopCartIds.length <= 0){
+					this.request.toastTips("请选择结算商品");
+					return false;
+				}
+				uni.navigateTo({
+					url:'shoppCartOrder?shopCartIds='+shopCartIds.join(",")
+				});
+			},
+			deleteShoppCart(){
+				var shopCartIds =[];
+				this.shopCartList.forEach(item => {
+					item.shoppingCartsList.forEach(product=>{
+						if(product.checked){
+							shopCartIds.push(product.shopCartId);
+						}
+					});
+				});
+				
+				if(shopCartIds.length <= 0){
+					this.request.toastTips("请选择删除的商品");
+					return false;
+				}
+				//获取菜品信息列表
+				let url = '/memberapi/api/shoppingCarts/deleteByShopCartIds.do';
+				let data = {
+					shopCartIds: shopCartIds.join(",")
+				};
+				var that = this;
+				this.request.post(url,data).then(res=>{
+					this.request.toastTips("删除成功");
+					this.downCallBack(this.mescroll);
+				});
+				
+			},
+			manager(){
+				if(this.buttonTitle =='管理'){
+					this.buttonTitle = '完成';
+					this.isDelete = true;
+				}else{
+					this.buttonTitle = '管理';
+					this.isDelete = false;
+				}
+			},
+			inputBlur(e){
+				var quantity = e.detail.value;
+				if(!quantity){
+					quantity = 1;
+				}
+				this.totalAmount = 0;
+				var shopCartId = e.currentTarget.dataset.id;
+				this.shopCartList.forEach(item => {
+					item.shoppingCartsList.forEach(product=>{
+						if(product.shopCartId == shopCartId){
+							product.quantity = quantity;
+							this.updateShoppCart(shopCartId,product.quantity);
+						}
+						if(product.checked){
+							this.totalAmount += product.quantity * product.price;
+						}
+					});
+				});
+			},
+			inputChange(e){
+				var quantity = e.detail.value;
+				this.totalAmount = 0;
+				if(quantity <= 0 ){
+					quantity = 1;
+				}
+				var shopCartId = e.currentTarget.dataset.id;
+				this.shopCartList.forEach(item => {
+					item.shoppingCartsList.forEach(product=>{
+						if(product.shopCartId == shopCartId){
+							product.quantity = quantity;
+						}
+						if(product.checked){
+							this.totalAmount += product.quantity * product.price;
+						}
+					});
+				});
+			}
+		}
+	}
+</script>
+
+<style>
+	@import "../../common/css/mall.css";
+	@import "../../common/css/icon.css";
+	.fillorder .number .reduce{
+		color:rgba(230, 231, 233, 1);
+		border:1rpx solid rgba(230, 231, 233, 1);
+	}
+	.fillorder .number .reduce.active{
+		color:rgba(255, 154, 65, 1);
+		border:1rpx solid rgba(255, 154, 65, 1);
+	}
+	.fillorder .number .add{
+		background: rgba(255, 154, 65, 1);
+		color:#fff;
+		border:1rpx solid rgba(255, 154, 65, 1);
+	}
+	.cu-form-group{
+		display: inline-block;
+	}
+	.cu-form-group{
+		height:auto;
+		 min-height:0;
+	}
+	.settle-accounts .btnbar .btn-del{
+		background:none;
+		border:1rpx solid #FF871C;
+		color:#FF871C;
+	}
+	.shoppingcart .card .card-bd .prodetail .imgbox .img{
+		border-radius: 16rpx;
+	}
+	uni-radio .wx-radio-input, uni-checkbox .wx-checkbox-input, uni-radio .uni-radio-input, uni-checkbox .uni-checkbox-input {
+	    margin: 0;
+	    width: 20px;
+	    height: 20px;
+	}
+	.shoplogo{
+		width:100%;
+		background: #fff;
+		position: fixed;
+		top:0;
+		z-index: 10;
+	}
+	.shoplogo-bd{
+		flex: 1;
+		text-align: center;
+	}
+	.shoplogo .iconbox{
+		text-align: right;
+		width:72rpx;
+	}
+</style>

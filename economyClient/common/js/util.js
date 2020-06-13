@@ -1,0 +1,1140 @@
+import api from "@/api/index.js"
+
+/**
+ * 方法名称: 跳转到webView
+ * 方法注释: 
+ * 传入参数: webUrl->网页链接 webTitle->网页标题
+ * 返回数值: 
+ */
+function gotoWebView(webUrl, webTitle, webview) {
+	webview = webview || 'webView'
+	if (webUrl) {
+		var temUrl = encodeURIComponent(webUrl);
+		////console.log("temUrltemUrl= ", temUrl);
+		if (webTitle) {
+			uni.navigateTo({
+				url: "/pages/webView/" + webview + "?webUrl=" + temUrl + "&webTitle=" + webTitle
+			})
+		} else {
+			uni.navigateTo({
+				url: "/pages/webView/" + webview + "?webUrl=" + temUrl
+			})
+		}
+	}
+}
+
+/**
+ * 方法名称: 举报
+ * 方法注释: 不用传任何参数,会先判断用户是否登录,登录之后才跳到举报页面
+ * 传入参数: 无
+ * 返回数值: 无
+ */
+function tipOff(relationId) {
+	if (api.alreadyLogin()) {
+		uni.navigateTo({
+			url: "/pages/user/userIndex/inform?relationId=" + relationId,
+			animationType: "slide-in-bottom",
+			animationDuration: 200
+		})
+	}
+}
+
+function checkAppVersion() {
+	var serviceVersion = "";
+	var description = "";
+	api.get("/memberapi/api/platform/getMemberVersion.do", {}, "N").then(res => {
+		////console.log("resres = ", res);
+		if (uni.getSystemInfoSync().platform == "android") {
+			serviceVersion = res.data.andorid.configValue;
+			description = res.data.andorid.description;
+		}
+		if (uni.getSystemInfoSync().platform == "ios") {
+			serviceVersion = res.data.ios.configValue;
+			description = res.data.ios.description;
+		}
+		if (!description || description == "undefined") {
+			description = "1.修复问题，优化界面\n2.优化性能，提高用户体验";
+		}
+		// serviceVersion = "1.0.1"; //测试使用
+		uni.setStorageSync("serviceVersion", serviceVersion);
+		uni.setStorageSync("description", description);
+		compareVersion(serviceVersion, description);
+	}).catch(e => {
+		serviceVersion = uni.getStorageSync("serviceVersion");
+		description = uni.getStorageSync("description");
+		compareVersion(serviceVersion, description);
+	})
+}
+
+function compareVersion(serviceVersion, description) {
+	////console.log("this.description = ", description);
+	// #ifdef APP-PLUS
+	plus.runtime.getProperty(plus.runtime.appid, (wgtinfo) => {
+		var localVersion = wgtinfo.version; //app本地应用版本号
+		////console.log("this.serviceVersion = ", serviceVersion);
+		////console.log("this.localVersion = ", localVersion);
+		if (serviceVersion > localVersion) {
+			uni.showModal({ //提醒用户更新  
+				title: "版本更新啦",
+				showCancel: false,
+				confirmText: "立即更新",
+				content: description,
+				complete(e) {
+					if (e.confirm) {
+						if (uni.getSystemInfoSync().platform == "android") {
+							var url = api.getBaseUrl() + "/app/yenc.apk";
+							plus.runtime.openURL(url);
+						}
+						if (uni.getSystemInfoSync().platform == "ios") {
+							plus.runtime.openURL("https://apps.apple.com/cn/app/id1491888217");
+						}
+					}
+				}
+			})
+		}
+	})
+	// #endif
+}
+/**
+ * 方法名称: 跳转到订单详情页
+ * 方法注释: 必须传入订单类型orderType,订单id orderId
+ * 传入参数: item 
+ * 返回数值: 无返回值
+ */
+function gotoOrderDetail(orderType, orderId, type) {
+	var url = "";
+	if (orderType == 1) { //美食
+		url = "/pages/food/foodOrderDetail?orderId=" + orderId;
+	} else if (orderType == 2) { //酒店订单
+		url = "/pages/hotel/hotelOrder?orderId=" + orderId
+	} else if (orderType == 3) { //套餐
+		url = "/pages/arder/orderView?orderId=" + orderId
+	} else if (orderType == 4) { //景区
+		url = "/pages/scenic/scenicOrderView?orderId=" + orderId
+	} else if (orderType == 5) { //购物
+		url = "/pages/purchase/orderDetail?orderId=" + orderId
+	} else if (orderType == 6) { //代金券
+		url = "/pages/food/cashOrderDetail?orderId=" + orderId
+	} else if (orderType == 7) { //活动
+		url = "/pages/activity/orderView?orderId=" + orderId
+	}
+	if (url != "") {
+		if (type == "2") {
+			uni.redirectTo({
+				url: url
+			});
+		} else {
+			uni.navigateTo({
+				url: url
+			});
+		}
+
+	}
+}
+/**
+ * 方法名称: 获取用户头像
+ * 方法注释: 没登录或者用户没有设置头像的话显示默认头像
+ * 传入参数: 无
+ * 返回数值: 返回用户头像全路径
+ */
+function getUserHeaderImage() {
+	var userData = uni.getStorageSync("user");
+	var userImage = '/static/img_new/common/head.png';
+	if (userData && userData.photo) {
+		userImage = formatImagePath(userData.photo);
+	}
+	return userImage;
+}
+/**
+ * 方法名称: 获取用户头像
+ * 方法注释: 没登录或者用户没有设置头像的话显示默认头像
+ * 传入参数: 无
+ * 返回数值: 返回用户头像全路径
+ */
+function formatUserImage(photo) {
+	var userImage = '/static/img_new/common/head.png';
+	if (photo) {
+		userImage = formatImagePath(photo);
+	}
+	return userImage;
+}
+/**
+ * 方法名称: 跳转到店铺详情页
+ * 方法注释: 必须传入店铺列表的item,然后根据item的不同platformTypeId跳转到相应的详情页
+ * 传入参数: item 
+ * 返回数值: 无返回值
+ */
+function gotoShopDetail(item) {
+	let url = "";
+	if (item.coordinateLng && item.coordinateLat) {
+		item.coordinate = item.coordinateLng + "," + item.coordinateLat;
+	}
+	if (item.shopLink) {
+		url = item.shopLink;
+		// #ifdef APP-PLUS
+		gotoWebView(url, item.shopName, "webView2");
+		// #endif
+		// #ifndef APP-PLUS
+		gotoWebView(url, item.shopName);
+		// #endif
+
+		return;
+	}
+	if (item.platformTypeId == 1) {//美食
+		url = "/pages/delicacies/delicacyDetail?shopId=" + item.shopId + '&coordinate=' + item.coordinate;
+	} else if (item.platformTypeId == 2) {//酒店
+		url = "/pages/hotel/hotelDetail?shopId=" + item.shopId + '&coordinate=' + item.coordinate;
+	} else if (item.platformTypeId == 3) {//演出
+		url = "/pages/literature/literaturePlaceDetail?shopId=" + item.shopId + '&coordinate=' + item.coordinate;
+	} else if (item.platformTypeId == 4) {//休闲
+		url = "/pages/arder/arderShopDetail?shopId=" + item.shopId + '&coordinate=' + item.coordinate;
+	} else if (item.platformTypeId == 5) {//学习
+		url = "/pages/science/scienceDetail?shopId=" + item.shopId + '&coordinate=' + item.coordinate;
+	} else if (item.platformTypeId == 6) {//健体
+		url = "/pages/sports/sportsDetail?shopId=" + item.shopId + '&coordinate=' + item.coordinate;
+	} else if (item.platformTypeId == 7) {//景区
+		url = "/pages/scenic/scenicDetail?shopId=" + item.shopId + '&coordinate=' + item.coordinate;
+	} else if (item.platformTypeId == 8) {//购物
+		url = "/pages/purchase/purchaseList?shopId=" + item.shopId + '&coordinate=' + item.coordinate;
+	} else if (item.platformTypeId == 9) {//文化
+		url = "/pages/literature/literaturePlaceDetail?shopId=" + item.shopId + '&coordinate=' + item.coordinate;
+	}else if (item.platformTypeId == 14) {//集贸市场
+		url = "/pages/literature/marketDetail?shopId=" + item.shopId + '&coordinate=' + item.coordinate;
+	}else{//其他走文化模板
+		url = "/pages/literature/literaturePlaceDetail?shopId=" + item.shopId + '&coordinate=' + item.coordinate;
+	}
+	uni.navigateTo({
+		url: url
+	});
+
+}
+
+/**
+ * 方法名称: js获取不通设备下的导航栏高度,单位是px
+ * 方法注释: 使用JSON.parse之前先判断字符串是否可转为json数据
+ * 传入参数: 字符串
+ * 返回数值: string可以转json则返回true,否则返回false
+ */
+function getVarNaviBarHeight() {
+	try {
+		// #ifdef APP-PLUS
+		return plus.navigator.getStatusbarHeight() * plus.screen.scale;
+		// return uni.getSystemInfoSync().statusBarHeight + 44 + 'px';
+		// #endif	
+		// #ifdef H5
+		return 44;
+		// #endif
+	} catch (e) {}
+	return 64;
+}
+
+/**
+ * 方法名称: 判断字符串是否可转为json数据
+ * 方法注释: 使用JSON.parse之前先判断字符串是否可转为json数据
+ * 传入参数: 字符串
+ * 返回数值: string可以转json则返回true,否则返回false
+ */
+function isJsonString(str) {
+	try {
+		if (typeof JSON.parse(str) == "object") {
+			return true;
+		}
+	} catch (e) {}
+	return false;
+}
+/**
+ * 方法名称: 单图片格式化
+ * 方法注释: 
+ * 传入参数: 
+ * 返回数值: 返回全路径的图片路径字符串
+ */
+function formatImagePath(imageString, originalFlag) {
+	if (!imageString || imageString == 'undefined') {
+		return "/static/img/common/banner.png";
+	} else {
+		try {
+			if (typeof JSON.parse(imageString) == "object") {
+				var imagePathObj = JSON.parse(imageString);
+				var imagePath = '';
+				if (originalFlag && originalFlag == true) {
+					imagePath = api.getBaseImagePath() + imagePathObj.filePath;
+				} else if (imagePathObj.filePath_500) {
+					imagePath = api.getBaseImagePath() + imagePathObj.filePath_500;
+				} else {
+					imagePath = api.getBaseImagePath() + imagePathObj.filePath;
+				}
+				return imagePath;
+			} else {
+
+				return '/static/img/common/banner.png';
+			}
+		} catch (e) {
+			if (imageString.indexOf(api.getBaseImagePath()) != -1) {
+				return imageString;
+			} else {
+				return '/static/img/common/banner.png';
+			}
+		}
+	}
+}
+/**
+ * 方法名称: 多图片格式化
+ * 方法注释: 
+ * 传入参数: 
+ * 返回数值: 返回全路径的图片数组
+ */
+function formatImagePaths(imageString, originalFlag) {
+	if (!imageString || imageString == 'undefined') {
+		return "/static/img/common/banner.png";
+	} else {
+		try {
+			if (typeof JSON.parse(imageString) == "object") {
+				var images = JSON.parse(imageString);
+				var tempImages = [];
+				for (let image of images) {
+					if (originalFlag && originalFlag == true) {
+						tempImages.push(api.getBaseImagePath() + image.filePath);
+					} else if (image.filePath_500) {
+						tempImages.push(api.getBaseImagePath() + image.filePath_500);
+					}else {
+						tempImages.push(api.getBaseImagePath() + image.filePath);
+					}
+				}
+				return tempImages;
+			} else {
+				return ['/static/img/common/banner.png'];
+			}
+		} catch (e) {
+			return ['/static/img/common/banner.png'];
+		}
+	}
+}
+/**
+ * 方法名称: 格式化店铺列表(店铺logo格式化)
+ * 方法注释: 必须传入店铺的列表list
+ * 传入参数: list 店铺列表
+ * 返回数值: 格式化后的店铺列表
+ */
+function formatShopList(list) {
+	list.forEach(item => {
+		if (item.thumbnailPath) {
+			item.thumbnailPath = this.formatImagePath(item.thumbnailPath);
+		} else {
+			item.thumbnailPath = this.formatImagePath(item.logo);
+		}
+	});
+	return list;
+}
+/**
+ * 方法名称: 格式化店铺的数据
+ * 方法注释: 调用此方法会将店铺的所有图片格式化，同时新增banners和shareData两个字段
+ * 传入参数: shopData 店铺数据
+ * 返回数值: 格式化后的店铺数据
+ */
+function formatShopData(shopData) {
+	shopData.shopHours1 = (shopData.shopHours1 && shopData.shopHours1 != 'undefined') ? shopData.shopHours1 : "";
+	shopData.shopHours2 = (shopData.shopHours2 && shopData.shopHours2 != 'undefined') ? shopData.shopHours2 : "";
+	shopData.shopHours3 = (shopData.shopHours3 && shopData.shopHours3 != 'undefined') ? shopData.shopHours3 : "";
+	if (shopData.details) {
+		shopData.details = formatRichText(shopData.details);
+	}
+	if(shopData.coordinateLng && shopData.coordinateLat){
+		shopData.coordinate = shopData.coordinateLng + "," + shopData.coordinateLat;
+	}
+	
+	// 新增一个banners字段
+	var banners = [];
+	// 新增一个shareData字段
+	var shareData = {};
+	if (shopData.imagePath && shopData.imagePath != 'undefined') {
+		shopData.imagePath = formatImagePaths(shopData.imagePath);
+		banners = banners.concat(shopData.imagePath);
+	}
+	
+	if (shopData.logo && shopData.logo != 'undefined') {
+		shopData.logo = formatImagePath(shopData.logo);
+		shareData.imageUrl = shopData.logo;
+		if(banners.length<1){
+			banners.push(shopData.logo);
+		}
+	}
+	
+	if (shopData.thumbnailPath && shopData.thumbnailPath != 'undefined') {
+		shopData.thumbnailPath = formatImagePath(shopData.thumbnailPath);
+		shareData.imageUrl = shopData.thumbnailPath;
+		if(banners.length<1){
+			banners.push(shopData.thumbnailPath);
+		}
+	}
+	shopData.banners = banners;
+	shareData.shopId = shopData.shopId;
+	shareData.title = shopData.shopName;
+	shareData.summary = shopData.address;
+	shopData.shareData = shareData;
+	return shopData;
+}
+
+/**
+ * 处理富文本里的图片宽度自适应
+ * 1.去掉img标签里的style、width、height属性
+ * 2.img标签添加style属性：max-width:100%;height:auto
+ * 3.修改所有style里的width属性为max-width:100%
+ * 4.去掉<br/>标签
+ * @param html
+ * @returns {void|string|*}
+ */
+function formatRichText(html) {
+	let newContent = html.replace(/<img[^>]*>/gi, function(match, capture) {
+		match = match.replace(/style="[^"]+"/gi, '').replace(/style='[^']+'/gi, '');
+		match = match.replace(/width="[^"]+"/gi, '').replace(/width='[^']+'/gi, '');
+		match = match.replace(/height="[^"]+"/gi, '').replace(/height='[^']+'/gi, '');
+		return match;
+	});
+	// newContent = newContent.replace(/style="[^"]+"/gi, function(match, capture) {
+	// 	match = match.replace(/width:[^;]+;/gi, 'max-width:100%;').replace(/width:[^;]+;/gi, 'max-width:100%;');
+	// 	return match;
+	// });
+	newContent = newContent.replace(/&nbsp;/ig,'');
+	newContent = newContent.replace(/<\/?p[^>]*>/gi,'');
+	newContent = newContent.replace(/<br[^>]*\/>/gi, '');
+	// newContent = newContent.replace(/\<img/gi,
+	// 	'<img style="max-width:100%;height:auto;display:block;margin-top:0;margin-bottom:0;"');
+	return newContent;
+}
+
+/**
+ * 方法名称: 获取页面路径
+ * 方法注释: dataString 非必传，如果需要带参数的话则传，比如"shopId=2"
+ * 传入参数: dataString 页面路径的参数字符串
+ * 返回数值: 拼接参数后的完整页面路径
+ */
+function getPageRuteWithDataString(dataString) {
+	var pages = getCurrentPages();
+	var page = pages[pages.length - 1];
+	var route = page.route;
+	route = api.getBaseUrl() + "/wxapp/" + route
+	if (dataString) {
+		route = route + '?' + dataString;
+	}
+	return route;
+}
+
+function setFavorite(isFavorite, color) {
+	// #ifdef APP-PLUS
+	var pages = getCurrentPages();
+	var page = pages[pages.length - 1];
+	var webview = page.$getAppWebview();
+	webview.setTitleNViewButtonStyle(1, {
+		text: "\ue604",
+		color: isFavorite ? "#FC4740" : color
+	});
+	// #endif
+}
+/**
+ * 方法名称: 收藏按钮的点击事件
+ * 方法注释: favoriteType 传的是收藏类型(1:店铺、2:评价、3:攻略、4:资讯、5:精彩、11:线路),默认是1，所以店铺收藏可不传，其他类型必传，isFavorite、relationId 是必传
+ * 传入参数: isFavorite是否已收餐的、favoriteType收藏的类型、relationId：关联的Id(店铺的话传店铺id)
+ * 返回数值: 收藏后的bool值
+ */
+function favoriteWithData(isFavorite, favoriteType, relationId) {
+
+	let p = new Promise(function(resolve, reject) {
+		if (api.alreadyLogin()) {
+			if (isFavorite) {
+				var url = "/memberapi/api/userFavorite/cancel.do";
+				var data = {
+					relationId: relationId,
+					favoriteType: favoriteType
+				}
+				api.post(url, data).then(res => {
+					//console.log("resres =", res);
+					setFavorite(false, '#000000');
+					api.toastTips("取消收藏成功");
+					resolve(false);
+				})
+			} else {
+				var url = "/memberapi/api/userFavorite/add.do";
+				var data = {
+					relationId: relationId,
+					favoriteType: favoriteType
+				}
+				api.post(url, data).then(res => {
+					//console.log("resres =", res);
+					setFavorite(true);
+					api.toastTips("收藏成功");
+					resolve(true)
+				})
+			}
+		}
+	})
+	return p;
+}
+
+// 分享功能模块开始
+
+/**
+  * 方法名称: 分享
+  * 方法注释: 分享的如果是店铺的话可以不传URL，但是必须传shopId（店铺id）,其他的话必须传
+ 
+  * 传入参数: shareData:分享的数据,
+			shareData: {
+				url:"分享的链接",
+				title:"分享的标题",
+				summary:"分享的描述",
+				imageUrl:"分享的图片（链接或本地图片）"
+			}
+  * 返回数值: 无
+*/
+function shareWithData(shareData) {
+	getShareTypes(shareData);
+}
+
+function getShareTypes(shareData) {
+	var shareList = [];
+	uni.getProvider({
+		service: "share",
+		success: function(res) {
+			if (res.provider.length == 0) {
+				res.provider = ["weixin", "qq"];
+			}
+			for (var i = 0; i < res.provider.length; i++) {
+				var item = res.provider[i];
+				if (item == 'weixin') {
+					shareList.push(setupShareItem("weixin", "微信", "WXSceneSession"));
+					shareList.push(setupShareItem("weixin", "朋友圈", "WXSenceTimeline"));
+				}
+				if (item == 'sinaweibo') {
+					// shareList.push(setupShareItem("weibo", "微博", "weibo"));
+				}
+				if (item == 'qq') {
+					shareList.push(setupShareItem("qq", "qq", "qq"));
+					// 不能直接分享到QQ空间，可以分享到QQ，然后在QQ的界面里选择QQ空间。
+					// shareList.push(setupShareItem("zone","qq空间"));
+				}
+			}
+			showShareItem(shareList, shareData);
+		}
+	})
+}
+
+function setupShareItem(provider, title, scene) {
+	var item = {
+		provider: provider,
+		scene: scene,
+		title: title,
+		image: "/static/img/share/" + scene + ".png"
+	}
+	return item;
+}
+
+function showShareItem(shareList, shareData) {
+	var shareListText = [];
+	for (let item of shareList) {
+		shareListText.push(item.title);
+	}
+	uni.showActionSheet({
+		title: '分享到',
+		itemList: shareListText,
+		success: function(res) {
+			console.log('选中了第' + (res.tapIndex + 1) + '个按钮');
+			shareItemClick(shareList[res.tapIndex], shareData);
+		}
+	})
+}
+
+function shareItemClick(item, shareData) {
+	// var pages = getCurrentPages();
+	// var page = pages[pages.length - 1];
+	// var route = page.route;
+	if (!shareData.url) {
+		// 分享的如果是店铺的话可以不传URL，但是必须传relationId（店铺id）
+		// shareData.url = api.getBaseUrl() + "/wxapp/" + route + "?shopId=" + shareData.shopId;
+		shareData.url = getPageRuteWithDataString("shopId=" + shareData.shopId);
+	}
+	shareData.summary = formatRichText(shareData.summary);
+	uni.share({
+		provider: item.provider,
+		scene: item.scene, //provider 为 weixin 时必选
+		type: item.scene == 'qq' ? 1 : 0, //0为图文，微信和微博时才支持，qq不支持
+		href: shareData.url,
+		title: shareData.title,
+		summary: shareData.summary,
+		imageUrl: shareData.imageUrl, //图片大于20kb时不显示,推荐使用小于20Kb的图片
+		success: function(res) {
+			//console.log("success:" + JSON.stringify(res));
+		},
+		fail: function(err) {
+			//console.log("fail:" + JSON.stringify(err));
+		}
+	});
+}
+
+// 分享功能模块结束
+
+/**
+  * 方法名称: 数组去重和去掉undefined元素
+  * 方法注释: 调用此方法会去掉数组重复的元素
+  * 传入参数: array 数组
+  * 返回数值: 去重后以及去掉undefined元素后的数组
+*/
+function formatArray(array) {
+	// var theArray = [];
+	// for (var i = 0; i < array.length; i++) {
+	// 	if (array[i] && !(array[i] == 'undefined')) {
+	// 		theArray.push(array[i]);
+	// 	}
+	// }
+	
+	var hash = [];
+	for (var i = 0; i < array.length; i++) {
+		for (var j = i + 1; j < array.length; j++) {
+			if (array[i] === array[j]) {
+				++i;
+			}
+		}
+		if (array[i] && !(array[i] == 'undefined')) {
+			hash.push(array[i]);
+		}
+	}
+	return hash;
+}
+
+function dateCheck(RQ) {
+	var date = RQ;
+	var result = date.match(/^(\d{1,4})(-|\/)(\d{1,2})\2(\d{1,2})$/);
+
+	if (result == null)
+		return false;
+	var d = new Date(result[1], result[3] - 1, result[4]);
+	return (d.getFullYear() == result[1] && (d.getMonth() + 1) == result[3] && d.getDate() == result[4]);
+}
+
+
+
+function formatLocation(longitude, latitude) {
+	if (typeof longitude === 'string' && typeof latitude === 'string') {
+		longitude = parseFloat(longitude)
+		latitude = parseFloat(latitude)
+	}
+
+	longitude = longitude.toFixed(2)
+	latitude = latitude.toFixed(2)
+
+	return {
+		longitude: longitude.toString().split('.'),
+		latitude: latitude.toString().split('.')
+	}
+}
+
+function dateDiff(dateStr) {
+	var date = new Date(dateStr);
+	var nowdate = new Date();
+	var diff = nowdate.getDate() - date.getDate();
+	switch (diff) {
+		case 0:
+			return '今天'
+			break
+		case 1:
+			return '昨天'
+			break
+		case 2:
+			return '前天'
+			break
+		default:
+			return diff + '天前'
+			break;
+	}
+};
+
+function formatMinutesTime(dateStr) {
+	var _format = function(number) {
+		return (number < 10 ? ('0' + number) : number);
+	};
+	var date = new Date(dateStr);
+	return _format(date.getHours()) + ':' + _format(date.getMinutes());
+};
+
+function formatTime(time) {
+	if (typeof time !== 'number' || time < 0) {
+		return time
+	}
+
+	var hour = parseInt(time / 3600)
+	time = time % 3600
+	var minute = parseInt(time / 60)
+	time = time % 60
+	var second = time
+
+	return ([hour, minute, second]).map(function(n) {
+		n = n.toString()
+		return n[1] ? n : '0' + n
+	}).join(':')
+}
+
+/**
+ * 方法名称: 将日期格式化为某月某日
+ * 方法注释: 比如传入2019-11-10,则返回11月10日
+ * 传入参数: dateStr 日期字符串
+ * 返回数值: 带有月日的日期字符串
+ */
+function formatMinutesDay(dateStr) {
+	if (dateStr) {
+		dateStr = dateStr.replace(/-/ig, "/");
+	}
+
+	var date = new Date(dateStr);
+	var _format = function(number) {
+		return (number < 10 ? ('0' + number) : number);
+	};
+	return +_format(date.getMonth() + 1) + '月' + _format(date.getDate()) + "日";
+};
+
+function formatDateTime(dateStr) {
+	var date;
+	if (dateStr) {
+		date = new Date(dateStr);
+	} else {
+		date = new Date();
+	}
+
+	var _format = function(number) {
+		return (number < 10 ? ('0' + number) : number);
+	};
+	return date.getFullYear() + '-' + _format(date.getMonth() + 1) + '-' + _format(date.getDate()) + ' ' +
+		_format(date.getHours()) + ':' + _format(date.getMinutes());
+}
+
+
+const formatDate = date => {
+	if (!date instanceof Date) {
+		date = new Date(date);
+	}
+	const year = date.getFullYear()
+	const month = date.getMonth() + 1
+	const day = date.getDate()
+	return [year, month, day].map(formatNumber).join('-')
+};
+/**
+ * 方法名称: 获取当前日期的前几天或者后几天
+ * 方法注释: dayCount传入负数比如-3,表示获取当前日期的前3天,传入正数比如2,表示获取后天的日期
+ * 传入参数: dayCount 正整数或者负整数
+ * 返回数值: 前日期的前几天或者后几天的字符串
+ */
+const getDateWithCount = dayCount => {
+	var dd = new Date();
+	dd.setDate(dd.getDate() + dayCount); //获取AddDayCount天后的日期  
+	var y = dd.getFullYear();
+	var m = (dd.getMonth() + 1) < 10 ? "0" + (dd.getMonth() + 1) : (dd.getMonth() + 1); //获取当前月份的日期，不足10补0  
+	var d = dd.getDate() < 10 ? "0" + dd.getDate() : dd.getDate(); //获取当前几号，不足10补0  
+	return y + "-" + m + "-" + d;
+};
+
+const getTimeWithHour = hours => {
+	var dd = new Date();
+	var tt = dd.getTime();
+	var ntt = tt + hours * 60 * 1000;
+	dd.setDate(dd.getDate() + dayCount); //获取AddDayCount天后的日期  
+	var y = dd.getFullYear();
+	var m = (dd.getMonth() + 1) < 10 ? "0" + (dd.getMonth() + 1) : (dd.getMonth() + 1); //获取当前月份的日期，不足10补0  
+	var d = dd.getDate() < 10 ? "0" + dd.getDate() : dd.getDate(); //获取当前几号，不足10补0  
+	return y + "-" + m + "-" + d;
+};
+
+
+const getDaysByDateString = (dateString1, dateString2) => {
+	var startDate = Date.parse(dateString1.replace('/-/g', '/'));
+	var endDate = Date.parse(dateString2.replace('/-/g', '/'));
+	var diffDate = (endDate - startDate) + 1 * 24 * 60 * 60 * 1000;
+	var days = diffDate / (1 * 24 * 60 * 60 * 1000);
+	//alert(diffDate/(1*24*60*60*1000));  
+	return days;
+}
+
+
+/**
+ * 方法名称: 获取当前日期的星期
+ * 方法注释: dateString传入日期格式的字符串
+ * 传入参数: dateString传入日期格式的字符串
+ * 返回数值: 日期的星期
+ */
+const getDateWeekend = dateString => {
+	var date = new Date(dateString);
+	var a = ["日", "一", "二", "三", "四", "五", "六"];
+	var week = date.getDay();
+	var str = "周" + a[week];
+	return str;
+};
+
+const formatNumber = n => {
+	n = n.toString()
+	return n[1] ? n : '0' + n
+};
+
+var dateUtils = {
+	UNITS: {
+		'年': 31557600000,
+		'月': 2629800000,
+		'天': 86400000,
+		'小时': 3600000,
+		'分钟': 60000,
+		'秒': 1000
+	},
+	humanize: function(milliseconds) {
+		var humanize = '';
+		for (var key in this.UNITS) {
+			if (milliseconds >= this.UNITS[key]) {
+				humanize = Math.floor(milliseconds / this.UNITS[key]) + key + '前';
+				break;
+			}
+		}
+		return humanize || '刚刚';
+	},
+	format: function(dateStr) {
+		var date = this.parse(dateStr)
+		var diff = Date.now() - date.getTime();
+		if (diff < this.UNITS['天']) {
+			return this.humanize(diff);
+		}
+		var _format = function(number) {
+			return (number < 10 ? ('0' + number) : number);
+		};
+		return date.getFullYear() + '/' + _format(date.getMonth() + 1) + '/' + _format(date.getDate()) + '-' +
+			_format(date.getHours()) + ':' + _format(date.getMinutes()) + '111';
+	},
+	parse: function(str) { //将"yyyy-mm-dd HH:MM:ss"格式的字符串，转化为一个Date对象
+		var a = str.split(/[^0-9]/);
+		return new Date(a[0], a[1] - 1, a[2], a[3], a[4], a[5]);
+	},
+	formatDate: function(dateStr) {
+		//const mistiming = Math.round((Date.now() - new Date(dateStr).getTime()) / 1000)
+		//const tags = ['年', '个月', '星期', '天', '小时', '分钟', '秒']
+		//const times = [31536000, 2592000, 604800, 86400, 3600, 60, 1]
+		//console.info("new Date(dateStr).getDate():" + new Date(dateStr).getDate() + "--" + Date.now());
+		const mistiming = Math.round((Date.now() - new Date(dateStr)) / (24 * 60 * 60 * 1000))
+		const tags = ['年', '个月', '星期', '天']
+		const times = [31536000, 2592000, 604800, 86400]
+		for (let i = 0; i < times.length; i++) {
+			const inm = Math.floor(mistiming / times[i])
+			if (tags[i] === '天') {
+				switch (inm) {
+					case 0:
+						return '今天'
+						break
+					case 1:
+						return '昨天'
+						break
+					case 2:
+						return '前天'
+						break
+					default:
+						return inm + tags[i] + '前'
+						break;
+				}
+			}
+			if (inm !== 0) {
+				return inm + tags[i] + '前'
+			}
+		}
+	},
+};
+// 将一维数组拆分成二维数组
+function multiArray(array) {
+	const newArray = array.reduce((prev, next, index) => {
+		if (index % 2 === 0) {
+			prev.push([])
+		}
+		prev[prev.length - 1].push(next);
+		return prev;
+	}, []);
+	return newArray
+}
+
+/**判断是否是手机号**/
+function isPhoneNumber(tel) {
+	var reg = /^0?1[3|4|5|6|7|8][0-9]\d{8}$/;
+	return reg.test(tel);
+}
+/**
+ * 方法名称: 打开某个地点的所在位置的地图
+ * 方法注释: 
+ * 传入参数: 
+ * 返回数值: 
+ */
+function openLocation(longitude, latitude, name, address) {
+	uni.openLocation({
+		longitude: Number(longitude),
+		latitude: Number(latitude),
+		name: name,
+		address: address,
+		fail() {
+			uni.navigateBack({
+
+			})
+		}
+	})
+}
+/**
+ * 方法名称: 打开店铺地址的位置
+ * 方法注释: 
+ * 传入参数: shopInfo店铺信息必须包含经纬度/店铺名称/店铺地址
+ * 返回数值: 无
+ */
+function openShopLocation(shopInfo) {
+	if (!shopInfo) return;
+	uni.openLocation({
+		longitude: Number(shopInfo.coordinateLng),
+		latitude: Number(shopInfo.coordinateLat),
+		name: shopInfo.shopName,
+		address: shopInfo.address,
+		fail() {
+			uni.navigateBack({
+
+			})
+		}
+	})
+}
+/**
+ * 方法名称: 导航至目的地
+ * 方法注释: 需要传入目的地的经度、维度，如果不传默认目的是滕王阁，当前位置默认为用户所在位置，测试时可默认为南昌日报大厦
+ * 传入参数: desLongitude->目的地的经度 desLatitude->目的地的纬度 desAddress->目的的地址名称，比如滕王阁
+ * 返回数值: 无返回值，获取当前用户位置失败时会弹框提示
+ */
+function navigateToLocation(desLongitude = 115.881141, desLatitude = 28.681356, desAddress = '滕王阁') {
+	// #ifdef APP-PLUS
+	uni.getLocation({
+		success: (res) => {
+			//var src = new plus.maps.Point(115.885449,28.71359);	 		// 南昌日报大厦（高德坐标）
+			// var dst = new plus.maps.Point(desLongitude,desLatitude);     // 目的地位置（高德坐标）
+
+			//var src = new plus.maps.Point(115.885449,28.71359);	 		// 南昌日报大厦（高德坐标）
+			// var dst = new plus.maps.Point(desLongitude,desLatitude);     // 目的地位置（高德坐标）
+			////console.log(res.longitude, res.latitude);
+			var src = new plus.maps.Point(res.longitude, res.latitude); // 当前位置 (高德坐标)
+			var point = GPS.gcj_decrypt_exact(desLongitude, desLatitude)
+			var dst = new plus.maps.Point(point.lon, point.lat); // 南昌滕王阁 (高德坐标)
+			plus.maps.openSysMap(dst, desAddress, src);
+		},
+		fail: (err) => {
+
+			var src = new plus.maps.Point(115.885449, 28.71359); // 南昌日报大厦（高德坐标）
+			var dst = new plus.maps.Point(desLongitude, desLatitude); // 南昌滕王阁 (高德坐标)
+			plus.maps.openSysMap(dst, desAddress, src);
+			if (err.errMsg.indexOf("auth deny") >= 0) {
+				// uni.showToast({
+				// 	title: "访问位置被拒绝,请到设置中允许ye南昌开启位置访问权限"
+				// })
+			} else {
+				// uni.showToast({
+				// 	title: err.errMsg
+				// })
+
+			}
+		}
+	})
+	// #endif
+
+}
+function bannerClick(item){
+	if(item.photoUrl){
+		if(item.linkType==1){
+			gotoWebView(item.photoUrl);
+		}else{
+			uni.navigateTo({
+				url: item.photoUrl
+			})
+		}
+	}
+	
+}
+function distance(latA, lonA, latB, lonB) {
+	return GPS.distance(latA, lonA, latB, lonB);
+}
+var GPS = {
+	PI: 3.14159265358979324,
+	x_pi: 3.14159265358979324 * 3000.0 / 180.0,
+	delta: function(lat, lon) {
+		// Krasovsky 1940
+		//
+		// a = 6378245.0, 1/f = 298.3
+		// b = a * (1 - f)
+		// ee = (a^2 - b^2) / a^2;
+		var a = 6378245.0; //  a: 卫星椭球坐标投影到平面地图坐标系的投影因子。
+		var ee = 0.00669342162296594323; //  ee: 椭球的偏心率。
+		var dLat = this.transformLat(lon - 105.0, lat - 35.0);
+		var dLon = this.transformLon(lon - 105.0, lat - 35.0);
+		var radLat = lat / 180.0 * this.PI;
+		var magic = Math.sin(radLat);
+		magic = 1 - ee * magic * magic;
+		var sqrtMagic = Math.sqrt(magic);
+		dLat = (dLat * 180.0) / ((a * (1 - ee)) / (magic * sqrtMagic) * this.PI);
+		dLon = (dLon * 180.0) / (a / sqrtMagic * Math.cos(radLat) * this.PI);
+		return {
+			'lat': dLat,
+			'lon': dLon
+		};
+	},
+
+	//WGS-84 to GCJ-02
+	gcj_encrypt: function(wgsLat, wgsLon) {
+		if (this.outOfChina(wgsLat, wgsLon))
+			return {
+				'lat': wgsLat,
+				'lon': wgsLon
+			};
+
+		var d = this.delta(wgsLat, wgsLon);
+		return {
+			'lat': wgsLat + d.lat,
+			'lon': wgsLon + d.lon
+		};
+	},
+	//GCJ-02 to WGS-84
+	gcj_decrypt: function(gcjLat, gcjLon) {
+		if (this.outOfChina(gcjLat, gcjLon))
+			return {
+				'lat': gcjLat,
+				'lon': gcjLon
+			};
+
+		var d = this.delta(gcjLat, gcjLon);
+		return {
+			'lat': gcjLat - d.lat,
+			'lon': gcjLon - d.lon
+		};
+	},
+	//GCJ-02 to WGS-84 exactly
+	gcj_decrypt_exact: function(gcjLon, gcjLat) {
+		var initDelta = 0.01;
+		var threshold = 0.000000001;
+		var dLat = initDelta,
+			dLon = initDelta;
+		var mLat = gcjLat - dLat,
+			mLon = gcjLon - dLon;
+		var pLat = gcjLat + dLat,
+			pLon = gcjLon + dLon;
+		var wgsLat, wgsLon, i = 0;
+		while (1) {
+			wgsLat = (mLat + pLat) / 2;
+			wgsLon = (mLon + pLon) / 2;
+			var tmp = this.gcj_encrypt(wgsLat, wgsLon)
+			dLat = tmp.lat - gcjLat;
+			dLon = tmp.lon - gcjLon;
+			if ((Math.abs(dLat) < threshold) && (Math.abs(dLon) < threshold))
+				break;
+
+			if (dLat > 0) pLat = wgsLat;
+			else mLat = wgsLat;
+			if (dLon > 0) pLon = wgsLon;
+			else mLon = wgsLon;
+
+			if (++i > 10000) break;
+		}
+		//////console.log(i);
+		return {
+			'lon': wgsLon,
+			'lat': wgsLat
+		};
+	},
+
+	// two point's distance
+	distance: function(latA = 115.857963, lonA = 28.6926, latB, lonB) {
+		latA = latA || 115.857963, lonA = lonA || 28.6926
+		var earthR = 6371000.;
+		var x = Math.cos(latA * this.PI / 180.) * Math.cos(latB * this.PI / 180.) * Math.cos((lonA - lonB) * this.PI / 180);
+		var y = Math.sin(latA * this.PI / 180.) * Math.sin(latB * this.PI / 180.);
+		var s = x + y;
+		if (s > 1) s = 1;
+		if (s < -1) s = -1;
+		var alpha = Math.acos(s);
+		var distance = alpha * earthR;
+		return distance;
+	},
+	outOfChina: function(lat, lon) {
+		if (lon < 72.004 || lon > 137.8347)
+			return true;
+		if (lat < 0.8293 || lat > 55.8271)
+			return true;
+		return false;
+	},
+	transformLat: function(x, y) {
+		var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+		ret += (20.0 * Math.sin(6.0 * x * this.PI) + 20.0 * Math.sin(2.0 * x * this.PI)) * 2.0 / 3.0;
+		ret += (20.0 * Math.sin(y * this.PI) + 40.0 * Math.sin(y / 3.0 * this.PI)) * 2.0 / 3.0;
+		ret += (160.0 * Math.sin(y / 12.0 * this.PI) + 320 * Math.sin(y * this.PI / 30.0)) * 2.0 / 3.0;
+		return ret;
+	},
+	transformLon: function(x, y) {
+		var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+		ret += (20.0 * Math.sin(6.0 * x * this.PI) + 20.0 * Math.sin(2.0 * x * this.PI)) * 2.0 / 3.0;
+		ret += (20.0 * Math.sin(x * this.PI) + 40.0 * Math.sin(x / 3.0 * this.PI)) * 2.0 / 3.0;
+		ret += (150.0 * Math.sin(x / 12.0 * this.PI) + 300.0 * Math.sin(x / 30.0 * this.PI)) * 2.0 / 3.0;
+		return ret;
+	}
+};
+
+
+/**
+ * [获取URL中的参数名及参数值的集合]
+ * 示例URL:http://htmlJsTest/getrequest.html?uid=admin&rid=1&fid=2&name=小明
+ * @param {[string]} urlStr [当该参数不为空的时候，则解析该url中的参数集合]
+ * @return {[string]}       [参数集合]
+ */
+function GetRequest(urlStr) {
+    if (typeof urlStr == "undefined") {
+        var url = decodeURI(location.search); //获取url中"?"符后的字符串
+    } else {
+        var url = "?" + urlStr.split("?")[1];
+    }
+    var theRequest = new Object();
+    if (url.indexOf("?") != -1) {
+        var str = url.substr(1);
+        var strs = str.split("&");
+        for (var i = 0; i < strs.length; i++) {
+            theRequest[strs[i].split("=")[0]] = decodeURI(strs[i].split("=")[1]);
+        }
+    }
+    return theRequest;
+}
+
+
+module.exports = {
+	isJsonString: isJsonString,
+	formatImagePath: formatImagePath,
+	formatImagePaths: formatImagePaths,
+	formatShopList: formatShopList,
+	formatShopData: formatShopData,
+	formatTime: formatTime,
+	formatLocation: formatLocation,
+	dateUtils: dateUtils,
+	dateDiff: dateDiff,
+	formatMinutesTime: formatMinutesTime,
+	formatMinutesDay: formatMinutesDay,
+	formatDate: formatDate,
+	formatDateTime: formatDateTime,
+	getDateWithCount: getDateWithCount,
+	getDateWeekend: getDateWeekend,
+	getDaysByDateString: getDaysByDateString,
+	dateCheck: dateCheck,
+	multiArray: multiArray,
+	navigateToLocation: navigateToLocation,
+	distance: distance,
+	formatArray: formatArray,
+	getVarNaviBarHeight: getVarNaviBarHeight,
+	gotoShopDetail: gotoShopDetail,
+	gotoOrderDetail: gotoOrderDetail,
+	openLocation: openLocation,
+	openShopLocation: openShopLocation,
+	checkAppVersion: checkAppVersion,
+	tipOff: tipOff,
+	gotoWebView: gotoWebView,
+	isPhoneNumber: isPhoneNumber,
+	formatRichText: formatRichText,
+	setFavorite: setFavorite,
+	favoriteWithData: favoriteWithData,
+	getUserHeaderImage: getUserHeaderImage,
+	shareWithData: shareWithData,
+	bannerClick:bannerClick,
+	formatUserImage:formatUserImage,
+	getPageRuteWithDataString: getPageRuteWithDataString,
+	GetRequest:GetRequest
+}

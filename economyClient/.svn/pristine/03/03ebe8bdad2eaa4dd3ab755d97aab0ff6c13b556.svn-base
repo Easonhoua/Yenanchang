@@ -1,0 +1,256 @@
+<template>
+	<view class="content">
+		<!-- <navi-bar class="navi-bar" :isFavorite="isFavorite" :relationId="shopId" :shareData="shareData"></navi-bar> -->
+		<!-- top="88rpx" :topbar="true" -->
+		<mescroll-body @down="downCallBack" @init="initMescroll" @up="upCallback" >
+			<view>
+				<view class="swiper-banner-imgbox">
+					<swiper-banner :swiperList="images"></swiper-banner>
+				</view>
+				
+				<view class="info-view">
+					<view class="display-row">
+						<view class="shop-name">{{shopsData.shopName}}</view>
+						<image v-if="shopsData.shopsPhone" class="shop-location-image" src="/static/img/common/phone.png" @click="toPhone(shopsData.shopsPhone)"></image>
+					</view>
+				
+					<view class="display-row" style="margin-top: 20rpx;">
+						<uni-rate ref="shopRate" :value="shopsData.score" disabled="true" size="20"></uni-rate>
+						<view class="text-edit" style="margin: 0rpx 30rpx;">{{shopsData.score}}分</view>
+						<view class="text-detail">{{shopsData.commentNum}}条评论</view>
+					</view>
+				
+					<view class="address">
+						<view class="shop-address">{{shopsData.address}}</view>
+						<image class="shop-location-image" src="/static/img/sports/location.png" @click="gotoMapLocation"></image>
+					</view>
+					<view v-if="shopsData.shopHours1" class="time">营业时间 ：{{shopsData.shopHours1}} {{shopsData.shopHours2}} {{shopsData.shopHours3}}</view>
+					<!-- <view v-else class="time">营业时间未填写，可拨打电话确认</view> -->
+				</view>
+				
+				<view class="top-slider-con" v-if="shopsData.transportLine">
+					<view class="activity">
+						<view class="introduction">
+							<view class="label">交通方式</view>
+							<view class="introduction-bd" >{{shopsData.transportLine}}</view>
+						</view>
+					</view>
+				</view>
+				
+				<view class="top-slider-con" v-if="shopsData.details">
+					<view class="activity">
+						<view class="introduction">
+							<view class="label">商家详情</view>
+							<view class="introduction-bd"  >
+								<rich-text :nodes="shopsData.details"></rich-text>
+							</view>
+						</view>
+					</view>
+				</view>
+				<sportActivityList ref='sportActivityList' :shopId="shopId"></sportActivityList>
+				
+				<goodCommentList-component v-if="shopsData.commentNum" ref='goodCommentList'
+				 goodCommentTitle="评论" :shopId="shopId"></goodCommentList-component>
+				<!--附近的酒店列表-->
+				<view class="top-slider-con">
+					<view class="near-title">附近好店</view>
+					<list-shop-cell :shopList="nearShopList"></list-shop-cell>
+				</view>
+			</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import goodCommentListComponent from "@/components/goodCommentList-component/goodCommentList-component.vue"
+	import listShopCell from "@/components/list-cell-view/list-shop-cell.vue"
+	import naviBar from "@/components/navi-bar/navi-bar.vue"
+	import uniRate from "@/components/uni-rate/uni-rate.vue";
+	import swiperBanner from "@/components/swiper-banner/swiper-banner.vue";
+	import sportActivityList from "@/pages/activity/sportActivityList.vue"
+	export default {
+		components: {
+			naviBar,
+			uniRate,
+			listShopCell,
+			goodCommentListComponent,
+			swiperBanner,
+			sportActivityList
+		},
+		data() {
+			return {
+				shopId:0,
+				top:128,
+				mescroll:'',
+				images: [],
+				shopsData: {},
+				isFavorite: false,
+				shareData: {},
+				nearShopList: [], //附近的店铺
+			}
+		},
+		onLoad(e) {
+			if (e.shopId) {
+				this.shopId = e.shopId;
+				e.shopId = Number(e.shopId);
+				this.shopsData.shopId = e.shopId;
+				//console.log("this.shopsData.shopId = ", this.shopsData.shopId);
+				this.shopsData.coordinate = e.coordinate;
+			}	
+		},
+		// 导航栏右上角点击事件
+		onNavigationBarButtonTap(e) {
+			if (e.index == 0) {
+				this.util.shareWithData(this.shareData);
+			} else if (e.index == 1) {
+				this.util.favoriteWithData(this.isFavorite, "1", this.shopId).then(res => {
+					this.isFavorite = res;
+				})
+			}
+		},
+		onPageScroll(e) {
+			// 为了解决滚动到最顶端时，是否收藏按钮颜色失效的问题
+			if (e.scrollTop < 10) {
+				this.util.setFavorite(this.isFavorite);
+			}
+		},
+		methods: {
+			initMescroll:function(mescroll) {
+				this.mescroll = mescroll;
+				
+			},
+			downCallBack:function(mescroll){
+				// mescroll.resetUpScroll();
+				this.queryDetail(mescroll,this.shopsData.shopId);
+			},
+			upCallback:function(mescroll){
+				this.queryNearHotel(mescroll);
+			},
+			queryDetail: function(mescroll,shopId) {
+				let url = '/memberapi/api/shops/readShopsAndExtends.do';
+				let data = {
+					shopId: shopId, //标签
+				};
+				var that =this;
+				this.request.get(url, data).then(res => {
+					that.shopsData = res.data;
+					uni.setNavigationBarTitle({
+						title:that.shopsData.shopName
+					})
+					if (that.shopsData.imagePath) {
+						that.shopsData.imagePath = that.util.formatImagePaths(that.shopsData.imagePath);
+						that.images = that.images.concat(that.shopsData.imagePath);
+					}
+					if(that.shopsData.logo){
+						that.shopsData.logo = that.util.formatImagePath(that.shopsData.logo);
+						that.images.push(that.shopsData.logo);
+					}
+					if (that.shopsData.thumbnailPath) {
+						that.shopsData.thumbnailPath = that.util.formatImagePath(that.shopsData.thumbnailPath);
+						that.images.push(that.shopsData.thumbnailPath);
+					}
+					if(that.shopsData.coordinateLng && that.shopsData.coordinateLat){
+						that.shopsData.coordinate = that.shopsData.coordinateLng + "," + that.shopsData.coordinateLat;
+					}
+					if(that.shopsData.details){
+						that.shopsData.details =that.shopsData.details.replace(/\<img/g,'<img style="width:100%;height:auto;display:block"').replace(/\width: (\d*)px/g,'').replace(/\height: (\d*)px/g,'');
+					}
+					
+					that.images = that.util.formatArray(that.images);
+					that.shopsData.shopHours1 =that.shopsData.shopHours1?that.shopsData.shopHours1:"";
+					that.shopsData.shopHours2 =that.shopsData.shopHours2?that.shopsData.shopHours2:"";
+					that.shopsData.shopHours3 =that.shopsData.shopHours3?that.shopsData.shopHours3:"";
+					// 是否已经收藏
+					that.isFavorite = that.shopsData.canFavorite == 2;
+					that.util.setFavorite(that.isFavorite);
+					//分享的内容
+					that.shareData.title = that.shopsData.shopName;
+					that.shareData.summary = that.shopsData.address;
+					that.shareData.imageUrl = that.shopsData.logo;
+					mescroll.resetUpScroll();
+				})
+			},
+			queryNearHotel: function(mescroll) { 
+				let url = '/memberapi/api/shops/queryShopList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					platformTypeId: this.shopsData.platformTypeId,
+					coordinate: this.shopsData.coordinate,
+					distance: "5000",
+					sortFlag: "distance-asc"
+				};
+
+				this.request.get(url, data, mescroll).then(res => {
+					if (mescroll.num == 1) this.nearShopList = [];
+					this.nearShopList = this.nearShopList.concat(res.list);
+				})
+			},
+			gotoMapLocation: function(shopsData) {
+				this.util.openLocation(this.shopsData.coordinateLng, this.shopsData.coordinateLat, this.shopsData.shopName, this.shopsData
+					.address);
+			},
+			toPhone: function(shopsPhone) {
+				uni.makePhoneCall({
+					phoneNumber: shopsPhone,
+					success: () => {
+						//console.log("成功拨打电话");
+					}
+				})
+			},
+		}
+	}
+</script>
+
+<style>
+	
+	.navi-bar {
+		background-color: #FFFFFF;
+	}
+	.info-view {
+		padding: 30rpx;
+		width: 750rpx;		
+		background-color: #FFFFFF;
+	}
+
+	.shop-name {
+		font-size: 48rpx;
+		font-weight: bold;
+	}
+
+	.address {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		border-top: 2rpx solid #F9F9F9;
+		border-bottom: 2rpx solid #F9F9F9;
+		padding: 30rpx 0;
+		margin: 20rpx 0;
+	}
+
+	.shop-address {
+		font-size: 32rpx;
+		padding-right: 20rpx;
+	}
+
+	.shop-location-image {
+		margin-left: auto;
+		min-width: 50rpx;
+		width: 50rpx;
+		height: 50rpx;
+	}
+
+	.time {
+		color: #4A4A4A;
+		font-size: 32rpx;
+	}
+	
+	.near-title{
+		font-size: 40rpx;
+		font-weight: bold;
+		width: 100vw;
+		background-color: #FFFFFF;
+		padding: 20rpx 30rpx;
+	}
+</style>

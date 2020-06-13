@@ -1,0 +1,84 @@
+<template>
+	<view class="page publish choosedestination">
+		<view class="header" style="flex-direction:column ;">
+			<view class="title">
+				<image class="close" src="../../static/img_new/common/close@3x.png" v-on:click.stop="cancelBtn"></image>
+				<text>目的地</text>
+				<!-- <text class="btn btn-min rightbtn">创建目的地</text> -->
+			</view>
+			<view class="search-form">
+				<view class="inner">
+					<image class="search-icon" src="../../static/img_new/common/search.png"></image>
+					<input class="input" placeholder="搜索" placeholder-style="color:#B8B4A9" confirm-type="search" v-model="keyword"  @confirm="searchShop" />
+				</view>
+			</view>
+		</view>
+		<view class="des-listbox">
+			<view class="tip">你可能想选择的目的地</view>
+			<mescroll-uni @down="downCallBack" @init="initMescroll" @up="upCallback" top="280">
+				<block v-if="shopsList != null && shopsList.length > 0">
+					<view class="des-list line-bottom" v-for="(item,index) in shopsList" :key="index"  v-on:click.stop="clickShop(item)">
+						<view class="destination">{{item.shopName}}</view>
+						<view class="address">{{item.address}}37号</view>
+					</view>
+				</block>
+			</mescroll-uni>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				keyword:'',
+				mescroll: '',
+				shopsList: [], //店铺选择
+			}
+		},
+		methods: {
+			initMescroll(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll) {
+				this.shopsList = [];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll) {
+				const url = '/memberapi/api/shops/shopsList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					keyword:this.keyword,
+				};
+				var that = this;
+				this.request.get(url, data, mescroll).then(res => {
+					if (res.list.length === 0 || this.mescroll.num === 1) this.shopsList = [];
+					this.shopsList = this.shopsList.concat(res.list); //追加新数据
+				})
+			},
+			clickShop(item) {
+				let data = {
+					destination: item.shopName,
+					shopId: item.shopId
+				};
+				uni.$emit('common_destination', data);
+				uni.navigateBack({});
+			},
+			//取消
+			cancelBtn:function(){
+				uni.navigateBack();
+			},
+			//搜索
+			searchShop: function(event) {
+				this.keyword = event.detail.value;
+				this.downCallBack(this.mescroll);
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*局部通用模块scss */
+	@import "../../common/css/other.scss";
+</style>

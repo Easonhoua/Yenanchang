@@ -1,0 +1,135 @@
+<template>
+	<view class="layout letime">
+		<screenComponent platformTypeId="4" @screenLike="screenLike" ref="myScreen"></screenComponent>
+		<view class="contain">
+			<mescroll-uni @down="downCallBack" @init ="initMescroll" @up="upCallback" top="130">
+				<view class="ht-card card" v-for="(item,index) in arderShoplist" :key="index" @click="toDetail(item.shopId)">
+					<view class="card-bd">
+						<view class="ct-list">
+							<image class="img" :src="item.thumbnailPath?item.thumbnailPath:'/static/img/common/banner.png'"></image>
+							<view class="righttxt">
+								<view class="name">{{item.shopName}}</view>
+								<view class="score">
+									<uni-rate :value="item.score" disabled="true" size="14" style="display: inline-flex; margin-right: -20rpx;"></uni-rate>
+									<text class="number yd">{{item.score}}分</text>
+									<text class="number">{{item.commentNum}}条评论</text>
+								</view>
+								<view class="locale font24" style="margin-left: -10rpx;">
+									<text>{{item.keyword?item.keyword:'暂无景区关键字'}}</text>
+									<label class="mark" style="float: right; color: #7C7C7C;">距我{{item.distance}}km</label>
+								</view>
+								<view class="coupon coupon2" style="margin-top: -12rpx;">
+									<view class=""><text class="yd">{{item.scenicFreeFlag == 1 ? '免费' : '¥ '+item.discountPrice+' 起'}}</text></view>
+								</view>
+							</view>
+						</view>
+					</view>
+				</view>
+			</mescroll-uni>
+
+		</view>
+	</view>
+</template>
+
+<script>
+	import screenComponent from '@/components/screen-component/screen-component.vue';
+	import uniRate from "@/components/uni-rate/uni-rate.vue";
+	export default {
+		components: {
+			uniRate,
+			screenComponent
+		},
+		data() {
+			return {
+				mescroll : '',
+				keyword:'',
+				searchData:{},
+				platformTypeId:4,
+				arderShoplist:[],
+				longtitude:'',
+				latitude:''
+			}
+		},
+		onLoad() {
+		},
+		mounted() {
+			this.$refs.myScreen.getTypeLabel();
+		},
+		onShow() {
+			uni.getLocation({
+			    type: 'gcj02',
+			    success: function (res) {
+					this.longtitude = res.longitude;
+					this.latitude = res.latitude;
+			        //console.log('当前位置的经度：' + res.longitude);
+			        //console.log('当前位置的纬度：' + res.latitude);
+			    },
+				fail() {
+					
+				}
+			});
+		},
+		methods: {
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.arderShoplist=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				
+				let coordinate='';
+				if(this.longtitude && this.latitude){
+					coordinate = this.longtitude+","+this.latitude;
+				}
+				//获取项目信息列表
+				const url = '/memberapi/api/shops/queryShopList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					keyword: this.keyword,
+					coordinate:coordinate,
+					platformTypeId:this.platformTypeId,
+				};
+				let sendDate =Object.assign({}, this.searchData, data);
+				var that = this;
+				this.request.get(url,sendDate,mescroll).then(res=>{
+					let currListData = res.list;
+					currListData.forEach(item => {
+						if(item.thumbnailPath){
+							let thumbnailPath = JSON.parse(item.thumbnailPath);
+							if(thumbnailPath.filePath_220){
+								item.thumbnailPath = that.request.getBaseImagePath() + thumbnailPath.filePath_220;
+							}else{
+								item.thumbnailPath = that.request.getBaseImagePath() + thumbnailPath.filePath;
+							}
+						}
+					});
+					that.arderShoplist = that.arderShoplist.concat(currListData); //追加新数据
+				})
+			},
+			toDetail(shopId){
+				uni.navigateTo({
+					url:'./arderShopDetail?shopId='+shopId
+				})
+			},
+			screenLike(searchData){
+				this.searchData= searchData;
+				//console.log("this.searchData: " + JSON.stringify(this.searchData));
+				this.downCallBack(this.mescroll);
+			},
+			onNavigationBarSearchInputChanged (input) {
+				//console.log(input);
+				this.keyword = input.text;
+				this.downCallBack(this.mescroll);
+			}
+	
+		}
+	}
+</script>
+
+<style>
+</style>

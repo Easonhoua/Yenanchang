@@ -1,0 +1,546 @@
+<template>
+	<view class="page scenic food">
+		<mescroll-body @down="downCallBack" @init="initMescroll" :up='upOption'>
+			<swiper-banner :swiperList="shopsData.banners"></swiper-banner>
+			<view class="scenic-infor">
+				<view class="inner">
+					<view class="name">
+						<text class="txt">{{shopsData.shopName}}</text>
+						<view class="total">{{shopsData.score}}<text class="min">分</text></view>
+					</view>
+					<view class="tip">
+						<view class="left">
+							<text class="txt">{{shopsData.platformLabelsName}}</text>
+							<text class="txt">人均￥{{shopsData.standardPrice}}</text>
+						</view>
+						<text class="comment">{{shopsData.commentNum}}条点评 ></text>
+					</view>
+					<!-- 满减优惠 -->
+					<view class="full-reduction line-bottom">
+						<text class="label">满减</text>
+						<view class="full-reduction-con">
+							<text class="con-item">满100减10元</text>
+							<text class="con-item">满200减20元</text>
+							<text class="con-item">满300减25元</text>
+						</view>
+					</view>
+					<view class="addressbox line-bottom">
+						<view class="left">
+							<image class="icon" src="../../static/img_new/food/f_dw@3x.png"></image>
+							<view class="address" >
+								<text class="txt">{{shopsData.address}}</text>
+							</view>
+						</view>
+						<view class="right">
+							<view @click="gotoMapLocation">
+								<image class="icon" src="../../static/img_new/food/f_dh@3x.png"></image>
+								<view>导航</view>
+							</view>
+							<view @click="callPhone">
+								<image class="icon" src="../../static/img_new/food/f_lx@3x.png"></image>
+								<view>电话</view>
+							</view>
+						</view>
+					</view>
+					<view class="addressbox line-bottom">
+						<view class="left">
+							<image class="icon" src="../../static/img_new/food/f_yy@3x.png"></image>
+							<view class="address">
+								<view class="txt" v-for="(item,index) in shopsData.itemList" :key="index">
+									 {{item.shopDayName}} {{item.shopHours1?item.shopHours1:''}} {{item.shopHours2?"-"+item.shopHours2:''}}
+									{{item.shopHours3?item.shopHours3:''}}{{item.shopHours4?"-"+item.shopHours4:''}}
+								</view>
+							</view>
+						</view>
+					</view>
+				</view>
+				<view class="yudingbox">
+					<view v-if="bookFlag" class="addressbox yuding" @click="roomReserve">
+						<view class="left left-fx">
+								<image class="icon" src="../../static/img_new/food/f_dz@3x.png"></image>
+							<view class="address ticketpurchase">
+								<text class="txt">提前订座</text>
+							</view>
+						</view>
+						<view class="right">
+							<view class="btn-yuding btn-yuding-dz">订座</view>
+						</view>
+					</view>
+					
+					<cash-coupon :cashList = 'cashList'></cash-coupon>
+				</view>
+				
+				
+				
+			</view>
+			<scroll-navi-bar class="top-scroll" style="margin-top: -100rpx;" colorStyle="red" :itemList="['菜品','评价','周边']"
+			 @naviItemClick="jumpTarget"></scroll-navi-bar>
+
+			<view class="tab-con" id="foodView" style="background-color: #FFFFFF;">
+				<view class="commentlist">
+					<view class="title line-bottom">
+						<view class="txt" style="font-weight: 400;">菜品</view>
+					</view>
+					<scroll-view v-if="foodList.length>0" class="food-scroll" scroll-x="true">
+						<view class="item1 box-shadow" v-for="(item,index) in foodList" :key="index" @click="toFoodDetail(item.foodId)">
+							<image class="image1" :src="item.imagePath" mode="aspectFill"></image>
+							<view class="title1 text-over-hide">{{item.foodName}}</view>
+							<view class="sort1">TOP{{index+1}}</view>
+						</view>
+					</scroll-view>
+
+					<view v-else class="no-data-view">暂无菜品</view>
+
+					<view v-if="goodFoodList.length>0" class="text-detail" style="font-size: 32rpx;margin: 20rpx 0rpx 10rpx 0rpx;">网友推荐({{goodTotal}})</view>
+					<scroll-view v-if="goodFoodList.length>0" class="food-scroll" scroll-x="true">
+						<view class="item2" v-for="(item,index) in goodFoodList" :key="index" @click="toFoodDetail(item.foodId)">
+							<view class="title2 text-over-hide">{{item.foodName}}</view>
+							<view class="number2">
+								<image class="icon" src="/static/img_new/food/f_zan@3x.png"></image>
+								<view class="text">{{item.goodNum}}人推荐</view>
+							</view>
+						</view>
+					</scroll-view>
+				</view>
+			</view>
+			<view class="tab-con" id="detailsView">
+				<view class="commentlist">
+					<view class="title line-bottom">
+						<view class="txt" style="font-weight: 400;"><text class="dp-number">{{shopsData.commentNum}}条点评</text>评价</view>
+					</view>
+					<goodCommentList-component ref='goodCommentList' goodCommentTitle="" :shopId="shopId"></goodCommentList-component>
+				</view>
+
+			</view>
+
+			<view class="tab-con" id="commentView">
+				<view class="commentlist recommend">
+					<view class="title">
+						<view class="txt line-bottom" style="font-weight: 400;">周边</view>
+					</view>
+					<view class="list" v-for="(item,index) in nearbyShopList" :key="index" @click="toShopDetail(item)">
+						<view class="imgbox">
+							<image class="img" :src="item.thumbnailPath" mode="aspectFill"></image>
+						</view>
+						<view class="righttxt">
+							<view class="name">{{item.shopName}}</view>
+							<view class="score"><text class="label">{{item.score}}分</text><text class="label">{{item.commentNum}}条点评</text>
+							</view>
+							<view class="category"><text class="label">{{item.platformTypeName}}</text><text class="label">{{item.platformLabelsName}}</text><text
+								 class="label">{{item.standardPrice}}元/人</text></view>
+							<view class="distance">距您{{item.distance?item.distance:'0'}}km</view>
+						</view>
+					</view>
+					<view class="comment-more line-top" @click="toNearbyShopList()">
+						查看附近全部美食
+					</view>
+				</view>
+			</view>	
+		</mescroll-body>
+		<!-- 买单按钮 -->
+		<view  class="pay-btn">
+			<image class="icon" src="/static/img_new/food/f_phone@3x.png"></image>
+			<text class="pay-btn-txt">买单</text>
+		</view>
+	</view>
+</template>
+
+<script>
+	import scrollNaviBar from "@/components/navi-bar/scroll-navi-bar.vue"
+	import goodCommentListComponent from "@/components/goodCommentList-component/goodCommentList-component.vue"
+	import cashCoupon from "@/components/cash-coupon/cash-coupon.vue"
+	export default {
+		components: {
+			scrollNaviBar,
+			goodCommentListComponent,
+			cashCoupon
+		},
+		data() {
+			return {
+				mescroll:'',
+				upOption:{
+					use:false
+				},
+				vrFlag:false,
+				isFavorite: false, //是否可以收藏
+				shopsData: {},
+				shopId: '',
+				bookFlag: false,
+				images: [],
+				foodList: [], //所有菜品
+				goodFoodList: [], //推荐菜品
+				goodTotal: 0,
+				scrollTop: 0,
+				old: {
+					scrollTop: 0
+				},
+				nearbyShopList: [],
+				nearbyShopTotal: 0,
+				subjectId: 3,
+				latitude: 28.683095,
+				longitude: 115.913536,
+				cashList: []
+			}
+		},
+		onLoad(e) {
+			var that = this;
+			uni.getLocation({
+				type: 'gcj02',
+				success: function(res) {
+					that.longitude = res.longitude;
+					that.latitude = res.latitude;
+				}
+			});
+			if (e.shopId) {
+				this.shopId = e.shopId;
+				this.readDetail();
+				this.roomCount();
+				this.getFoodList();
+				this.getGoodFoodList();
+				this.queryNearbyShopList();
+				this.getCashList();
+			}
+		},
+		// 右上角收藏和分享按钮点击事件
+		onNavigationBarButtonTap(e) {
+			if (e.index == 1) {
+				this.util.favoriteWithData(this.isFavorite, "1", this.shopId).then(res => {
+					this.isFavorite = res;
+				})
+			} else if (e.index == 0) {
+				this.util.shareWithData(this.shopsData.shareData);
+			}
+		},
+		onPageScroll(e) {
+			// 为了解决滚动到最顶端时，是否收藏按钮颜色失效的问题
+			if (e.scrollTop < 10) {
+				this.util.setFavorite(this.isFavorite);
+			}
+		},
+		methods: {
+			
+			initMescroll:function(mescroll) {
+				this.mescroll = mescroll;
+				
+			},
+			downCallBack:function(mescroll){
+				this.readDetail(mescroll);
+				this.roomCount();
+				this.getFoodList();
+				this.getGoodFoodList(mescroll);
+				this.queryNearbyShopList();
+				this.getCashList();
+			},
+			readDetail: function(mescroll) {
+				//获取商家信息
+				const url = '/memberapi/api/shops/readShopsAndExtends.do';
+				let coordinate = '';
+				if (this.longtitude && this.latitude) {
+					coordinate = this.longtitude + "," + this.latitude;
+				}
+				let sendDate = {
+					coordinate: coordinate,
+					shopId: this.shopId
+				};
+				var that = this;
+				this.request.get(url, sendDate,mescroll).then(res => {
+					this.shopsData = this.util.formatShopData(res.data);
+					this.isFavorite = res.data.canFavorite == 2;
+					this.util.setFavorite(this.isFavorite);
+					let distance = this.util.distance(this.longtitude, this.latitude, this.shopsData.coordinateLng, this.shopsData.coordinateLat);
+					this.$set(this.shopsData, 'distance', parseFloat(parseInt(distance.toString().split(".")[0]) / 1000).toFixed(2));
+					this.$set(this.shopsData, 'score', res.data.score);
+					if (res.data.vrLink) {
+						this.vrFlag = true;
+					}
+					
+				});
+			},
+			roomCount: function() {
+				//查询包厢预订信息
+				const url = '/memberapi/api/delicacyReserveConfig/count.do';
+				let sendDate = {
+					shopId: this.shopId
+				};
+				this.request.get(url, sendDate,"N").then(res => {
+					if (res.data > 0) {
+						this.bookFlag = true;
+					}
+				});
+			},
+			// 查询全部菜品
+			getFoodList: function(mescroll) {
+				// 查询推荐菜品
+				const url = '/memberapi/api/delicacyFood/list.do';
+				let sendDate = {
+					shopId: this.shopId,
+					pageNo: 1,
+					pageSize: 100
+				};
+				var that = this;
+				this.request.get(url, sendDate,mescroll,false).then(res => {
+					this.foodList = [];
+					for (let item of res.list) {
+						item.imagePath = this.util.formatImagePaths(item.imagePath)[0];
+						this.foodList.push(item);
+					}
+				});
+			},
+			// 查询推荐菜品
+			getGoodFoodList: function(mescroll) {
+				const url = '/memberapi/api/delicacyFood/list.do';
+				let sendDate = {
+					shopId: this.shopId,
+					pageNo: 1,
+					pageSize: 20,
+					recommendType: 1,
+					sortFlag: 'goodNum-desc'
+				};
+				var that = this;
+				this.request.get(url, sendDate,mescroll,false).then(res => {
+					this.goodFoodList = [];
+					this.goodTotal = res.totalRows;
+					for (var i = 0; i < res.list.length; i++) {
+						let item = res.list[i];
+						// 使用工具类的formatImagePath或者formatImagePaths 这两个方法来格式化单图片路径和多图片
+						item.imagePath = this.util.formatImagePaths(item.imagePath)[0];
+						this.goodFoodList.push(item);
+					}
+				});
+			},
+			getCashList: function() {
+				//查询代金券菜品
+				const url = '/memberapi/api/cash/list.do';
+				let sendDate = {
+					shopId: this.shopId,
+					pageNo: 1,
+					pageSize: 10
+				};
+				this.request.get(url, sendDate,"N").then(res => {
+					let currListData = res.list;
+					currListData.forEach(item => {
+						if (item.buyLimitFlag == 1) {
+							item.buyLimitText = "不限张数";
+						} else {
+							item.buyLimitText = "当次可用" + item.buyLimitNum + "张";
+						}
+					});
+					this.cashList = currListData;
+
+				});
+			},
+			queryNearbyShopList() {
+				const url = '/memberapi/api/shops/queryShopList.do';
+				let data = {
+					pageNo: 1,
+					pageSize: 3,
+					subjectId: this.subjectId
+				};
+
+				if (this.longitude && this.latitude) {
+					data.coordinate = this.longitude + "," + this.latitude;
+					//data.distance = "5000";; //距离
+				}
+
+				var that = this;
+				this.request.get(url, data,"N").then(res => {
+					let nearbyShopList = res.list;
+					that.nearbyShopTotal = res.totalRows;
+					that.util.formatShopList(nearbyShopList);
+					that.nearbyShopList=nearbyShopList;
+				
+				})
+			},
+			callPhone: function() {
+				if (!this.shopsData.contactsPhone) return;
+				uni.makePhoneCall({
+					phoneNumber: this.shopsData.contactsPhone
+				})
+			},
+			gotoMapLocation: function() {
+				this.util.openLocation(this.shopsData.coordinateLng, this.shopsData.coordinateLat, this.shopsData.shopName, this.shopsData
+					.address);
+			},
+			roomReserve: function() {
+				uni.navigateTo({
+					url: "/pages/food/foodReserve?shopId=" + this.shopId
+				})
+			},
+			toFoodDetail(foodId) {
+				uni.navigateTo({
+					url: "/pages/food/foodDetails?foodId=" + foodId
+				})
+			},
+			toNearbyShopList() {
+				let coordinate = this.longitude + "," + this.latitude;
+				uni.navigateTo({
+					url: '/pages/culture/nearPlaceList?coordinate=' + coordinate + "&subjectId=" + this.subjectId
+				});
+			},
+			
+			toShopDetail(item) {
+				this.util.gotoShopDetail(item);
+			},
+
+			//标签
+			jumpTarget: function(item) {
+				var views = ['foodView', 'detailsView', 'commentView'];
+				uni.createSelectorQuery().select(".scenic").boundingClientRect(data => {
+					uni.createSelectorQuery().select("#" + views[item.index]).boundingClientRect((res) => {
+						uni.pageScrollTo({
+							duration: 0,
+							scrollTop: res.top - data.top - 88
+						})
+					}).exec();
+				}).exec();
+			},
+			// 返回
+			goBack: function() {
+				uni.navigateBack({})
+			},
+		}
+
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "../../common/css/other_new.scss";
+
+	// 覆盖goodCommentList-component的一些top-slider-con，解决有灰色横线的问题
+	.top-slider-con {
+		background: #FFFFFF;
+		padding-top: 0rpx;
+		margin-top: -40rpx;
+	}
+
+	.top-scroll {
+		display: flex;
+		flex-direction: row;
+		white-space: nowrap;
+		z-index: 99;
+		position: -webkit-sticky;
+		position: sticky;
+		top: calc(var(--status-bar-height) + 78rpx);
+		background-color: #FFFFFF;
+	}
+
+	.food-scroll {
+		white-space: nowrap;
+		background-color: #FFFFFF;
+		width: 720rpx;
+		padding-top: 5rpx;
+		padding-right: 20rpx;
+
+		.item1 {
+			width: 250rpx;
+			display: inline-block;
+			margin-right: 20rpx;
+			border-radius: 10rpx;
+			overflow: hidden;
+
+			.image1 {
+				width: 100%;
+				height: 180rpx;
+			}
+
+			.title1 {
+				width: 100%;
+				height: 70rpx;
+				line-height: 75rpx;
+				text-align: center;
+				margin-top: -20rpx;
+				color: #000000;
+			}
+
+			.sort1 {
+				position: absolute;
+				display: inline;
+				padding: 5rpx 10rpx;
+				background: linear-gradient(to right bottom, #ef3d40, #f95e86);
+				color: #fff;
+				font-size: 20rpx;
+				border-radius: 10rpx 0 12rpx 0;
+				top: 0;
+			}
+		}
+
+		.item2 {
+			width: 250rpx;
+			padding: 12rpx 20rpx;
+			display: inline-block;
+			margin-right: 20rpx;
+			border-radius: 10rpx;
+			overflow: hidden;
+			background-color: #EFF3F6;
+
+			.title2 {
+				width: 210rpx;
+				color: #000000;
+				font-size: 30rpx;
+				// overflow: hidden;
+				// background-color: #0000FF;
+				// font-weight: bold;
+			}
+
+			.number2 {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+
+				.icon {
+					width: 28rpx;
+					height: 28rpx;
+
+					margin-right: 8rpx;
+				}
+
+				.text {
+					font-size: 24rpx;
+					color: #5F5F60;
+				}
+			}
+
+		}
+	}
+	.pay-btn{
+		width:84rpx;
+		height:84rpx;
+		border-radius: 50%;
+		background:linear-gradient(#F62F2D, #F28D60);
+		color:#FFFFFF;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		position: fixed;
+		bottom:150rpx;
+		right:60rpx;
+		z-index: 9999;
+		.pay-btn-txt{
+			font-size:18rpx;
+		}
+		.icon{
+			width:28rpx;
+			height:42rpx;
+		}
+	}
+	.full-reduction{
+		display: flex;
+		padding-bottom:20rpx;
+		margin-bottom:10rpx;
+		align-items: center;
+		.label{
+			flex-shrink: 0;
+		}
+		.con-item{
+			border-radius: 6rpx;
+			border:1rpx solid #DF2725;
+			font-size:24rpx;
+			color:#DF2725;
+			margin-left:10rpx;
+			display: inline-block;
+			padding:5rpx 10rpx;
+		}
+	}
+</style>

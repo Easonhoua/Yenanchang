@@ -1,0 +1,167 @@
+<template>
+	<view class="content"> 
+		<mescroll-body @down="downCallBack" @up="upCallback" @init="initMescroll">
+			<view class="comment-cell" v-for="(item,index) in commentList" :key="index">
+				<view class="user">
+					<image class="image" :src="userData.photo" mode="aspectFill"></image>
+					<view class="display-column">
+						<view class="name">{{userData.nick}}</view>
+						<!-- 昵称下面如果有评分的话显示评分，没评分显示时间 -->
+						<uni-rate v-if="item.scoreLevel" :value="item.scoreLevel" disabled="true" size="16"></uni-rate>
+						<view v-else class="time" style="margin-left: 0rpx;margin-top: -20rpx;">{{item.commentTime}}</view>
+					</view>
+					<!-- 如果有评分的话时间显示在右边 -->
+					<view v-if="item.scoreLevel" class="time">{{item.commentTime}}</view>
+				</view>
+				<view class="detail">
+					<view class="text">{{item.commentText}}</view>
+					<scroll-view v-if="item.photoPath" class="images" scroll-x="true">
+						<image class="image" v-for="(item,index) in item.photoPath" :key="index" :src="item"></image>
+					</scroll-view>
+					<!-- <view class="line"></view> -->
+					<!-- <view class="replay"> <text class="text-edit">商家回复：</text> 感谢你的评价，欢迎下次再来！</view> -->
+				</view>
+			</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	import uniRate from "@/components/uni-rate/uni-rate.vue";
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		components:{
+			uniRate
+		},
+		data() {
+			return {
+				mescroll:'',
+				userData:{},
+				commentList : []
+			}
+		},
+		onLoad() {
+			if(uni.getStorageSync("user")) this.userData = uni.getStorageSync("user");
+			this.userData.photo = this.util.formatImagePath(this.userData.photo);
+		},
+		methods: {
+			initMescroll:function(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack: function(mescroll) {
+				mescroll.resetUpScroll();
+			},
+			upCallback: function(mescroll) {
+				//获取店铺信息列表
+				// /api/goodComment/myCommentlist.do
+				let url = '/memberapi/api/goodComment/myCommentlist.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size
+				};
+				this.request.post(url, data, mescroll).then(res => {
+					if(mescroll.num == 1) this.commentList = [];
+					for (let item of res.list) {
+						//console.log("item.photoPath = ",item.photoPath);
+						if(item.photoPath){
+							item.photoPath = this.util.formatImagePaths(item.photoPath);
+						}
+						
+						//console.log("item.photoPath22 = ",item.photoPath);
+					}
+					this.commentList = this.commentList.concat(res.list);
+				})
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	
+	.comment-cell{
+		background-color: #FFFFFF;
+		padding: 40rpx;
+		margin-top: 20rpx;
+		width: 100vw;
+		display: flex;
+		flex-direction: column;
+		border-top: 1rpx solid #F5F5F5;
+		.user{
+			display: flex;
+			flex-direction: row;
+			width: 100%;
+			height: 100rpx;
+			// background-color: #0081FF;
+			.image{
+				width: 100rpx;
+				height: 100rpx;
+				border-radius: 120rpx;
+				margin-right: 20rpx;
+				background-color: #F5F5F5;
+				border: 2rpx solid #F5F5F5;
+				
+			}
+			.name{
+				max-width: 450rpx;
+				font-size: 32rpx;
+				margin-bottom: 30rpx;
+			}
+			.time{
+				margin-left: auto;
+				color: #989898;
+				font-size: 24rpx;
+				margin-top: 10rpx;
+			}
+		}
+		.detail{
+			padding:20rpx 0rpx 0rpx 120rpx;
+			.text{
+				color: #4A4A4A;
+				font-size: 28rpx;
+			}
+			.images{
+				margin-top: 30rpx;
+				width: 100%;
+				height: 170rpx;
+				white-space: nowrap;
+				.image{
+					width: 150rpx;
+					height: 150rpx;
+					margin-right: 30rpx;
+					display: inline-block;
+					border-radius: 12rpx;
+					background-color: #F5F5F5;
+				}
+			}
+			.line{
+				width: 100%;
+				height: 2rpx;
+				background-color: #F5F5F5;
+				margin: 30rpx 0;
+			}
+			.replay{
+				font-size: 28rpx;
+				color: #4A4A4A;
+			}
+		}
+	}
+	
+	// .photo-scroll{
+	// 	width: 100%;
+	// 	padding-left: 30rpx;
+	// 	height: 170rpx;
+	// 	white-space: nowrap;
+	// }
+	// .photo-item{
+	// 	width: 150rpx;
+	// 	height: 150rpx;
+	// 	margin-right: 30rpx;
+	// 	display: inline-block;
+	// 	border: 2rpx solid #EEEEEE;
+	// }
+	// .photo-image{
+	// 	width: 100%;
+	// 	height: 100%;
+	// }
+</style>

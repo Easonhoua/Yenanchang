@@ -1,0 +1,216 @@
+<template>
+	<view class="page signup">
+		<!-- <view class="scenic" style="background-color: #1AAD19;">
+			<navi-bar :showFavoriteButton="false" :isFavorite="false" class="navi-bar" :shareData="shareData"></navi-bar>
+			<view class="header">
+				<image class="back" src="/static/img_new/common/back_black.png" @click="goBack()"></image>
+				<view class="right-icon">
+					<image class="icon" src="/static/img_new/topic/h_fx@3x.png"></image>
+				</view>
+			</view>
+		</view> -->
+		<view class="banner" style="top: 0;margin-top: 0;">
+			<swiper-banner :swiperList="activityData.imagePath"></swiper-banner>
+		</view>
+		<view class="introduction">
+			<view class="name">
+				<image class="icon" src="/static/img_new/topic/h_dh@3x.png" style="width: 60rpx;height: 60rpx;" @tap="toPhone"></image>{{activityData.activityTitle}}
+			</view>
+			<view class="list line-bottom" v-if="statusStr==1">活动报名中</view>
+			<view class="list line-bottom" v-else>活动已结束</view>
+			<view class="list address line-bottom">
+				<image class="icon" style="width: 60rpx;height: 60rpx;margin-top: -10rpx;" src="/static/img_new/topic/h_dw@3x.png" @tap="toAddress"></image><text class="txt">{{activityData.address}}</text>
+			</view>
+			<view class="list">活动时间|{{activityData.startDate}}至{{activityData.endDate}}</view>
+		</view>
+		<view class="details">
+			<view class="title">活动详情</view>
+			<view class="txt">
+				<jyf-parser :html="'<style>.img{width:100% !important;} img{width: 100%}</style>'+activityData.activityContent" @linkpress="golook"></jyf-parser>
+			</view>
+		</view>
+		<view class="recommend">
+			<view class="title">活动推荐</view>
+			<view class="recommend-con" v-if="newActivityList.length > 0">
+				<view class="item" v-for="(item,index) in newActivityList" :key="index" @tap="toDetail(item.activityId)">
+					<view class="imgbox">
+						<image class="img" :src="item.imagePath[0]"></image>
+					</view>
+					<view class="txt">
+						<view class="subtitle">{{item.activityTitle}}</view>
+						<view class="time">{{item.startDate}}至{{item.endDate}}</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		<view class="bottombar">
+			<!-- <view class="iconbox">
+				<image class="icon" src="/static/img_new/topic/h_sc@3x.png"></image>
+				<text class="txt">收藏</text>
+			</view> -->
+			<view class="btn" v-if="statusStr==1" @tap="signupBtn">立即报名</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import naviBar from "@/components/navi-bar/navi-bar.vue"
+	import swiperBanner from "@/components/swiper-banner/swiper-banner.vue"
+	import goodCommentListComponent from "@/components/goodCommentList-component/goodCommentList-component.vue"
+	import jyfParser from "@/components/jyf-parser/jyf-parser";
+	export default {
+		components: {
+			naviBar,
+			swiperBanner,
+			goodCommentListComponent,
+			jyfParser
+		},
+		data() {
+			return {
+				activityId: 0,
+				imagePath: [],
+				statusStr: 0, //状态
+				activityData: {},
+				images: [],
+				shareData: {},
+				newActivityList: [], //推荐活动
+			}
+		},
+		onLoad(e) {
+			if (e.activityId) {
+				this.activityId = e.activityId;
+				this.activityData.activityId = e.activityId;
+				this.queryDetail(e.activityId);
+			}
+		},
+		// 右上角收藏和分享按钮点击事件
+		onNavigationBarButtonTap(e) {
+			this.util.shareWithData(this.shareData);
+		},
+		methods: {
+			
+			golook(e){
+				let url = "";
+				var baseurl = this.util.GetRequest(e.href)
+				console.log(baseurl)
+				if (baseurl.platformTypeId == 1) {
+					url = "/pages/delicacies/delicacyDetail?shopId=" + baseurl.shopId 
+				} else if (baseurl.platformTypeId == 2) {
+					url = "/pages/hotel/hotelDetail?shopId=" + baseurl.shopId 
+				} else if (baseurl.platformTypeId == 3) {
+					url = "/pages/literature/literaturePlaceDetail?shopId=" + baseurl.shopId 
+				} else if (baseurl.platformTypeId == 4) {
+					url = "/pages/arder/arderShopDetail?shopId=" + baseurl.shopId 
+				} else if (baseurl.platformTypeId == 5) {
+					url = "/pages/science/scienceDetail?shopId=" + baseurl.shopId 
+				} else if (baseurl.platformTypeId == 6) {
+					url = "/pages/sports/sportsDetail?shopId=" + baseurl.shopId 
+				} else if (baseurl.platformTypeId == 7) {
+					url = "/pages/scenic/scenicDetail?shopId=" + baseurl.shopId 
+				} else if (baseurl.platformTypeId == 8) {
+					url = "/pages/purchase/purchaseList?shopId=" + baseurl.shopId 
+				} else if (baseurl.platformTypeId == 9) {
+					url = "/pages/literature/literaturePlaceDetail?shopId=" + baseurl.shopId 
+				}
+				uni.navigateTo({
+					url: url
+				});
+			},	
+			
+			queryDetail: function(activityId) {
+				let url = '/memberapi/api/activity/read.do';
+				let data = {
+					activityId: activityId, //
+				};
+				var that = this;
+				that.request.get(url, data).then(res => {
+					if (res.returncode == 0) {
+						that.activityData = res.data;
+						uni.setNavigationBarTitle({
+							title:that.activityData.activityTitle
+						})
+						// 分享的内容
+						that.shareData.url = that.util.getPageRuteWithDataString('activityId='+that.activityId);
+						console.log("that.shareData.url == ",that.shareData.url);
+						that.shareData.title = that.activityData.activityTitle;
+						that.shareData.summary = that.activityData.address;
+						that.shareData.imageUrl = "";
+						if (that.activityData.imagePath) {
+							that.activityData.imagePath = that.util.formatImagePaths(that.activityData.imagePath);
+							that.shareData.imageUrl = that.activityData.imagePath[0];
+						}
+
+						if (that.activityData.endDate && that.activityData.endDate >= that.util.formatDate(new Date())) {
+							that.statusStr = 1;
+						} else {
+							that.statusStr = 2;
+						}
+						// that.activityData.activityContent = that.activityData.activityContent.replace(/\<img/g,
+						// 	'<img style="width:100%;height:auto;display:block"').replace(/\width: (\d*)px/g, '').replace(
+						// 	/\height: (\d*)px/g, '');
+						this.queryNewActivityList();
+					}
+				})
+			},
+			//地址
+			toAddress: function() {
+				uni.openLocation({
+					longitude: Number(this.activityData.coordinateLng),
+					latitude: Number(this.activityData.coordinateLat),
+					name: this.activityData.activityTitle,
+					address: this.activityData.address
+				})
+			},
+			//打电话
+			toPhone: function() {
+				uni.makePhoneCall({
+					phoneNumber: this.activityData.contactsPhone,
+					success: () => {
+						//console.log("成功拨打电话");
+					}
+				})
+			},
+			//报名
+			signupBtn: function() {
+				if (this.request.alreadyLogin()) {
+					uni.navigateTo({
+						url: 'signUp?activityId=' + this.activityData.activityId
+					})
+				}
+			},
+			//推荐活动
+			queryNewActivityList: function() {
+				//活动信息
+				let url = '/memberapi/api/activity/list.do';
+				let data = {
+					pageNo: 1,
+					pageSize: 4,
+					activityType: this.activityData.activityType,
+					activityId:this.activityData.activityId
+				};
+				var that = this;
+				this.request.get(url, data).then(res => {
+					const newData = res.list;
+					for (let item of newData) {
+						item.imagePath = this.util.formatImagePaths(item.imagePath);
+					}
+					this.newActivityList = newData;
+				})
+			},
+			toDetail: function(activityId) {
+				uni.navigateTo({
+					url: "../activity/activityDetail?activityId=" + activityId
+				})
+			},
+		},
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "../../common/css/other_new.scss";
+
+	.navi-bar {
+		background-color: #FFFFFF;
+	}
+</style>

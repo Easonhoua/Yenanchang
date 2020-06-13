@@ -1,0 +1,136 @@
+<template>
+	<view class="layout sub-contain discover" style="background-color: #FFFFFF;">
+		<!-- top="420" -->
+		<mescroll-uni @down="downCallBack" @init ="initMescroll" @up="upCallback" >
+		<view class="sub-banner" style="padding: 25rpx;margin-bottom: 10rpx;">
+			<image class="img box-shadow" style="padding: 0rpx;" src="/static/img/discover/banner.png"></image>
+		</view>
+		<view class="dis-tab">
+			<text :class="checkValue == 0 ? 'item active' : 'item'" @tap="chooseType(0)">全部</text>
+			<text :class="checkValue == 1 ? 'item active' : 'item'" @tap="chooseType(1)">美食必去</text>
+			<text :class="checkValue == 8 ? 'item active' : 'item'" @tap="chooseType(8)">特色购物</text>
+		</view>
+		
+			<view class="dis-tabcon" style="background-color: #FFFFFF;">
+				<view class="card box-shadow" style="margin: 25rpx;margin-top: 5rpx;width: 700rpx;" v-for="(item,index) in tradeList" :key="index" @tap="goTradeContent(item)">
+					<view class="card-bd discover-list">
+						<image class="img" :src="item.thumbnailPath" mode="aspectFill"></image>
+						<view class="right-txt">
+							<text class="title">{{item.tradeName?item.tradeName:'--'}}</text>
+							<view class="address">
+								<label class="label" style="font-size: 20rpx;margin-top: 10rpx;">{{item.tradeTitle?item.tradeTitle:'--'}}</label><!-- <text class="address-xq">{{item.address}}</text> -->
+							</view>
+							<!-- <view class="storebar">
+								<label class="name">暂无标签信息</label> <label class="name">Champion</label><label class="name">名创优品</label>
+							</view> -->
+							<view class="visitor">
+								<text class="address-xq">{{item.address?item.address:'--'}} {{item.distance?item.distance:'0'}}km</text>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</mescroll-uni>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				mescroll:'',
+				checkValue:0,
+				tradeList:[],
+				longtitude:'',
+				latitude:'',
+				keyWord: '',
+				tradeType:''
+			}
+		},
+		onLoad(e) {
+			if(e.tradeType){
+				this.tradeType = e.tradeType;
+			}
+			var that = this;
+			uni.getLocation({
+			    type: 'gcj02',
+			    success: function (res) {
+					that.longtitude = res.longitude;
+					that.latitude = res.latitude;
+			        //console.log('当前位置的经度：' + res.longitude);
+			        //console.log('当前位置的纬度：' + res.latitude);
+			    },
+				fail() {}
+			});
+			uni.setStorageSync("addData",0); //话题页签置为0
+		},
+		methods: {
+			chooseType(value){
+				if(value == 1){
+					this.checkValue = 1;
+					this.downCallBack(this.mescroll);
+				}else if(value == 8){
+					this.checkValue = 8;
+					this.downCallBack(this.mescroll);
+				}else{
+					this.checkValue = 0;
+					this.downCallBack(this.mescroll);
+				}
+			},
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.tradeList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				//获取项目信息列表
+				let url;
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					keyWord:this.keyWord,
+					tradeType:this.tradeType
+				};
+				if(this.checkValue>0){
+					//添加坐标
+					if (this.longtitude && this.latitude) {
+						data.coordinate = this.longtitude + "," + this.latitude;
+						// data.distance = "5000";; //距离
+					}
+					url = '/memberapi/api/platform/queryTradesByTypeId.do';
+					this.$set(data, 'typeId', this.checkValue);
+				}else{
+					url = '/memberapi/api/platform/queryTradeList.do';
+				}
+				var that = this;
+				this.request.get(url,data,mescroll).then(res=>{
+					let currListData = res.list;
+					currListData.forEach((item,index) => {
+						if(item.thumbnailPath){
+							item.thumbnailPath = this.util.formatImagePath(item.thumbnailPath);
+						}
+						
+					});
+					this.tradeList = this.tradeList.concat(currListData);
+				})
+			},
+			goTradeContent:function(item){
+				uni.navigateTo({
+					url:'discoverAbout?tradeId='+item.tradeId+'&tradeType='+item.tradeType+'&coordinate='+item.coordinate
+				})
+			}
+		},
+		onNavigationBarSearchInputConfirmed (input) {
+			this.keyWord = input.text;
+			this.downCallBack(this.mescroll);
+		}
+	}
+</script>
+
+<style>
+	@import url("../../common/css/app_new.css");
+</style>

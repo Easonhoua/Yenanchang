@@ -1,0 +1,2195 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/startup",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},
+
+		/***********************首页模块********************************/
+		{
+			"path": "pages/index/index5",
+			"style": {
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": false, //禁用原生导航栏
+					"subNVues": [{
+						"id": "userDealPrivacy",
+						"path": "pages/index/userDealPrivacy",
+						"type": "popup",
+						"style": {
+							"position": "absolute",
+							"margin": "auto",
+							"width": "100%",
+							"height": "100%",
+							"background": "transparent"
+						}
+					}]
+				}
+			}
+		},
+		{
+			"path": "pages/newPage/play/mapDetails",
+			"style": {
+				"navigationBarTextStyle": "black",
+				"transparentTitle": "auto"
+			}
+		},
+		{
+			"path": "pages/newPage/playLine/playLine",
+			"style": {
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},
+		{
+			"path": "pages/newPage/playLine/details",
+			// "style": {
+			// 	"navigationBarTextStyle": "black",
+			// 	"app-plus": {
+			// 		"titleNView": false //禁用原生导航栏
+			// 	}
+			// }
+			"style": {
+				"navigationBarTitleText": "线路详情",
+				"transparentTitle": "auto",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+								"type": "share"
+							},
+							{
+								"type": "favorite"
+							}
+						]
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/newPage/strategy/strategyPublish",
+			"style": {
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},
+		{
+			"path": "pages/discover/discover",
+			"style": {
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "15px",
+							"text": "    " //右边占位
+						},
+						{
+							"fontSize": "15px",
+							"text": "    " ,//左边占位
+							"float":"left"
+						}],
+						"searchInput": {
+							"backgroundColor": "#F5F5F5",
+							"borderRadius": "16px",
+							"placeholder": "输入商圈搜索",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "10px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/discover/discover_index",
+			"style": {
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "15px",
+							"text": "    " //右边占位
+						},
+						{
+							"fontSize": "15px",
+							"text": "    " ,//左边占位
+							"float":"left"
+						}],
+						"searchInput": {
+							"backgroundColor": "#F5F5F5",
+							"borderRadius": "16px",
+							"placeholder": "输入商圈搜索",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "10px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/town/town",
+			"style": {
+				"navigationBarTitleText": "市井南昌",
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+			"path": "pages/search/search",
+			"style": {
+				"navigationBarTitleText": "搜索",
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+			"path": "pages/search/searchList",
+			"style": {
+
+				"navigationBarTitleText": "搜索结果",
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		}
+		, {
+			"path": "pages/town/subjectMap",
+			"style": {
+				"navigationBarTitleText": "主题地图",
+				"app-plus": {
+					"subNVues": [{
+						"id": "map_detail", // 唯一标识  
+						"path": "pages/town/subNVue/mapDetail", // 页面路径  
+						"type":"popup",
+						"style": {
+							"position": "absolute",
+							"top":"130px",
+							"left":"70px",
+							"width":"280px",
+							"height":"160px",
+							"background": "transparent"
+						}
+					}]
+				}
+			}
+		},
+		{
+			"path": "pages/culture/culture",
+			"style": {
+				"navigationStyle":"custom"
+			}
+		},{
+			"path": "pages/culture/nearPlaceList",
+			"style": {
+				"navigationBarTitleText": "附近",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},{
+			"path": "pages/culture/placeList",
+			"style": {
+				"navigationBarTitleText": "附近",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/publish/publish",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+			"path": "pages/publish/releasePosition",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+			"path": "pages/publish/releaseTopic",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+			"path": "pages/publish/hotTopic",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+			"path": "pages/newPage/topic/myTopic",
+			"style": {
+				"navigationBarTitleText": "我的话题"
+			}
+		},{
+			"path": "pages/newPage/topic/release",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+			"path": "pages/newPage/topic/releaseList",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+			"path": "pages/publish/releaseList",
+			"style": {
+				"navigationBarTitleText": "发布话题",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},{
+			"path": "pages/publish/release",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+			"path": "pages/publish/releasePosition",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+			"path": "pages/publish/releaseTopic",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+            "path" : "pages/publish/topicDetails",
+            "style" : {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+        },{
+			"path": "pages/newPage/topic/releasePosition",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+			"path": "pages/newPage/topic/releaseTopic",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+			"path": "pages/user/user",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		}
+		/***********************发现********************************/
+		/***********************特色街********************************/
+		,{
+			"path": "pages/discover/discoverAbout",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/discover/discoverDetails",
+			"style": {
+				"navigationBarTitleText": "活动详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/discover/allEssenceTypeShop",
+			"style": {
+				"navigationBarTitleText": "",
+				"mp-alipay": {
+					"titleBarColor": "#000000"
+				},
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "15px",
+							"text": ""
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "输入商家",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/discover/allFloorShop",
+			"style": {
+				"navigationBarTitleText": "",
+				"mp-alipay": {
+					"titleBarColor": "#000000"
+				},
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "15px",
+							"text": ""
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "输入商家",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		/**************话题模块**********************/
+		{
+			"path": "pages/column/column",
+			"style": {
+				"navigationBarTitleText": "城事",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSrc": "/static/img_new/newculture/iconfont.ttf",
+							"fontSize": "20px",
+							"text": "\ue627" ,//左边占位
+							"float":"right"
+						}]
+					}
+				}
+			}
+		}, {
+			"path": "pages/topic/topicHall",
+			"style": {
+				"navigationBarTitleText": "话题列表",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}, {
+			"path": "pages/topic/topicview",
+			"style": {
+				"navigationBarTitleText": "话题详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "30px",
+							"type": "menu"
+						}]
+					}
+				}
+			}
+		}, {
+			"path": "pages/topic/topicdynamicInfo", //新增话题动态
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		}, {
+			"path": "pages/topic/topicdynamicView", //新增话题动态
+			"style": {
+				"navigationBarTitleText": "话题详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "30px",
+							"type": "menu"
+						}]
+					}
+				}
+			}
+		}
+		/**************攻略模块**********************/
+		, {
+			"path": "pages/guide/guideDetail",
+			"style": {
+				"navigationBarTitleText": "攻略详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		// /**************视频模块**********************/
+		// {
+		// 	"path": "pages/column/videoDetail",
+		// 	"style": {
+		// 		"navigationBarTitleText": "视频详情",
+		// 		"navigationBarBackgroundColor": "#ffffff",
+		// 		"navigationBarTextStyle": "black"
+		// 	}
+		// },
+		{
+			"path": "pages/htvideo/htvideo",
+			"style": {
+				"navigationBarTitleText": "视频详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}, {
+			"path": "pages/video/video",
+			"style": {
+				"navigationBarTitleText": "视频"
+			}
+		}
+		/**************活动模块**********************/
+		,{
+			"path": "pages/activity/cityAffairs",
+			"style": {
+				"navigationBarTitleText": "城市",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}
+		, {
+			"path": "pages/activity/activityList",
+			"style": {
+				"navigationBarTitleText": "",
+				"mp-alipay": {
+					"titleBarColor": "#000000"
+				},
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "30px"
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "输入商家 分类或商圈",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		}, {
+			"path": "pages/activity/activity",
+			"style": {
+				"navigationBarTextStyle": "white",
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		}, {
+			"path": "pages/activity/signUp",
+			"style": {
+				"navigationBarTitleText": "报名",
+				"navigationBarBackgroundColor": "#d8342c",
+				"navigationBarTextStyle": "white"
+			}
+		},{
+			"path": "pages/activity/success",
+			"style": {
+				"navigationBarTitleText": "活动报名",
+				"navigationBarBackgroundColor": "#d8342c",
+				"navigationBarTextStyle": "white"
+			}
+		}, {
+			"path": "pages/activity/activityDetail",
+			"style": {
+				"navigationBarTitleText": "活动详情",
+				"transparentTitle": "auto",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+								"type": "share"
+							}
+						]
+					}
+				}
+			}
+		}, {
+			"path": "pages/activity/orderView",
+			"style": {
+				"navigationBarTitleText": "订单详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}, 
+		{
+			"path": "pages/activity/applyRefund",
+			"style": {
+				"navigationBarTitleText": "退款申请",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}, 
+		{
+			"path": "pages/activity/activityReserveList",
+			"style": {
+				"navigationBarTitleText": "我的报名",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+
+		}, {
+			"path": "pages/activity/voucher",
+			"style": {
+				"navigationBarTitleText": "券码",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}, {
+			"path": "pages/activity/activityReserveOrderDetails",
+			"style": {
+				"navigationBarTitleText": "报名详情", //有订单信息的
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}, {
+			"path": "pages/activity/activityReserveDetails",
+			"style": {
+				"navigationBarTitleText": "报名详情", //没有订单信息的
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}
+		/*******************游洪城-酒店模块*****************/
+		, {
+			"path": "pages/index/plateform",
+			"style": {
+				// "navigationStyle":"custom"
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "15px",
+							"text": "    " //占位而已
+						}],
+						"searchInput": {
+							"backgroundColor": "#F5F5F5",
+							"borderRadius": "16px",
+							"placeholder": "输入商家或商圈",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "10px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/hotel/hotelList",
+			"style": {
+				"navigationBarTitleText": "酒店",
+				"navigationBarBackgroundColor": "#FFFFFF",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/hotel/hotelDetail",
+			"style": {
+				"navigationBarTitleText": "酒店详情",
+				"transparentTitle": "auto",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+								"type": "share"
+							},
+							{
+								"type": "favorite"
+							}
+						]
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/hotel/hotelSearch",
+			"style": {
+				"navigationStyle": "custom"
+				// "app-plus":{
+				// 	"titleNView":false
+				// }
+			}
+		}, {
+			"path": "pages/hotel/signUp",
+			"style": {
+				"navigationBarTitleText": "酒店预定",
+				"navigationBarBackgroundColor": "#FFC448",
+				"navigationBarTextStyle": "white"
+			}
+		}, {
+			"path": "pages/hotel/hotelOrder",
+			"style": {
+				"navigationBarTitleText": "酒店订单详情",
+				"navigationBarBackgroundColor": "#FFFFFF",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+		    "path" : "pages/hotel/hotelApplyRefund",
+		    "style" : {
+				"navigationBarTitleText": "申请退款",
+				"navigationBarBackgroundColor": "#FFFFFF",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		/***********************景区开始************************/
+		{
+			"path": "pages/scenic/scenicList",
+			"style": {
+				"navigationBarTitleText": "",
+				"mp-alipay": {
+					"titleBarColor": "#000000"
+				},
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "15px",
+							"text": "景区"
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "输入商家 分类或商圈",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/scenic/allTypeShopList",
+			"style": {
+				"navigationBarTitleText": "",
+				"mp-alipay": {
+					"titleBarColor": "#000000"
+				},
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "15px",
+							"text": ""
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "输入商家 分类或商圈",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/scenic/scenicDetail",
+			"style": {
+				"navigationBarTitleText": "景区详情",
+				"transparentTitle": "auto",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+								"type": "share"
+							},
+							{
+								"type": "favorite"
+							}
+						]
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/scenic/scenicDetailContent",
+			"style": {
+				"navigationBarTitleText": "详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/scenic/scenicSpotDetails",
+			"style": {
+				"navigationBarTextStyle": "white",
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},
+		{
+			"path": "pages/scenic/fillOrder",
+			"style": {
+				"navigationBarTextStyle": "white",
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},
+		{
+			"path": "pages/scenic/scenicOrderView",
+			"style": {
+				"navigationBarTitleText": "订单详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/scenic/FillPersonalInfo",
+			"style": {
+				"navigationBarTitleText": "出行人",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/scenic/travelList",
+			"style": {
+				"navigationBarTitleText": "出行人信息",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		/***********************景区结束************************/
+		/******健体魄模块*******/
+		{
+			"path": "pages/sports/sports",
+			"style": {
+				"navigationBarTitleText": "",
+				"mp-alipay": {
+					"titleBarColor": "#000000"
+				},
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "30px"
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "输入商家 分类或商圈",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		}, {
+			"path": "pages/sports/sportsDetail",
+			"style": {
+				"navigationBarTitleText": "详情",
+				"transparentTitle": "auto",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+								"type": "share"
+							},
+							{
+								"type": "favorite"
+							}
+						]
+					}
+				}
+			}
+		}, 
+		{
+			"path": "pages/sports/sportsList",
+			"style": {
+				"navigationBarTitleText": "",
+				"mp-alipay": {
+					"titleBarColor": "#000000"
+				},
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						// "buttons": [{
+						//  "fontSize": "15px",
+						//  "text":"美食"
+						// }],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "输入商家 分类或商圈",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/sports/sportsMapDetails",
+			"style": {
+				"navigationBarTextStyle": "black",
+				"transparentTitle": "auto"
+			}
+		},
+		
+		/***********************休闲********************************/
+		{
+			"path": "pages/arder/arderShopList",
+			"style": {
+				"navigationBarTitleText": "",
+				"mp-alipay": {
+					"titleBarColor": "#000000"
+				},
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "15px",
+							"text": "休闲"
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "输入商家 分类或商圈",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		}, {
+			"path": "pages/arder/arderShopDetail",
+			"style": {
+				"navigationBarTitleText": "酒吧详情",
+				"transparentTitle": "auto",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+								"type": "share"
+							},
+							{
+								"type": "favorite"
+							}
+						]
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/arder/arderDetail",
+			"style": {
+				"navigationBarTitleText": "套餐详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/arder/submitOrder",
+			"style": {
+				"navigationBarTitleText": "订单提交",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}, {
+			"path": "pages/arder/orderDetails", //支付成功显示二维码
+			"style": {
+				"navigationBarTitleText": "订单详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}, {
+			"path": "pages/arder/applyRefund",
+			"style": {
+				"navigationBarTitleText": "退款详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}, {
+			"path": "pages/arder/reimburse",
+			"style": {
+				"navigationBarTitleText": "申请退款",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}, {
+			"path": "pages/arder/orderView", //查看订单
+			"style": {
+				"navigationBarTitleText": "订单详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		
+		/***********************创文学********************************/
+		{
+			"path": "pages/literature/literature",
+			"style": {
+				"navigationBarTitleText": "赏文创",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+							"fontSrc": "/static/uni.ttf",
+							"text": "",
+							"width": "auto",
+							"fontSize": "28px",
+							"color": "#fff"
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "15px",
+							"placeholder": "请输入商家 分类或商圈",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		//赏文创-电影院
+		{
+			"path": "pages/literature/literaturelistms",
+			"style": {
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+							"text": "演出",
+							"float": "right",
+							"fontSize": "14px",
+							"color": "#000000",
+							"width": "40px"
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "15px",
+							"placeholder": "请输入关键字",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		//电影院-详情
+		{
+			"path": "pages/literature/literaturedetail",
+			"style": {
+				"titleNView": false //禁用原生导航栏
+			}
+		},
+		//演出详情
+		{
+			"path": "pages/literature/literatureview",
+			"style": {
+				"navigationBarTitleText": "节目详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		//演出场所详情
+		{
+			"path": "pages/literature/literaturePlaceDetail",
+			"style": {
+				"navigationBarTitleText": "详情",
+				"transparentTitle": "auto",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+								"type": "share"
+							},
+							{
+								"type": "favorite"
+							}
+						]
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/literature/marketDetail",
+			"style": {
+				"navigationBarTitleText": "详情",
+				"transparentTitle": "auto",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+								"type": "share"
+							},
+							{
+								"type": "favorite"
+							}
+						]
+					}
+				}
+			}
+		},
+		/*************赏文创结束********/
+		/*************品佳肴********/
+		{
+			"path": "pages/delicacies/delicacies",
+			"style": {
+				"navigationBarTitleText": "品佳肴",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+							"fontSrc": "/static/uni.ttf",
+							"text": "",
+							"width": "auto",
+							"fontSize": "28px",
+							"color": "#fff"
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "15px",
+							"placeholder": "请输入商家 分类或商圈",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		//品佳肴美食
+		{
+			"path": "pages/delicacies/delicacieslist",
+			"style": {
+				"navigationBarTitleText": "",
+				"mp-alipay": {
+					"titleBarColor": "#000000"
+				},
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "15px",
+							"text": "美食"
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "输入商家 分类或商圈",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/delicacies/delicaciesDiscountlist",
+			"style": {
+				"navigationBarTitleText": "",
+				"mp-alipay": {
+					"titleBarColor": "#000000"
+				},
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "15px",
+							"text": "美食"
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "输入商家 分类或商圈",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/delicacies/delicaciesBookList",
+			"style": {
+				"navigationBarTitleText": "",
+				"mp-alipay": {
+					"titleBarColor": "#000000"
+				},
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "15px",
+							"text": ""
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "输入商家 分类或商圈",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/delicacies/delicacyDetail",
+			"style": {
+				"navigationBarTitleText": "美食详情",
+				"transparentTitle": "auto",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+								"type": "share"
+							},
+							{
+								"type": "favorite"
+							}
+						]
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/delicacies/payBill",
+			"style": {
+				
+			}
+		},
+		{
+			"path": "pages/delicacies/moreInfo",
+			"style": {
+				"navigationBarTitleText": "更多信息"
+			}
+		},
+		{
+			"path": "pages/delicacies/delicacyMapDetails",
+			"style": {
+				"navigationBarTextStyle": "black",
+				"transparentTitle": "auto"
+			}
+		},
+		{
+			"path": "pages/food/foodReserve",
+			"style": {
+				"navigationBarTitleText": "订座"
+			}
+		},
+		{
+			"path": "pages/food/foodPlaceOrder",
+			"style": {
+				"navigationBarTitleText": "订座"
+			}
+		}, {
+			"path": "pages/food/foodOrder",
+			"style": {
+				"navigationBarTitleText": "订座订单"
+			}
+		}, 
+		{
+			"path": "pages/food/foodOrderDetail",
+			"style": {
+				"navigationBarTitleText": "订座订单详情"
+			}
+		},
+		{
+			"path": "pages/food/cashOrderDetail",
+			"style": {
+				"navigationBarTitleText": "代金券详情"
+			}
+		},
+		{
+			"path": "pages/food/foodDetails",
+			"style": {
+				"navigationBarTitleText": "菜品详情"
+			}
+		},
+		// {
+		// 	"path": "pages/food/food",
+		// 	"style": {
+		// 		"navigationBarTitleText": "",
+		// 		"navigationBarBackgroundColor": "#D66800",
+		// 		"app-plus": {
+		// 			"titleNView": {
+		// 				"autoBackButton": "true",
+		// 				"backgroundColor": " #D66800",
+		// 				"buttons": [{
+		// 						"type": "share",
+		// 						"float": "right",
+		// 						"color": "#000000"
+		// 					},
+		// 					{
+		// 						"type": "favorite",
+		// 						"float": "right",
+		// 						"color": "#000000"
+		// 					}
+		// 				]
+		// 			}
+		// 		}
+		// 	}
+		// },
+		{
+			"path": "pages/food/cashCoupon",
+			"style": {
+				"navigationBarTitleText": "代金券详情"
+			}
+		},
+		{
+			"path": "pages/food/submitOrder",
+			"style": {
+				"navigationBarTitleText": "提交订单"
+			}
+		},
+		{
+			"path": "pages/food/paySucceeded",
+			"style": {
+				"navigationBarTitleText": "购买成功"
+			}
+		},
+		{
+			"path": "pages/food/cancelFoodOrder",
+			"style": {
+				"navigationBarTitleText": "取消订单"
+			}
+		}, 
+		{
+			"path": "pages/food/applyRefund",
+			"style": {
+				"navigationBarTitleText": "退款申请",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}, 
+		{
+			"path": "pages/food/cashApplyRefund",
+			"style": {
+				"navigationBarTitleText": "退款申请",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/food/ranking",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},
+		{
+			"path": "pages/food/foodRank",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},
+		/*************品佳肴结束********/
+		// {
+		// 	"path": "pages/wxdetails/wxdetails",
+		// 	"style": {
+		// 		"navigationBarTitleText": "详情",
+		// 		"navigationBarBackgroundColor": "#3378D0",
+		// 		"navigationBarTextStyle": "white"
+		// 	}
+		// },
+		{
+			"path": "pages/webView/webView",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		}, {
+			"path": "pages/webView/webView2",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		}, {
+			"path": "pages/webView/payWebView",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/webView/mapWebView",
+			"style": {
+				"navigationBarTitleText": "掌上文化地图",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+							"text": "列表模式",
+							"float": "right",
+							"fontSize": "16px",
+							"color": "#989898",
+							"width": "80px"
+						}]
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/order/refundProcess", //查看退款进度
+			"style": {
+				"navigationBarTitleText": "退款详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},{
+			"path": "pages/order/orderDetails", //，如活动、酒店等
+			"style": {
+				"navigationBarTitleText": "查看券码",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/order/delicaciesOrderDetails", //美食
+			"style": {
+				"navigationBarTitleText": "查看券码",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/order/moreOrderDetails", //查看券码 一次可购买多个的，如套餐、代金券
+			"style": {
+				"navigationBarTitleText": "查看券码",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		
+		/***********************资讯********************************/
+		{
+			"path": "pages/consult/consult",
+			"style": {
+				"navigationBarTitleText": "爱南昌",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}, {
+			"path": "pages/consult/consultDetail",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		/***********************资讯********************************/
+		{
+			"path": "pages/wonderful/wonderful",
+			"style": {
+				"navigationBarTitleText": "文化南昌",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}, {
+			"path": "pages/wonderful/wonderfulDetail",
+			"style": {
+				"navigationBarTitleText": "南昌文化",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}
+		/***********************习科普********************************/
+		, {
+			"path": "pages/science/science",
+			"style": {
+				"navigationBarTitleText": "",
+				"mp-alipay": {
+					"titleBarColor": "#000000"
+				},
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "30px"
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "输入商家 分类或商圈",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		}, {
+			"path": "pages/science/scienceDetail",
+			"style": {
+				"navigationBarTitleText": "店铺详情",
+				"transparentTitle": "auto",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+								"type": "share"
+							},
+							{
+								"type": "favorite"
+							}
+						]
+					}
+				}
+			}
+		}
+		/***********************购潮货********************************/
+		, {
+			"path": "pages/purchase/purchase",
+			"style": {
+				"navigationBarTitleText": "",
+				"mp-alipay": {
+					"titleBarColor": "#000000"
+				},
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "输入商家 分类或商圈",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		}, {
+			"path": "pages/purchase/purchaseList",
+			"style": {
+				"navigationBarTitleText": "南昌名片",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		}, {
+			"path": "pages/purchase/purchaseDetail",
+			"style": {
+				"navigationBarTitleText": "店铺详情",
+				"transparentTitle": "auto",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+								"type": "share"
+							},
+							{
+								"type": "favorite"
+							}
+						]
+					}
+				}
+			}
+		}, 
+		{
+			"path": "pages/purchase/home",
+			"style": {
+				"navigationBarTitleText": "",
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "30px"
+						}],
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "搜索商品",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/purchase/detail",
+			"style": {
+				"navigationBarTitleText": "商品详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/purchase/productOrder",
+			"style": {
+				"navigationBarTitleText": "立即购买",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/purchase/orderDetail",
+			"style": {
+				"navigationBarTitleText": "订单详情",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/purchase/shoppCart",
+			"style": {
+				"navigationBarTitleText": "购物车",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/purchase/shoppCartOrder",
+			"style": {
+				"navigationBarTitleText": "购物车订单",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/purchase/classify",
+			"style": {
+				"navigationBarTitleText": "商品分类",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/purchase/shoppingAddressEdit",
+			"style": {
+				"navigationBarTitleText": "新增收货地址",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		}, {
+			"path": "pages/purchase/shoppingAddressList",
+			"style": {
+				"navigationBarTitleText": "收货地址",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/purchase/address",
+			"style": {
+				"navigationBarTitleText": "收货地址",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/purchase/afterSaleService",
+			"style": {
+				"navigationBarTitleText": "售后申请",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/purchase/purchaseApplyRefund",
+			"style": {
+				"navigationBarTitleText": "退款",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/purchase/tidePurchase",
+			"style": {
+				"navigationBarTextStyle": "white",
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},
+		{
+			"path": "pages/purchase/supermarketList",
+			"style": {
+				"navigationBarBackgroundColor": "#fe5155",
+				"navigationBarTextStyle": "white",
+				"navigationBarTitleText": "超市"
+			}
+		},
+		{
+			"path": "pages/purchase/shopRecommendList",
+			"style": {
+				"navigationBarTextStyle": "black",
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		}
+		/***********************购潮货end********************************/
+		, {
+			"path": "pages/playMap/playMap1",
+			"style": {
+				"navigationBarTitleText": "商圈.特色街"
+			}
+		},
+		{
+			"path": "pages/floor/floor",
+			"style": {
+				"navigationBarTitleText": "",
+				"mp-alipay": {
+					"titleBarColor": "#000000"
+				},
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"searchInput": {
+							"backgroundColor": "#E6E7E9",
+							"borderRadius": "16px",
+							"placeholder": "输入商家搜索",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "12px",
+							"autoFocus": false
+						}
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/launchGuide/launchGuide",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/video/palyVideo",
+			"style": {
+				"navigationBarTitleText": "视频播放",
+				"navigationBarBackgroundColor": "#000000",
+				"navigationBarTextStyle": "white",
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#FFFFFF",
+						"backgroundColor": "#000000",
+						"buttons": [{
+							"fontSize": "30px",
+							"type": "menu"
+						}]
+					}
+				}
+			}
+			// "style": {
+			// 	"navigationBarTextStyle": "white",
+			// 	"app-plus": {
+			// 		"titleNView": false //禁用原生导航栏
+			// 	}
+
+			// }
+		},
+		{
+			"path": "pages/video/uploadVideo",
+			"style": {
+				"navigationBarTitleText": "发布视频",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/video/uploadShowVideo",
+			"style": {
+				"navigationBarTitleText": "视频播放",
+				"navigationBarBackgroundColor": "#000000",
+				"navigationBarTextStyle": "white",
+				"app-plus": {
+					"bounce": "none"
+				}
+			}
+		},
+
+		{
+			"path": "components/screen-component/screen-component",
+			"style": {}
+		},
+		/*******************支付*****************/
+		{
+			"path": "pages/payment/payment",
+			"style": {
+				"navigationBarTitleText": "支付订单",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/payment/payments",
+			"style": {
+				"navigationBarTitleText": "支付订单",
+				"navigationBarBackgroundColor": "#ffffff",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		/*******************用户模块*****************/
+		{
+			"path": "pages/user/userIndex/user",
+			"style": {
+				"navigationBarTextStyle": "white",
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},
+		{
+			"path": "pages/user/login/login",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom"
+
+			}
+		},
+		{
+			"path": "pages/user/login/resetPassword",
+			"style": {
+				"navigationBarTitleText": "找回密码"
+			}
+		},
+		{
+			"path": "pages/user/setting/setting",
+			"style": {
+				"navigationBarTitleText": "设置"
+			}
+		},
+		{
+			"path": "pages/user/setting/updatePassword",
+			"style": {
+				"navigationBarTitleText": "修改密码"
+			}
+		},
+		{
+			"path": "pages/user/userIndex/order",
+			"style": {
+				"navigationBarTitleText": "我的订单"
+			}
+		},
+		{
+			"path": "pages/user/setting/versionUpdate",
+			"style": {
+				"navigationBarTitleText": "App版本"
+			}
+		},
+		{
+			"path": "pages/user/userIndex/userInfo",
+			"style": {
+				"navigationBarTitleText": "个人资料"
+			}
+		},
+		{
+			"path": "pages/user/userIndex/suggest",
+			"style": {
+				"navigationBarTitleText": "意见反馈",
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "30px",
+							"type": "menu"
+						}]
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/user/userIndex/inform",
+			"style": {
+				"navigationBarTitleText": "投诉举报"
+			}
+		},
+		{
+			"path": "pages/user/userIndex/favorite",
+			"style": {
+				"navigationBarTitleText": "我的收藏"
+			}
+		},
+		{
+			"path": "pages/user/userIndex/coupon",
+			"style": {
+				"navigationBarTitleText": "我的卡券"
+			}
+		},
+		{
+			"path": "pages/user/userIndex/myCoupon",
+			"style": {
+				"navigationBarTitleText": "我的卡券"
+			}
+		},
+		{
+			"path": "pages/user/userIndex/topic",
+			"style": {
+				"navigationBarTitleText": "我的话题"
+			}
+		},
+		{
+			"path": "pages/user/userIndex/activity",
+			"style": {
+				"navigationBarTitleText": "我的活动"
+			}
+		},
+		{
+			"path": "pages/user/userIndex/about",
+			"style": {
+				"navigationBarTitleText": "关于我们"
+			}
+		},
+		{
+			"path": "pages/user/setting/accountSafe",
+			"style": {
+				"navigationBarTitleText": "账户与安全"
+			}
+		},
+		{
+			"path": "pages/user/setting/updatePhone",
+			"style": {
+				"navigationBarTitleText": "更换手机号",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+							"text": "下一步",
+							"float": "right",
+							"fontSize": "14px",
+							"color": "#989898",
+							"width": "50px"
+						}]
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/user/setting/updatePhoneSecond",
+			"style": {
+				"navigationBarTitleText": "更换手机号",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+							"text": "完成",
+							"float": "right",
+							"fontSize": "14px",
+							"color": "#989898",
+							"width": "40px"
+						}]
+					}
+				}
+			}
+		},{
+			"path": "pages/user/userIndex/addComment",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},
+		{
+			"path": "pages/scenic/scenicApplyRefund",
+			"style": {
+				"navigationBarTitleText":"申请退款"
+			}
+		},
+		{
+			"path": "pages/user/userIndex/comment",
+			"style": {
+				"navigationBarTitleText": "我的评论"
+			}
+		},
+		{
+			"path": "pages/goodComment/goodCommentAllList-component",
+			"style": {
+				"navigationBarTitleText": "评论列表"
+			}
+		},
+		{
+			"path": "pages/strategy/commentList",
+			"style": {
+				"navigationBarTitleText": "评论列表"
+			}
+		},
+		{
+			"path":"pages/strategy/strategyDetail",
+			"style": {
+				"navigationBarTitleText": "攻略详情",
+				"transparentTitle": "auto",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [{
+								"type": "share"
+							},
+							{
+								"type": "favorite"
+							}
+						]
+					}
+				}
+			}
+		},
+		{
+			"path":"pages/strategy/strategySearch",
+			"style": {
+				"navigationBarTextStyle":"black",
+				"transparentTitle": "auto"
+			}
+		},
+		{
+			"path":"pages/strategy/strategyPublish",
+			"style": {
+				"navigationBarTextStyle":"black",
+				"app-plus":{
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		}
+        ,{
+            "path" : "pages/hotel/roomDetail",
+            "style" : {
+				"navigationStyle":"custom"
+			}
+        },
+		{
+			"path": "pages/newPage/topic/myTopic",
+			"style": {
+				"navigationBarTitleText": "我的话题"
+			}
+		},
+		{
+		    "path" : "pages/newPage/topic/topicDetail",
+		    "style" : {
+				"navigationBarTitleText": "话题详情"
+			}
+		},
+		{
+		    "path" : "pages/newPage/activity/activity",
+		    "style" : {
+				"navigationBarTitleText": "啤酒节活动"
+			}
+		},
+		{
+		    "path" : "pages/newPage/activity/activityMianHome",
+		    "style" : {
+				"app-plus":{
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"searchInput": {
+							"backgroundColor": "#F5F5F5",
+							"borderRadius": "0px",
+							"placeholder": "搜索商家",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "10px",
+							"autoFocus": false
+						},
+						"buttons": [{
+							"fontSize": "24px",
+							"text": "", //右边占位
+							"float":"right",
+							"fontSrc":"/static/img_new/newculture/iconfont.ttf"
+						}]
+					}
+				}
+			}
+		},
+		
+		{
+            "path" : "pages/newPage/newcultrue/newcultrue",
+            "style" : {
+				"app-plus": {
+					"titleNView": {
+						"titleColor": "#000000",
+						"backgroundColor": "#FFFFFF",
+						"buttons": [{
+							"fontSize": "18px",
+							"text": "\ue661", //右边占位
+							"fontSrc":"/static/img_new/newculture/iconfont.ttf"
+						},
+						{
+							"fontSize": "20px",
+							"text": "\ue611" ,//左边占位
+							"float":"left",
+							"fontSrc":"/static/img_new/newculture/iconfont.ttf"
+						},
+						{
+							"fontSize": "13px",
+							"text": "南昌", //左边占位
+							"float":"left"
+						}],
+						"searchInput": {
+							"backgroundColor": "#F5F5F5",
+							"borderRadius": "16px",
+							"placeholder": "搜索",
+							"placeholderColor": "#A3A3A4",
+							"fontSize": "10px",
+							"autoFocus": false,
+							"disabled": true
+						}
+					},
+					"subNVues": [{
+						"id": "userDealPrivacy",
+						"path": "pages/index/userDealPrivacy",
+						"type": "popup",
+						"style": {
+							"position": "absolute",
+							"margin": "auto",
+							"width": "100%",
+							"height": "100%",
+							"background": "transparent"
+						}
+					}]
+				}
+			}
+        },
+		/****发布*****/
+		{
+			"path": "pages/publish/publish",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+			"path": "pages/publish/releasePosition",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		},{
+			"path": "pages/publish/releaseTopic",
+			"style": {
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+				}
+			}
+		}
+		/****发布*****/
+        ,{
+            "path" : "pages/newPage/CityAffairs/CityAffairs",
+            "style" : {
+				"navigationBarTitleText": "城事"
+				
+			}
+        },
+		{
+		    "path" : "pages/newPage/CityAffairs/CityAffairsDetail",
+		    "style" : {
+				"navigationBarTitleText": "资讯",
+				"app-plus": {
+					"titleNView": {
+						"buttons": [
+							{
+								"fontSize": "20px",
+								"text": "\ue608" ,//左边占位
+								"float":"right",
+								"fontSrc":"/static/img_new/newculture/iconfont.ttf"
+							}
+						]
+					}
+				}
+			}
+		}
+        ,{
+            "path" : "pages/newPage/Rankingist/Rankingist",
+            "style" : {
+				"navigationBarTitleText": "排行榜"
+			}
+        }
+    ],
+
+	"tabBar": {
+		"color":"#2A2835",
+		"selectedColor": "#F37039",
+		"backgroundColor": "#ffffff",
+		"iconWidth": "22px",
+		"spacing": "5px",
+		"fontSize": "12px",		
+		"list": [
+		{
+			"pagePath": "pages/newPage/newcultrue/newcultrue",
+			"text": "推荐",
+			"iconPath": "static/img_new/newculture/Recommend.png",
+			"selectedIconPath": "static/img_new/newculture/Recommendh.png"
+		},
+		{
+			"pagePath": "pages/index/index5",
+			"text": "地图",
+			"iconPath": "static/img_new/newculture/Map.png",
+			"selectedIconPath": "static/img_new/newculture/Maph.png"
+		},
+		{
+			"pagePath": "pages/discover/discover_index",
+			"text": "商圈",
+			"iconPath": "static/img_new/newculture/Businesscircle.png",
+			"selectedIconPath": "static/img_new/newculture/Businesscircleh.png"
+		}, {
+			"pagePath": "pages/user/user",
+			"text": "我的",
+			"iconPath": "static/img_new/newculture/mine.png",
+			"selectedIconPath": "static/img_new/newculture/mineH.png"
+		}],
+		"midButton" :{
+			"width": "50px",
+			"height": "70px",
+			"iconPath": "static/img_new/newculture/tab_publish@3x.png",
+			"text": "发现",
+			"iconWidth": "50px"
+		}
+		
+	},
+	"globalStyle": {
+		"app-plus": {
+			"softinputMode": "adjustPan"
+		},
+		"pageOrientation": "portrait",
+		"navigationBarTextStyle": "black",
+		"navigationBarBackgroundColor": "#FFFFFF"
+	},
+	"condition": { //模式配置，仅开发期间生效
+		"current": 0, //当前激活的模式(list 的索引项)
+		"list": [{
+			"name": "", //模式名称
+			"path": "", //启动页面，必选
+			"query": "" //启动参数，在页面的onLoad函数里面得到
+		}]
+	}
+}

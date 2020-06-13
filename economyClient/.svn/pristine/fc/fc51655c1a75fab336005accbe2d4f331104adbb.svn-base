@@ -1,0 +1,61 @@
+<template>
+	<view class="content-white">
+		<scroll-navi-bar class="top-scroll" :itemList="['美食','酒店','演出','休闲','学习','健体','景区','购物','文化']" @naviItemClick="naviItemClick"></scroll-navi-bar>
+		<mescroll-uni @down="dowmCallBack" @up="upCallback" @init="initMescroll" top="78">
+			<list-shop-cell :shopList="cellList"></list-shop-cell>
+		</mescroll-uni>
+	</view>
+</template>
+
+<script>
+	import listShopCell from "@/components/list-cell-view/list-shop-cell.vue";
+	import scrollNaviBar from "@/components/navi-bar/scroll-navi-bar.vue"
+	export default {
+		components:{
+			listShopCell,
+			scrollNaviBar
+		},
+		data() {
+			return {
+				mescroll:'',
+				cellList:[],
+				platformTypeId:1
+			}
+		},
+		methods: {
+			initMescroll:function(mescroll){
+				this.mescroll = mescroll;
+			},
+			dowmCallBack: function(mescroll) {
+				mescroll.resetUpScroll();
+			},
+			upCallback: function(mescroll) {
+				//console.log("upCallbackupCallbackupCallbackupCallback");
+				//获取店铺信息列表
+				let url = '/memberapi/api/userFavorite/list.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					favoriteType:"1",//目前只有店铺收藏1
+					platformTypeId:this.platformTypeId,
+					
+				};
+				this.request.post(url, data, mescroll).then(res => {
+					if(mescroll.num == 1) this.cellList = [];
+					this.cellList = this.cellList.concat(res.list);
+				})
+			},
+			naviItemClick:function(item){
+				this.platformTypeId = item.index+1;
+				this.dowmCallBack(this.mescroll);
+			}
+			
+		}
+	}
+</script>
+
+<style>
+	.top-scroll{
+		background-color: #FFFFFF;
+	}
+</style>

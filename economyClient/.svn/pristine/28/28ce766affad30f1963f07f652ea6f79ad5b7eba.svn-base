@@ -1,0 +1,370 @@
+<template>
+	<view class="page">
+		<!-- <view class="header-nor line-bottom">
+			<image class="back" src="/static/img_new/common/back_black.png" @click="goBack()"></image>
+			<text class="title-txt">{{shopName}}</text>
+			<view class="media-item-line" style="position: absolute;"></view>
+		</view>-->
+		<view class="wrapper">
+			<view class="amount-title">订单金额（元）
+				<input v-model="amount" class="amount" type="digit" placeholder="请确定后输入" placeholder-style="color:#EEEEEE" />
+			</view>
+			<view class="media-item-line" style="position: absolute;"></view>
+			<view class="discount-title">
+				优惠券
+				<view class="price">-{{price | numFilter}}</view>
+				<img src="../../static/img/common/right-choose-arrow.png" @click="showCouponBox()" />
+			</view>
+			<view class="pay-instantly" @click="pay()">立即买单</view>
+		</view>
+		<!-- 蒙版 -->
+		<view class="mask" v-show="showCoupon && availableDiscountList"></view>
+		<!-- 满减优惠券 -->
+		<view class="discount-box" v-show="showCoupon && availableDiscountList">
+			<view class="couponbox">
+				<image class="close" src="/static/img_new/topic/del.png" @click="closeDiscountBox()"></image>
+				<text class="couponbox-title">满减优惠券</text>
+				<text class="couponbox-con-title">可领取优惠券</text>
+				<view class="couponbox-con">
+				<view class="couponbox-con-list" v-for="(item, index) in availableDiscountList" :index="index" @click="useDiscount(item)">
+						<image class="bg-nor" :src="couponStateImg(item.receiveFlag)"></image>
+						<view class="couponbox-con-list__con">
+							<view class="numberbox" style="min-width: 113rpx;">￥<text class="number">{{item.price}}</text></view>
+							<view class="txt__right">
+								<text class="coupon-name">优惠券</text>
+								<text class="coupon-gz">满{{item.orderAmount}}可减</text>
+								<text class="coupon-time">{{item.startTime.substring(0, 10)}}-{{item.endTime.substring(0, 10)}}</text>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				amount: 0,
+				price: 0,
+				shopId: 0,
+				shopName: '',
+				showCoupon: false,
+				discountList: [],
+				availableDiscountList: [],
+				currentDiscount: null
+			}
+		},
+		onLoad(e) {
+			if (e.shopId) {
+				this.shopId = e.shopId;
+			}
+			if (e.shopName) {
+				
+				uni.setNavigationBarTitle({
+					title:e.shopName
+				})
+				
+				// this.shopName = e.shopName;
+			}
+			this.queryAvailableCoupon();
+		},
+		watch: {
+			amount(newV, oldV) {
+				this.price = 0;
+				this.availableDiscountList = [];
+				for (let i = 0; i < this.discountList.length; i++) {
+					let discount = this.discountList[i];
+					if (discount.orderAmount <= newV) {
+						this.availableDiscountList.push(discount);
+						if (discount.price > this.price) {
+							this.price = discount.price;
+							this.currentDiscount = discount;
+						}
+					}
+				}
+			}
+		},
+		filters: {
+			numFilter(value) {
+				return parseFloat(value).toFixed(2);
+			}
+		},
+		methods: {
+			goBack: function() {
+				uni.navigateBack({
+
+				});
+			},
+			showCouponBox: function() {
+				this.showCoupon = true;
+			},
+			closeDiscountBox: function() {
+				this.showCoupon = false;
+			},
+			queryAvailableCoupon: function() {
+				const url = '/memberapi/api/couponRecord/queryAvailableCoupon.do';
+				let param = {
+					shopId: this.shopId
+				}
+				this.request.post(url, param).then(res => {
+					if (res && res.list && res.list.length > 0) {
+						this.discountList = res.list;
+					}
+				});
+			},
+			couponStateImg: function(receiveFlag) {
+				return receiveFlag ? '/static/img_new/food/con_pre.png' : '/static/img_new/food/con_use.png';
+			},
+			pay: function() {
+				const url = '/memberapi/api/orders/payOrder.do';
+				
+				if(this.amount <=0){
+					this.request.toastTips("请输入正确的订单金额。");
+					return false;
+				}
+				let param = {
+					shopId: this.shopId,
+					couponRecordId: this.currentDiscount?this.currentDiscount.recordId:'',
+					discountAmount: this.price,
+					orderTotalAmount: this.amount
+				}
+				this.request.post(url, param).then(res => {
+					if (res.returncode === 0) {
+						//提交订单
+						uni.navigateTo({
+							url: "/pages/payment/payment?orderId=" + res.data.orderId + "&payTotalAmount=" + res.data.payTotalAmount
+						});
+					}
+				});
+			},
+			useDiscount: function(item) {
+				this.discount = item;
+				this.price = item.price;
+				this.showCoupon = false;
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	//默认头部
+	.header-nor {
+		width: 100%;
+		height: 88rpx;
+		background: #FFFFFF;
+		position: fixed;
+		top: 0;
+		left: 0;
+		box-sizing: border-box;
+		z-index: 3;
+		padding: 0 30rpx;
+		@extend %flex-justify-content;
+
+		.back {
+			width: 40rpx;
+			height: 40rpx;
+			z-index: 4;
+		}
+
+		.title-txt {
+			width: 100%;
+			position: absolute;
+			height: 88rpx;
+			line-height: 88rpx;
+			font-size: $font36;
+			text-align: center;
+			z-index: 3;
+		}
+
+		.rightbox {
+			z-index: 4;
+
+			.icon {
+				width: 40rpx;
+				height: 40rpx;
+				font-size: $font32;
+			}
+		}
+	}
+
+	.wrapper {
+		height: 490rpx;
+		padding: 30rpx 46rpx 0rpx 46rpx;
+
+		.amount-title {
+			height: 150rpx;
+			display: flex;
+			align-items: center;
+			padding: 30rpx;
+			font-size: $font36;
+
+			.amount {
+				width: 282rpx;
+				margin-left: 44rpx;
+				text-align: right;
+				margin-right: 20rpx;
+			}
+		}
+
+		.discount-title {
+			height: 150rpx;
+			display: flex;
+			align-items: center;
+			padding: 30rpx;
+			font-size: $font36;
+
+			.price {
+				color: #DF2725;
+				font-size: $font32;
+				flex: 1 1 200rpx;
+				text-align: right;
+			}
+
+			img {
+				width: 30rpx;
+				height: 30rpx;
+				padding: 20rpx;
+			}
+		}
+
+		.pay-instantly {
+			height: 100rpx;
+			width: 100%;
+			background: #EA494A;
+			color: white;
+			font-size: $font36;
+			margin-top: 60rpx;
+			text-align: center;
+			line-height: 100rpx;
+			border-radius: 20rpx;
+		}
+	}
+
+	.mask {
+		width: 100%;
+		height: 100%;
+		z-index: 200;
+		background: #000000;
+		opacity: 0.8;
+		position: fixed;
+		top: 0;
+	}
+
+	.discount-box {
+		position: fixed;
+		bottom: 0;
+		width: 100%;
+		background: #FEFEFE;
+		border-top-left-radius: 20rpx;
+		border-top-right-radius: 20rpx;
+		z-index: 999;
+
+		.couponbox {
+			position: relative;
+			border-radius: 10rpx 10rpx 0 0;
+			padding-top: 30rpx;
+
+			.close {
+				width: 40rpx;
+				height: 40rpx;
+				position: absolute;
+				top: 30rpx;
+				right: 30rpx;
+			}
+
+			.couponbox-title {
+				font-size: 36rpx;
+				font-weight: bold;
+				display: block;
+				text-align: center;
+				letter-spacing: 10rpx;
+			}
+
+			.couponbox-con-title {
+				color: #6A6A6A;
+				font-size: 26rpx;
+				display: block;
+				margin-top: 60rpx;
+				letter-spacing: 15rpx;
+				text-align: left;
+				padding-left: 80rpx;
+			}
+
+			.couponbox-con {
+				max-height: 762rpx;
+				padding: 30rpx 47rpx;
+				// box-sizing: border-box;
+				// display: flex;
+				// flex-direction: column;
+				// justify-content: center;
+				// align-items: center;
+				overflow-y: scroll;
+
+				.couponbox-con-list {
+					width: 595rpx;
+					height: 175rpx;
+					position: relative;
+					margin: 0 auto 60rpx;
+					
+					.bg-nor {
+						width: 595rpx;
+						height: 175rpx;
+						z-index: 0;
+					}
+
+					.couponbox-con-list__con {
+						position: absolute;
+						left: 0;
+						top: 0;
+						z-index: 1;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						height: 160rpx;
+						padding-left: 50rpx;
+
+						.numberbox {
+							font-size: 36rpx;
+							color: #E84545;
+							font-weight: bold;
+							margin-right: 16rpx;
+
+							.number {
+								font-size: 80rpx;
+							}
+						}
+
+						.txt__right {
+							display: flex;
+							flex-direction: column;
+							align-items: center;
+							margin-top: 20rpx;
+
+							.coupon-name {
+								font-size: 30rpx;
+								font-weight: bold;
+								letter-spacing: 15rpx;
+							}
+
+							.coupon-gz {
+								font-size: 24rpx;
+								margin-top: 4rpx;
+							}
+
+							.coupon-time {
+								font-size: 16rpx;
+								color: #BBBBBB;
+								margin-top: 8rpx;
+								transform: scale(0.8);
+								margin-top: 8rpx;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+</style>

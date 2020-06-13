@@ -1,0 +1,816 @@
+<template>
+	<view class="page scenic food">
+		<mescroll-body @down="downCallBack" @init="initMescroll" :up='upOption'>
+			<swiper-banner :swiperList="shopsData.banners"></swiper-banner>
+			<view class="scenic-infor">
+				<view class="inner">
+					<view class="name">
+						<text class="txt">{{shopsData.shopName}}</text>
+						<view class="total">{{shopsData.score}}<text class="min">分</text></view>
+					</view>
+					<view class="tip">
+						<view class="left">
+							<text class="txt">{{shopsData.platformLabelsName}}</text>
+							<text class="txt">人均￥{{shopsData.standardPrice}}</text>
+						</view>
+						<text class="comment">{{shopsData.commentNum}}条点评 ></text>
+					</view>
+					
+					<!-- <view class="zhengxuan">
+						<view class="toptips">美食林臻选</view>
+						<text class="miantxt"></text>
+					</view> -->
+					<!-- 满减优惠 -->
+					<!-- <view class="full-reduction line-bottom" v-show="top2Discount" @click="openDiscountBox()">
+						<text class="label">满减</text>
+						<view class="wrapper">
+							<view class="full-reduction-con" v-for="item in top2Discount">
+								<text class="con-item">{{item.couponName}}</text>
+							</view>
+						</view>
+						<view>
+							<image class="righticon" src="../../static/img/common/right-choose-arrow.png"></image>
+						</view>
+					</view> -->
+					
+					<view class="addressbox line-bottom">
+						<view class="left">
+							<image class="icon" src="../../static/img_new/food/f_dw@3x.png"></image>
+							<view class="address">
+								<text class="txt">{{shopsData.address}}</text>
+							</view>
+						</view>
+						<view class="right">
+							<view @click="gotoMapLocation">
+								<image class="icon" src="../../static/img_new/food/f_dh@3x.png"></image>
+								<view>导航</view>
+							</view>
+							<view @click="callPhone">
+								<image class="icon" src="../../static/img_new/food/f_lx@3x.png"></image>
+								<view>电话</view>
+							</view>
+						</view>
+					</view>
+					<view class="addressbox line-bottom">
+						<view class="left">
+							<image class="icon" src="../../static/img_new/food/f_yy@3x.png"></image>
+							<view class="address">
+								<view class="txt" v-for="(item,index) in shopsData.itemList" :key="index">
+									{{item.shopDayName}} {{item.shopHours1?item.shopHours1:''}} {{item.shopHours2?"-"+item.shopHours2:''}}
+									{{item.shopHours3?item.shopHours3:''}}{{item.shopHours4?"-"+item.shopHours4:''}}
+								</view>
+							</view>
+						</view>
+					</view>
+				</view>
+				<view class="yudingbox">
+					<view v-if="bookFlag" class="addressbox yuding" @click="roomReserve">
+						<view class="left left-fx">
+							<image class="icon" src="../../static/img_new/food/f_dz@3x.png"></image>
+							<view class="address ticketpurchase">
+								<text class="txt">提前订座</text>
+							</view>
+						</view>
+						<view class="right">
+							<view class="btn-yuding btn-yuding-dz">订座</view>
+						</view>
+					</view>
+					
+				</view>
+			</view>
+			
+			<view class="discountView" style="position: relative;margin-top: -100rpx;">
+				<view class="full-reduction line-bottom" v-show="top2Discount" @click="openDiscountBox()">
+					<!-- <text class="label">满减</text> -->
+					<image src="../../static/img_new/food/mangjian.png" class="labelimg" mode=""></image>
+					<text class="label">超值团购</text>
+					<view class="wrapper">
+						<view class="full-reduction-con" v-for="item in top2Discount">
+							<text class="con-item">{{item.couponName}}</text>
+						</view>
+					</view>
+					<view>
+						<image class="righticon" src="../../static/img/common/right-choose-arrow.png"></image>
+					</view>
+				</view>
+			</view>
+			<cash-coupon :cashList='cashList'></cash-coupon>
+			
+			<scroll-navi-bar class="top-scroll" style="margin-top: 20rpx;" colorStyle="red" :itemList="['菜品','评价','周边']"
+			 @naviItemClick="jumpTarget"></scroll-navi-bar>
+
+			<view class="tab-con" id="foodView" style="background-color: #FFFFFF;">
+				<view class="commentlist">
+					<view class="title line-bottom">
+						<view class="txt" style="font-weight: 400;">菜品</view>
+					</view>
+					<scroll-view v-if="foodList.length>0" class="food-scroll" scroll-x="true">
+						<view class="item1 box-shadow" v-for="(item,index) in foodList" :key="index" @click="toFoodDetail(item.foodId)">
+							<image class="image1" :src="item.imagePath" mode="aspectFill"></image>
+							<view class="title1 text-over-hide">{{item.foodName}}</view>
+							<view class="sort1">TOP{{index+1}}</view>
+						</view>
+					</scroll-view>
+
+					<view v-else class="no-data-view">暂无菜品</view>
+
+					<view v-if="goodFoodList.length>0" class="text-detail" style="font-size: 32rpx;margin: 20rpx 0rpx 10rpx 0rpx;">网友推荐({{goodTotal}})</view>
+					<scroll-view v-if="goodFoodList.length>0" class="food-scroll" scroll-x="true">
+						<view class="item2" v-for="(item,index) in goodFoodList" :key="index" @click="toFoodDetail(item.foodId)">
+							<view class="title2 text-over-hide">{{item.foodName}}</view>
+							<view class="number2">
+								<image class="icon" src="/static/img_new/food/f_zan@3x.png"></image>
+								<view class="text">{{item.goodNum}}人推荐</view>
+							</view>
+						</view>
+					</scroll-view>
+				</view>
+			</view>
+			<view class="tab-con" id="detailsView">
+				<view class="commentlist">
+					<view class="title line-bottom">
+						<view class="txt" style="font-weight: 400;"><text class="dp-number">{{shopsData.commentNum}}条点评</text>评价</view>
+					</view>
+					<goodCommentList-component ref='goodCommentList' goodCommentTitle="" :shopId="shopId"></goodCommentList-component>
+				</view>
+
+			</view>
+
+			<view class="tab-con" id="commentView">
+				<view class="commentlist recommend">
+					<view class="title">
+						<view class="txt line-bottom" style="font-weight: 400;">周边</view>
+					</view>
+					<view class="list" v-for="(item,index) in nearbyShopList" :key="index" @click="toShopDetail(item)">
+						<view class="imgbox">
+							<image class="img" :src="item.thumbnailPath" mode="aspectFill"></image>
+						</view>
+						<view class="righttxt">
+							<view class="name">{{item.shopName}}</view>
+							<view class="score"><text class="label">{{item.score}}分</text><text class="label">{{item.commentNum}}条点评</text>
+							</view>
+							<view class="category"><text class="label">{{item.platformTypeName}}</text><text class="label">{{item.platformLabelsName}}</text><text
+								 class="label">{{item.standardPrice}}元/人</text></view>
+							<view class="distance">距您{{item.distance?item.distance:'0'}}km</view>
+						</view>
+					</view>
+					<view class="comment-more line-top" @click="toNearbyShopList()">
+						查看附近全部美食
+					</view>
+				</view>
+			</view>
+		</mescroll-body>
+		<!-- 买单按钮 -->
+		<view class="pay-btn" @click="toPayBill()">
+			<image class="icon" src="/static/img_new/food/f_phone@3x.png"></image>
+			<text class="pay-btn-txt">买单</text>
+		</view>
+		<!-- 蒙版 -->
+		<view class="mask" v-show="showCoupon && discountList"></view>
+		<!-- 满减优惠券 -->
+		<view class="discount" v-show="showCoupon && discountList">
+			<view class="couponbox">
+				<image class="close" src="/static/img_new/topic/del.png" @click="closeDiscountBox()"></image>
+				<text class="couponbox-title">满减优惠券</text>
+				<text class="couponbox-con-title">可领取优惠券</text>
+				<view class="couponbox-con">
+					<view class="couponbox-con-list" v-for="(item, index) in discountList" :index="index" @click="getDiscount(item)">
+						<image class="bg-nor" :src="couponStateImg(item.receiveFlag)"></image>
+						<view class="couponbox-con-list__con">
+							<view class="numberbox" style="min-width: 113rpx;">￥<text class="number">{{item.price}}</text></view>
+							<view class="txt__right">
+								<text class="coupon-name">优惠券</text>
+								<text class="coupon-gz">满{{item.orderAmount}}可减</text>
+								<text class="coupon-time">{{item.startTime.substring(0, 10)}}-{{item.endTime.substring(0, 10)}}</text>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	import scrollNaviBar from "@/components/navi-bar/scroll-navi-bar.vue"
+	import cashCoupon from "@/components/cash-coupon/cash-coupon.vue"
+	import goodCommentListComponent from "@/components/goodCommentList-component/goodCommentList-component.vue"
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		components: {
+			scrollNaviBar,
+			goodCommentListComponent,
+			cashCoupon
+		},
+		data() {
+			return {
+				mescroll: '',
+				upOption: {
+					use: false
+				},
+				vrFlag: false,
+				isFavorite: false, //是否可以收藏
+				shopsData: {},
+				shopId: '',
+				bookFlag: false,
+				images: [],
+				foodList: [], //所有菜品
+				goodFoodList: [], //推荐菜品
+				goodTotal: 0,
+				scrollTop: 0,
+				old: {
+					scrollTop: 0
+				},
+				nearbyShopList: [],
+				nearbyShopTotal: 0,
+				subjectId: 3,
+				latitude: 28.683095,
+				longitude: 115.913536,
+				cashList: [],
+				userData: null,
+				showCoupon: false,
+				discountList: [],
+				top2Discount: []
+			}
+		},
+		onLoad(e) {
+			var that = this;
+			uni.getLocation({
+				type: 'gcj02',
+				success: function(res) {
+					that.longitude = res.longitude;
+					that.latitude = res.latitude;
+				}
+			});
+			if (e.shopId) {
+				this.shopId = e.shopId;
+				this.readDetail();
+				this.roomCount();
+				this.getFoodList();
+				this.getGoodFoodList();
+				this.queryNearbyShopList();
+				this.getCashList();
+			}
+		},
+		onShow() {
+			this.userData = uni.getStorageSync("user");
+		},
+		// 右上角收藏和分享按钮点击事件
+		onNavigationBarButtonTap(e) {
+			if (e.index == 1) {
+				this.util.favoriteWithData(this.isFavorite, "1", this.shopId).then(res => {
+					this.isFavorite = res;
+				})
+			} else if (e.index == 0) {
+				this.util.shareWithData(this.shopsData.shareData);
+			}
+		},
+		onPageScroll(e) {
+			// 为了解决滚动到最顶端时，是否收藏按钮颜色失效的问题
+			if (e.scrollTop < 10) {
+				this.util.setFavorite(this.isFavorite);
+			}
+		},
+		methods: {
+
+			initMescroll: function(mescroll) {
+				this.mescroll = mescroll;
+
+			},
+			downCallBack: function(mescroll) {
+				this.readDetail(mescroll);
+				this.roomCount();
+				this.getFoodList();
+				this.getDiscountList();
+				this.getGoodFoodList(mescroll);
+				this.queryNearbyShopList();
+				this.getCashList();
+			},
+			readDetail: function(mescroll) {
+				//获取商家信息
+				const url = '/memberapi/api/shops/readShopsAndExtends.do';
+				let coordinate = '';
+				if (this.longtitude && this.latitude) {
+					coordinate = this.longtitude + "," + this.latitude;
+				}
+				let sendDate = {
+					coordinate: coordinate,
+					shopId: this.shopId
+				};
+				var that = this;
+				this.request.get(url, sendDate, mescroll).then(res => {
+					this.shopsData = this.util.formatShopData(res.data);
+					console.log(this.shopsData)
+					this.isFavorite = res.data.canFavorite == 2;
+					this.util.setFavorite(this.isFavorite);
+					let distance = this.util.distance(this.longtitude, this.latitude, this.shopsData.coordinateLng, this.shopsData.coordinateLat);
+					this.$set(this.shopsData, 'distance', parseFloat(parseInt(distance.toString().split(".")[0]) / 1000).toFixed(2));
+					this.$set(this.shopsData, 'score', res.data.score);
+					if (res.data.vrLink) {
+						this.vrFlag = true;
+					}
+
+				});
+			},
+			roomCount: function() {
+				//查询包厢预订信息
+				const url = '/memberapi/api/delicacyReserveConfig/count.do';
+				let sendDate = {
+					shopId: this.shopId
+				};
+				this.request.get(url, sendDate, "N").then(res => {
+					if (res.data > 0) {
+						this.bookFlag = true;
+					}
+				});
+			},
+			// 查询全部菜品
+			getFoodList: function(mescroll) {
+				// 查询推荐菜品
+				const url = '/memberapi/api/delicacyFood/list.do';
+				let sendDate = {
+					shopId: this.shopId,
+					pageNo: 1,
+					pageSize: 100
+				};
+				var that = this;
+				this.request.get(url, sendDate, mescroll, false).then(res => {
+					this.foodList = [];
+					for (let item of res.list) {
+						item.imagePath = this.util.formatImagePaths(item.imagePath)[0];
+						this.foodList.push(item);
+					}
+				});
+			},
+			// 查询满减优惠券
+			getDiscountList: function(mescroll) {
+				const url = '/memberapi/api/coupon/list.do';
+				let param = {
+					pageNo: 1,
+					pageSize: 20,
+					relationId: this.shopId,
+					couponType: 3 // 1-商圈 2-活动 3-商家
+				}
+				this.request.get(url, param, mescroll, false).then(res => {
+					if (res && res.list && res.list.length > 0) {
+						this.discountList = res.list;
+						this.top2Discount = this.discountList.slice(0, 2);
+					}
+				});
+			},
+			// 查询推荐菜品
+			getGoodFoodList: function(mescroll) {
+				const url = '/memberapi/api/delicacyFood/list.do';
+				let sendDate = {
+					shopId: this.shopId,
+					pageNo: 1,
+					pageSize: 20,
+					recommendType: 1,
+					sortFlag: 'goodNum-desc'
+				};
+				var that = this;
+				this.request.get(url, sendDate, mescroll, false).then(res => {
+					this.goodFoodList = [];
+					this.goodTotal = res.totalRows;
+					for (var i = 0; i < res.list.length; i++) {
+						let item = res.list[i];
+						// 使用工具类的formatImagePath或者formatImagePaths 这两个方法来格式化单图片路径和多图片
+						item.imagePath = this.util.formatImagePaths(item.imagePath)[0];
+						this.goodFoodList.push(item);
+					}
+				});
+			},
+			getCashList: function() {
+				//查询代金券菜品
+				const url = '/memberapi/api/cash/list.do';
+				let sendDate = {
+					shopId: this.shopId,
+					pageNo: 1,
+					pageSize: 10
+				};
+				this.request.get(url, sendDate, "N").then(res => {
+					console.log(res)
+					let currListData = res.list;
+					currListData.forEach(item => {
+						if (item.buyLimitFlag == 1) {
+							item.buyLimitText = "不限张数";
+						} else {
+							item.buyLimitText = "当次可用" + item.buyLimitNum + "张";
+						}
+					});
+					this.cashList = currListData;
+					console.log(this.cashList)
+				});
+			},
+			queryNearbyShopList() {
+				const url = '/memberapi/api/shops/queryShopList.do';
+				let data = {
+					pageNo: 1,
+					pageSize: 3,
+					subjectId: this.subjectId
+				};
+
+				if (this.longitude && this.latitude) {
+					data.coordinate = this.longitude + "," + this.latitude;
+					//data.distance = "5000";; //距离
+				}
+
+				var that = this;
+				this.request.get(url, data, "N").then(res => {
+					let nearbyShopList = res.list;
+					that.nearbyShopTotal = res.totalRows;
+					that.util.formatShopList(nearbyShopList);
+					that.nearbyShopList = nearbyShopList;
+
+				})
+			},
+			callPhone: function() {
+				if (!this.shopsData.contactsPhone) return;
+				uni.makePhoneCall({
+					phoneNumber: this.shopsData.contactsPhone
+				})
+			},
+			gotoMapLocation: function() {
+				this.util.openLocation(this.shopsData.coordinateLng, this.shopsData.coordinateLat, this.shopsData.shopName, this.shopsData
+					.address);
+			},
+			roomReserve: function() {
+				uni.navigateTo({
+					url: "/pages/food/foodReserve?shopId=" + this.shopId
+				})
+			},
+			toFoodDetail(foodId) {
+				uni.navigateTo({
+					url: "/pages/food/foodDetails?foodId=" + foodId
+				})
+			},
+			toNearbyShopList() {
+				let coordinate = this.longitude + "," + this.latitude;
+				uni.navigateTo({
+					url: '/pages/culture/nearPlaceList?coordinate=' + coordinate + "&subjectId=" + this.subjectId
+				});
+			},
+			toCashDetail(cashId) {
+				uni.navigateTo({
+					url: "/pages/food/cashCoupon?cashId=" + cashId
+				})
+			},
+			toShopDetail(item) {
+				this.util.gotoShopDetail(item);
+			},
+			openDiscountBox: function() {
+				if(this.request.alreadyLogin()){
+					this.getDiscountList(this.mescroll);
+					this.showCoupon = true;
+				}
+				
+			},
+			closeDiscountBox: function() {
+				this.showCoupon = false;
+			},
+			//标签
+			jumpTarget: function(item) {
+				var views = ['foodView', 'detailsView', 'commentView'];
+				uni.createSelectorQuery().select(".scenic").boundingClientRect(data => {
+					uni.createSelectorQuery().select("#" + views[item.index]).boundingClientRect((res) => {
+						uni.pageScrollTo({
+							duration: 0,
+							scrollTop: res.top - data.top - 88
+						})
+					}).exec();
+				}).exec();
+			},
+			// 返回
+			goBack: function() {
+				uni.navigateBack({})
+			},
+			// 买单
+			toPayBill: function() {
+				uni.navigateTo({
+					url: './payBill?shopName=' + this.shopsData.shopName + "&shopId=" + this.shopsData.shopId
+				})
+			},
+			couponStateImg: function(receiveFlag) {
+				return receiveFlag ? '/static/img_new/food/con_pre.png' : '/static/img_new/food/con_nor.png';
+			},
+			getDiscount: function(item) {
+				if (!item.receiveFlag) {
+					const url = '/memberapi/api/couponRecord/add.do';
+					let param = {
+						couponId: item.couponId,
+						shopId: this.shopsData.shopId
+					}
+					this.request.post(url, param).then(res => {
+						if (res.returncode === 0) {
+							item.receiveFlag = true;
+							this.request.toastTips("领取成功");
+						}
+					});
+				}
+			}
+		}
+
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "../../common/css/other_new.scss";
+
+	// 覆盖goodCommentList-component的一些top-slider-con，解决有灰色横线的问题
+	.page{
+		background: #eff3f6;
+	}
+	.top-slider-con {
+		background: #FFFFFF;
+		padding-top: 0rpx;
+		margin-top: -40rpx;
+	}
+
+	.top-scroll {
+		display: flex;
+		flex-direction: row;
+		white-space: nowrap;
+		z-index: 99;
+		position: -webkit-sticky;
+		position: sticky;
+		top: calc(var(--status-bar-height) + 78rpx);
+		background-color: #FFFFFF;
+	}
+
+	.food-scroll {
+		white-space: nowrap;
+		background-color: #FFFFFF;
+		width: 720rpx;
+		padding-top: 5rpx;
+		padding-right: 20rpx;
+
+		.item1 {
+			width: 250rpx;
+			display: inline-block;
+			margin-right: 20rpx;
+			border-radius: 10rpx;
+			overflow: hidden;
+
+			.image1 {
+				width: 100%;
+				height: 180rpx;
+			}
+
+			.title1 {
+				width: 100%;
+				height: 70rpx;
+				line-height: 75rpx;
+				text-align: center;
+				margin-top: -20rpx;
+				color: #000000;
+			}
+
+			.sort1 {
+				position: absolute;
+				display: inline;
+				padding: 5rpx 10rpx;
+				background: linear-gradient(to right bottom, #ef3d40, #f95e86);
+				color: #fff;
+				font-size: 20rpx;
+				border-radius: 10rpx 0 12rpx 0;
+				top: 0;
+			}
+		}
+
+		.item2 {
+			width: 250rpx;
+			padding: 12rpx 20rpx;
+			display: inline-block;
+			margin-right: 20rpx;
+			border-radius: 10rpx;
+			overflow: hidden;
+			background-color: #EFF3F6;
+
+			.title2 {
+				width: 210rpx;
+				color: #000000;
+				font-size: 30rpx;
+				// overflow: hidden;
+				// background-color: #0000FF;
+				// font-weight: bold;
+			}
+
+			.number2 {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+
+				.icon {
+					width: 28rpx;
+					height: 28rpx;
+
+					margin-right: 8rpx;
+				}
+
+				.text {
+					font-size: 24rpx;
+					color: #5F5F60;
+				}
+			}
+
+		}
+	}
+
+	.pay-btn {
+		width: 84rpx;
+		height: 84rpx;
+		border-radius: 50%;
+		background: linear-gradient(#F62F2D, #F28D60);
+		color: #FFFFFF;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		position: fixed;
+		bottom: 150rpx;
+		right: 60rpx;
+		z-index: 888;
+
+		.pay-btn-txt {
+			font-size: 18rpx;
+			transform: scale(0.8);
+		}
+
+		.icon {
+			width: 28rpx;
+			height: 42rpx;
+		}
+	}
+
+	.discountView{
+		padding: 0 50rpx;
+		background: #ffffff;
+		position: sticky;
+		border-bottom: 2rpx solid #eff3f6;
+		.full-reduction {
+			width: 100%;
+			height: 92rpx;
+			display: flex;
+			align-items: center;
+			.label{
+				flex-shrink: 0;
+				margin-right: 20rpx;
+				font-size: 28rpx;
+				color: #333333;
+			}
+			.labelimg {
+				flex-shrink: 0;
+				width: 62rpx;
+				height: 35rpx;
+				margin-right: 10rpx;
+			}
+		
+			.wrapper {
+				display: flex;
+				flex: 1 1 800rpx;
+			}
+		
+			.con-item {
+				border-radius: 6rpx;
+				border: 1rpx solid #DF2725;
+				font-size: 24rpx;
+				color: #DF2725;
+				margin-left: 10rpx;
+				display: inline-block;
+				padding: 5rpx 10rpx;
+			}
+		
+			.righticon {
+				width: 40rpx;
+				height: 40rpx;
+			}
+		}
+	}
+	
+
+	.mask {
+		width: 100%;
+		height: 100%;
+		z-index: 200;
+		background: #000000;
+		opacity: 0.8;
+		position: fixed;
+		top: 0;
+	}
+
+	.discount{
+		position: fixed;
+		bottom: 0;
+		width: 100%;
+		background: #FEFEFE;
+		border-top-left-radius: 20rpx;
+		border-top-right-radius: 20rpx;
+		z-index: 10000;
+
+		.couponbox {
+			position: relative;
+			border-radius: 10rpx 10rpx 0 0;
+			padding-top: 30rpx;
+
+			.close {
+				width: 40rpx;
+				height: 40rpx;
+				position: absolute;
+				top: 30rpx;
+				right: 30rpx;
+			}
+
+			.couponbox-title {
+				font-size: 36rpx;
+				font-weight: bold;
+				display: block;
+				text-align: center;
+				letter-spacing: 10rpx;
+			}
+
+			.couponbox-con-title {
+				color: #6A6A6A;
+				font-size: 26rpx;
+				display: block;
+				margin-top: 60rpx;
+				letter-spacing: 15rpx;
+				text-align: left;
+				padding-left: 80rpx;
+			}
+
+			.couponbox-con {
+				padding: 30rpx 47rpx;
+				box-sizing: border-box;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				max-height: 762rpx;
+				overflow-y: scroll;
+
+				.couponbox-con-list {
+					width: 595rpx;
+					height: 175rpx;
+					position: relative;
+					margin-bottom: 60rpx;
+
+					.bg-nor {
+						width: 595rpx;
+						height: 175rpx;
+						z-index: 0;
+					}
+
+					.couponbox-con-list__con {
+						position: absolute;
+						left: 0;
+						top: 0;
+						z-index: 1;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						height: 160rpx;
+						padding-left: 50rpx;
+
+						.numberbox {
+							font-size: 36rpx;
+							color: #E84545;
+							font-weight: bold;
+							margin-right: 16rpx;
+
+							.number {
+								font-size: 80rpx;
+							}
+						}
+
+						.txt__right {
+							display: flex;
+							flex-direction: column;
+							align-items: center;
+							margin-top: 20rpx;
+
+							.coupon-name {
+								font-size: 30rpx;
+								font-weight: bold;
+								letter-spacing: 15rpx;
+								margin-top: 4rpx;
+							}
+
+							.coupon-gz {
+								font-size: 24rpx;
+								margin-top: 4rpx;
+							}
+
+							.coupon-time {
+								font-size: 16rpx;
+								color: #BBBBBB;
+								transform: scale(0.8);
+								margin-top: 8rpx;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+</style>

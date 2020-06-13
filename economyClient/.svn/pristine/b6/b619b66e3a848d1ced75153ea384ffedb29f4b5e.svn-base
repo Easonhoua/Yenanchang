@@ -1,0 +1,111 @@
+<template>
+	<view class="page searchpage">
+		<view class="header">
+			<view class="back">
+				<image class="icon" src="/static/img_new/common/back_black.png" @click="goBack()"></image>
+			</view>
+			<view class="searchbox searchbox2" style="width: 450rpx;">
+				<input class="input" placeholder="请输入您要搜索的内容" placeholder-style="color:#888888" confirm-type="search" v-model="keyword"  @confirm="searchShop"/>
+			</view>
+			<view class="btn-search" @click="searchShop">搜索</view>
+		</view>
+		<mescroll-uni @down="downCallBack" @init="initMescroll" @up="upCallback">
+			<view class="tab-con">
+				<view class="list line-bottom"  v-for="(item,index) in hotelList" :key="index"  @click="toShopDetail(item)">
+					<view class="righttxt">
+						<view class="name">{{item.title}}</view>
+						<view class="zixuninfo">
+							<text class="right">{{item.createTime }}</text>
+							<text class="right">{{ item.authorName }}</text>
+							<text class="right">{{ item.commentNum }}</text>
+						</view>
+					</view>
+					<view class="imgbox">
+						<image class="img" :src="item.thumbnailPath"></image>
+					</view>
+				</view>
+			</view>
+		</mescroll-uni>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				keyword: '',
+				mescroll: '',
+				platformTypeId: '', //酒店
+				hotelList: [],
+				sortFlag:'distance-asc' //排序
+			}
+		},
+		onLoad(e) {
+			console.log(e.keyword)
+			if(e.keyword){
+				this.keyword = e.keyword;
+			}
+		},
+		methods:{
+			
+			initMescroll(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll) {
+				this.hotelList =[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll,topItemTap) {
+				let url = '/memberapi/api/information/list.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					keyword:this.keyword,
+				};
+				let that=this;
+				this.request.get(url,data,mescroll).then(res=>{
+					let currListData = res.list;
+					console.log(currListData)
+					that.util.formatShopList(currListData);
+					that.hotelList = that.hotelList.concat(currListData); //追加新数据
+				})
+			},
+			searchShop: function(event) {
+				this.downCallBack(this.mescroll); 
+			},
+			// 返回
+			goBack: function() {
+				uni.navigateBack({})
+			},
+			//店铺明细
+			toShopDetail:function(item){
+				this.util.gotoShopDetail(item); 
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "@/common/css/other_new.scss";
+	.searchpage .tab-con{
+		background-color: #F3F5F7;
+		margin-top: 160rpx;
+	}
+	.searchpage .tab-con .list{
+		background: #ffffff;
+	}
+	.searchpage .tab-con .list .imgbox{
+		margin: 0;
+	}
+	.righttxt{
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+	}
+	.right{
+		font-size: 24rpx;
+		color: #999999;
+		margin-right: 16rpx;
+	}
+</style>

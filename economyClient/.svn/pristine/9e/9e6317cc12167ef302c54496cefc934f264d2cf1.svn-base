@@ -1,0 +1,151 @@
+<template>
+	<view class="layout sub-contain discover" style="background-color: #FFFFFF;">
+		<!-- top="420" -->
+		<mescroll-body @down="downCallBack" @init ="initMescroll" @up="upCallback" top="78">
+			<view class="sub-banner" style="padding: 25rpx;">
+				<image class="img box-shadow" style="padding: 0rpx;" src="/static/img/discover/banner.png"></image>
+			</view>
+			<view class="dis-tab">
+				<text :class="checkValue == 0 ? 'item active' : 'item'" @tap="chooseType(0)">全部</text>
+				<text :class="checkValue == 1 ? 'item active' : 'item'" @tap="chooseType(1)">美食必去</text>
+				<text :class="checkValue == 8 ? 'item active' : 'item'" @tap="chooseType(8)">特色购物</text>
+			</view>
+			<view class="dis-tabcon" style="background-color: #FFFFFF;padding-top: 2px;">
+				<view class="card box-shadow" style="margin: 25rpx;margin-top: 5rpx;width: 700rpx;" v-for="(item,index) in tradeList" :key="index" @tap="goTradeContent(item.tradeId,item.coordinate)">
+					<view class="card-bd discover-list">
+						<image class="img" :src="item.thumbnailPath" mode="aspectFill"></image>
+						<view class="right-txt">
+							<text class="title">{{item.tradeName?item.tradeName:'--'}}</text>
+							<view class="address">
+								<label class="label" style="font-size: 20rpx;margin-top: 10rpx;">{{item.tradeTitle?item.tradeTitle:'--'}}</label><!-- <text class="address-xq">{{item.address}}</text> -->
+							</view>
+							<!-- <view class="storebar">
+								<label class="name">暂无标签信息</label> <label class="name">Champion</label><label class="name">名创优品</label>
+							</view> -->
+							<view class="visitor">
+								<text class="address-xq">{{item.address?item.address:'--'}} {{item.distance?item.distance:'0'}}km</text>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	export default {
+		props:{
+			//查询关键字
+			keyword:{
+				type:String,
+				default:""
+			},
+		},
+		data() {
+			return {
+				mescroll:'',
+				checkValue:0,
+				tradeList:[],
+				longtitude:'',
+				latitude:'',
+				//keyWord: '',
+			}
+		},
+		onLoad() {
+			var that = this;
+			uni.getLocation({
+			    type: 'gcj02',
+			    success: function (res) {
+					that.longtitude = res.longitude;
+					that.latitude = res.latitude;
+			        //console.log('当前位置的经度：' + res.longitude);
+			        //console.log('当前位置的纬度：' + res.latitude);
+			    },
+				fail() {}
+			});
+			uni.setStorageSync("addData",0); //话题页签置为0
+		},
+		methods: {
+			chooseType(value){
+				if(value == 1){
+					this.checkValue = 1;
+					this.downCallBack(this.mescroll);
+				}else if(value == 8){
+					this.checkValue = 8;
+					this.downCallBack(this.mescroll);
+				}else{
+					this.checkValue = 0;
+					this.downCallBack(this.mescroll);
+				}
+			},
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.tradeList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				//获取项目信息列表
+				let url;
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					keyWord:this.keyWord,
+				};
+				if(this.checkValue>0){
+					url = '/memberapi/api/platform/queryTradesByTypeId.do';
+					this.$set(data, 'typeId', this.checkValue);
+				}else{
+					url = '/memberapi/api/platform/queryTradeList.do';
+				}
+				var that = this;
+				this.request.get(url,data,mescroll).then(res=>{
+					let currListData = res.list;
+					currListData.forEach((item,index) => {
+						if(item.thumbnailPath){
+							item.thumbnailPath = this.util.formatImagePath(item.thumbnailPath);
+						}
+						let distance = that.util.distance(that.longtitude,that.latitude,item.coordinateLng,item.coordinateLat);
+						if(isNaN(distance)){
+							that.$set(item,'distance','0');	
+						}else{
+							that.$set(item,'distance',parseFloat(parseInt(distance.toString().split(".")[0])/1000).toFixed(2));
+						}
+						
+					});
+					this.tradeList = this.tradeList.concat(currListData);
+				})
+			},
+			goTradeContent:function(tradeId,coordinate){
+				uni.navigateTo({
+					url:'discoverAbout?tradeId='+tradeId+'&coordinate='+coordinate
+				})
+			}
+		},
+		onNavigationBarSearchInputConfirmed (input) {
+			this.keyWord = input.text;
+			this.downCallBack(this.mescroll);
+		}
+	}
+</script>
+
+<style>
+	.dis-tab,
+	.col-tab {
+		display: flex;
+		background: #fff;
+		padding: 6rpx 30rpx 30rpx 30rpx;
+	}
+	.sub-banner {
+		width: 750rpx;
+		height: 350rpx;
+		padding: 30rpx;
+		background: #fff;
+		/* border-top: 2px solid #f9f9f9; */
+	}
+	@import url("../../common/css/app_new.css");
+</style>

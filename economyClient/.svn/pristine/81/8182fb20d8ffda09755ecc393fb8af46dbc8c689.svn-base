@@ -1,0 +1,99 @@
+<template>
+	<view class="layout">
+		<mescroll-uni @down="downCallBack" @init ="initMescroll" @up="upCallback">
+			<view v-for="(item,index) in consultList" :key="index">
+				<!-- 无图片显示样式 -->
+				<view v-if="!item.thumbnailPath" class="consult-top" @tap="goConsultDetail(item.informationId)">
+					<view class="consult-top-content">
+						<view class="consult-title wonder-mulit-limit">{{item.title}}</view>
+						<view>
+							<text class="consult-news font-12">{{item.authorName}}</text>
+							<text class="consult-date font-10">{{item.createTime}}</text>
+						</view>
+					</view>
+				</view>
+				<!-- 有图片精选专题样式 -->
+				<view v-if="item.thumbnailPath && item.informationType == 2" class="main-show" @tap="goConsultDetail(item.informationId)">
+					<view class="consult-main-content">
+						<view class="list-describe font-weight-600 wonder-mulit-limit">{{item.title}}</view>
+						<image class="consult-main-image" :src="item.thumbnailPath" mode="aspectFill"></image>
+						<view>
+							<text class="consult-news font-12">{{item.authorName}}</text>
+							<text class="consult-date font-10">{{item.createTime}}</text>
+						</view>
+					</view>
+				</view>
+				<!-- 有图片普通资讯样式 -->
+				<view v-if="item.thumbnailPath && item.informationType == 1" class="consult-list" @tap="goConsultDetail(item.informationId)">
+					<view class="consult-list-dis">
+						<view class="consult-list-left">
+							<view class="list-describe font-weight-600 multiline-limit-length">{{item.title}}</view>
+							<view class="consult-base">
+								<text class="list-mark">{{item.authorName}}</text>
+								<text class="list-date">{{item.createTime}}</text>
+							</view>
+						</view>
+						<image class="consult-list-right" :src="item.thumbnailPath" mode="aspectFill"></image>
+					</view>
+				</view>
+			</view>
+		</mescroll-uni>
+	</view>
+	<!-- 列表结束 -->
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				mescroll:'',
+				consultList:[],
+			}
+		},
+
+		onPageScroll(e) {
+			//console.log("eeee = ",e);
+		},
+		methods: {
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.consultList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				//获取项目信息列表
+				const url = '/memberapi/api/information/list.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+				};
+				var that = this;
+				this.request.get(url,data,mescroll).then(res=>{
+					let currListData = res.list;
+					currListData.forEach((item,index) => {
+						if(item.thumbnailPath){
+							item.thumbnailPath = this.util.formatImagePath(item.thumbnailPath);
+						}
+						if(item.createTime){
+							item.createTime = item.createTime.toString().substring(0,10);
+						}
+					});
+					this.consultList = this.consultList.concat(currListData); //追加新数据
+				})
+			},
+			goConsultDetail:function(informationId){
+				uni.navigateTo({
+					url:'consultDetail?informationId='+informationId
+				})
+			}
+		}
+	}
+</script>
+
+<style>
+	@import url("../../common/css/wonderful.css");
+</style>

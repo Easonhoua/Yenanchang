@@ -1,0 +1,131 @@
+<template>
+	<view class="commentlist recommend">
+		<view class="list" v-for="(item,index) in shopList" :key="index" @click="toShopDetail(item)">
+			<view class="imgbox">
+				<image class="img" :src="item.thumbnailPath"></image>
+			</view>
+			<view class="righttxt">
+				<view class="name">{{item.shopName}}</view>
+				<view class="distance">距景区{{item.distance}}m</view>
+				<view class="score">
+					<uni-rate class="star" activeColor="#E8541E" :value="item.score" disabled="true" size="16"></uni-rate>
+					<text class="label">{{item.score}}分</text>
+					<text class="label">{{item.standardPrice}}元/人</text>
+					<!-- <text class="tag">美食林臻选分</text> -->
+				</view>
+				<view class="category">
+					<text class="label">{{item.platformLabelsName}}</text>
+				</view>
+				<view class="category">
+					<text class="label">开放时间：{{item.startShopHours}} - {{ item.endShopHours }}</text>
+				</view>
+				
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import scoreRate from '@/components/uni-rate/uni-rate.vue'
+	export default {
+		props: {
+			// 店铺列表
+			shopList: {
+				type: Array,
+				default () {
+					return []
+				}
+			},
+			
+		},
+		data() {
+			return {
+				
+			};
+		},
+		
+		methods: {
+			toShopList:function(){
+				uni.navigateTo({
+					url: '/pages/culture/nearPlaceList?coordinate=' + this.coordinate+"&platformTypeId=7"
+				});
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	.recommend{
+		padding: 0 20rpx;
+		/*  #ifdef  H5  */
+		padding: 80rpx 20rpx 0;
+		/*  #endif  */
+		box-sizing: border-box;
+	}
+	.list{
+		position: relative;
+		display: flex;
+		margin-bottom: 26rpx;
+		padding: 20rpx;
+		align-items: center;
+	}
+	
+	.imgbox{
+		width: 224rpx;
+		height: 222rpx;
+		margin-right: 20rpx;
+		
+	}	
+		.img{
+			width: 200rpx;
+			height: 200rpx;
+			border-radius: 10rpx;
+		}
+		.righttxt{
+			padding-top: 24rpx;
+		}
+			.name{
+				font-size: 15px;
+				font-weight: 650;
+				margin-bottom: 10px;
+			}
+			.score{
+				display: flex;
+				align-items: center;
+				margin-bottom: 4rpx;
+				font-size: 22rpx;
+				color: #666666;
+			}	
+				.label{
+					margin-right: 10rpx;
+					display: inline-block;
+				}
+				.tag{
+					background: #f8efed;
+					color: #e66563;
+					padding: 2rpx 4rpx;
+				}
+			
+			.category{
+				color: #666666;
+				margin-bottom: 4rpx;
+				font-size: 22rpx;
+			}	
+			.star{
+				margin-right: 10rpx;
+			}	
+			
+			.distance{
+				font-size: 20rpx;
+				color: 	#E8541E;
+				position: absolute;
+				right: 30rpx;
+				top: 30rpx;
+			}
+				
+		
+	
+	
+	@import "@/common/css/other_new.scss";
+</style>

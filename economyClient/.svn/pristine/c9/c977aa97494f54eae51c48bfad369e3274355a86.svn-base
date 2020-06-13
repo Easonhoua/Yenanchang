@@ -1,0 +1,153 @@
+<template>
+	<view class="page play strategy strategysearch">
+		<view class="header">
+			<image class="icon" src="/static/img_new/gonglue/fanhui@3x.png" @click="goBack()"></image>
+		</view>
+		<mescroll-body @init="initMescroll" @down="downCallBack"  @up="upCallBack">
+		<view class="top-banner">
+			<image class="img" :src="banner.photo" mode="aspectFill"></image>
+		</view>
+		<view class="searchbox">
+			<view class="inner">
+				<image class="icon" src="/static/img_new/common/search2.png"></image>
+				<input class="input" type="text" v-model="keyword" placeholder="搜索" placeholder-style="color:#b1b1b1;" @confirm="searchRoute"/>
+			</view>
+		</view>
+		<view class="tab">
+			<view class="item">
+				<picker @change="pickerChange" :value="index" range-key="label" :range="areaDataList">
+					<view class="picker">
+						{{index>-1?areaDataList[index].label:''}}
+					</view>
+				</picker>
+				<image class="arrow-down" src="/static/img_new/common/arrow_down@3x.png"></image>
+			</view>
+			<view class="item" :class="isHot?'active':''" @click="hotButtonClick()">最热</view>
+			<view class="item" :class="isHot?'':'active'" @click="newButtonClick()">最新</view>
+		</view>
+		<view class="tab-con">
+			<view class="column playline">
+				<view class="item" v-for="(item,index) in routeList" :key="index" @click="gotoLineDetail(item)">
+					<view class="imgbox">
+						<image class="img" :src="util.formatImagePath(item.thumbnailPath)" mode="aspectFill"></image>
+						<!-- <view class="topbar">
+							<text class="trip">{{item.routeTitle}}</text>
+							<view class="like">
+								<image class="icon" src="/static/img_new/common/xihuan.png"></image>
+								<text>88888</text>
+							</view>
+						</view> -->
+					</view>
+					<view class="titlebar" :class="index%2?'color1':'color2' ">
+						<view class="circular left"></view>
+						<view class="circular right"></view>
+						<view class="logo">
+							<image class="icon" src="/static/img/common/icon_logo.png"></image>
+							<text  style="margin-left: 12rpx;">{{item.creatorName}}</text>
+						</view>
+						<view class="txt text-over-hide">{{item.routeTitle}}</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	import areaData from '@/components/mpvue-citypicker/city-data/area.js';
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		data(){
+			return{
+				mescroll: "",
+				routeList:[],
+				keyword: "", //关键字
+				isHot:true,//默认最热
+				banner:{
+					photo: ""
+				},
+				district: '',
+				areaDataList: areaData[0][0],
+				index: 0,
+			}
+		},
+		onLoad() {
+			const app = getApp();
+			if(app.globalData.plateform){
+				this.banner = app.globalData.plateform[0];
+			}
+			var all = {
+				label: '全部县区',
+				value: ''
+			}
+			this.areaDataList.unshift(all);
+		},
+		methods:{
+			pickerChange(e) {
+				this.index = e.detail.value
+				this.district = this.areaDataList[this.index].value;
+				this.downCallBack(this.mescroll);
+			},
+			initMescroll: function(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack: function(mescroll) {
+				this.routeList = [];
+				mescroll.resetUpScroll();
+			},
+			upCallBack:function(mescroll){
+				this.queryRouteList(mescroll);
+			},
+			// 查询游玩线路列表
+			queryRouteList: function(mescroll) {
+				let url = '/memberapi/api/route/list.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					keyword: this.keyword,
+					district: this.district,
+				};
+				if(this.isHot){
+					data.sortFlag = "pageview-desc"
+				}
+				this.request.get(url,data,mescroll).then(res => {
+					// if(mescroll.num == 0||mescroll.num==1){
+					// 	this.routeList = [];
+					// }
+					this.routeList = this.routeList.concat(res.list);
+				})
+			},
+			// 返回上级页面
+			goBack: function() {
+				uni.navigateBack({})
+			},
+			// 最热按钮点击事件
+			hotButtonClick:function(){
+				this.isHot = true;
+				this.downCallBack(this.mescroll);
+			},
+			// 最新按钮点击事件
+			newButtonClick:function(){
+				this.isHot = false;
+				this.downCallBack(this.mescroll);
+			},
+			// 搜索线路
+			searchRoute:function(){
+				this.downCallBack(this.mescroll);
+			},
+			// 进入线路详情
+			gotoLineDetail:function(item){
+				uni.navigateTo({
+					url:"/pages/newPage/playLine/details?routeId="+item.routeId
+				})
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "../../../common/css/other_new.scss";
+</style>

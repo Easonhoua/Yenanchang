@@ -1,0 +1,170 @@
+<template>
+	<view class="page">
+		<!-- <view class="shoplogo">
+			<view class="back" >
+				<image class="icon" src="../../static/img/common/icon_back.png"></image>
+			</view>
+			<view class="shoplogo-bd"><image class="logo" :src="shopData.logo"></image>{{shopData.shopName}}</view>
+		</view> -->
+		<view class="tabbox uni-cell-b" >
+			<scroll-view scroll-x class="bg-white nav"  style="padding-right:30rpx;padding-left:30rpx;z-index: 1; position:relative;padding-top:0;">
+			<view class="tab">
+				<view class="item" :class="item.categoryId == selectCategoryId?'active':''" v-for="(item,index) in categorieList" :key="index" @tap="selectCategory(item.categoryId)"><text>{{item.categoryName}}</text><text class="bt-line"></text></view>
+			</view>
+			</scroll-view>
+		</view>
+		
+		<view>
+			<product-screen-component @screenLike="screenLike" ref="myScreen"></product-screen-component>
+		</view>
+		<view class="tab-con">
+			<mescroll-body @down="downCallBack" @init ="initMescroll" @up="upCallback" top="180">
+				<view class="item" v-for="(item,index) in productList" :key="index" @tap="toDetail(item.productId)">
+					<view class="inner">
+						<view class="imgbox"><image class="img" :src="item.imagePaths"></image></view>
+						<view class="name">{{item.productName}}</view>
+						<view class="price"><text>￥{{item.minSalePrice}}</text><text class="noprice">￥{{item.marketPrice}}</text></view>
+					</view>
+				</view>
+			</mescroll-body>
+		</view>
+	</view>
+</template>
+
+<script>
+	import productScreenComponent from '@/components/screen-component/product-screen-component.vue';
+	export default {
+		components: {
+			productScreenComponent
+		},
+		data() {
+			return {
+				mescroll : '',
+				keyword:'',
+				selectCategoryId:'',
+				productList:[],
+				categorieList:[{
+					categoryId:'',
+					categoryName:'全部'
+				}],
+				shopId:'',
+				searchData:{},
+				shopData:{}
+			}
+		},
+		onLoad(e) {
+			if(e.shopId){
+				this.shopId = e.shopId;
+				this.getCategorieList();
+				this.readDetail();
+			}
+		},
+		methods: {
+			readDetail(){
+				//获取项目信息列表
+				const url = '/memberapi/api/shops/readShopsAndExtends.do';
+				let data = {
+					shopId:this.shopId
+				};
+				var that = this;
+				this.request.get(url,data).then(res=>{
+					uni.setNavigationBarTitle({
+					　　title:res.data.shopName
+					})
+				})
+			},
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.productList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				//获取项目信息列表
+				const url = '/memberapi/api/products/list.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					keyword: this.keyword,
+					categoryId:this.selectCategoryId,
+					shopId:this.shopId
+				};
+				let sendDate =Object.assign({}, this.searchData, data);
+				var that = this;
+				this.request.get(url,sendDate,mescroll).then(res=>{
+					let currListData = res.list;
+					currListData.forEach(item => {
+						if(item.imagePaths){
+							item.imagePaths = this.util.formatImagePaths(item.imagePaths)[0];
+						}
+					});
+					this.productList = this.productList.concat(currListData); //追加新数据
+				})
+			},
+			onNavigationBarSearchInputChanged (input) {
+				//console.log(input);
+				this.keyword = input.text;
+				this.downCallBack(this.mescroll);
+			},
+			getCategorieList: function() {
+				//查询优惠菜品
+				const url = '/memberapi/api/productCategories/categorieList.do';
+				let sendDate = {
+					shopId:this.shopId
+				};
+				this.request.get(url, sendDate).then(res => {
+					let currListData = res.list;
+					currListData.forEach(item => {
+						this.categorieList.push(item);
+					});
+					//console.log("this.categorieList: " + JSON.stringify(this.categorieList));
+				});
+			},
+			selectCategory:function(categoryId){
+				this.selectCategoryId = categoryId;
+				this.downCallBack(this.mescroll);
+			},
+			toClassify:function(){
+				uni.navigateTo({
+					url:'classify'
+				})
+			},
+			toDetail(productId){
+				uni.navigateTo({
+					url:'detail?productId='+productId
+				})
+			},
+			screenLike(searchData){
+				this.searchData= searchData;
+				//console.log("this.searchData: " + JSON.stringify(this.searchData));
+				this.downCallBack(this.mescroll);
+			}
+		}
+	}
+</script>
+
+<style>
+	@import "../../common/css/mall.css";
+	.scroll-view_H{
+		width:560rpx;
+	}
+	.shoplogo{
+		position: fixed;
+		top:0;
+		z-index: 100;
+		width:100%;
+		background: #fff;
+		padding-top:80rpx;
+		padding-bottom:30rpx;
+	}
+	.tabbox{
+		z-index: 101;
+		border-bottom:none;
+	}
+	.tabbox .tab{
+		padding:5px 0;
+	}
+</style>

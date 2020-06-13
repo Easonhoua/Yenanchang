@@ -1,0 +1,81 @@
+<template>
+	<view class="layout cashcoupon signup">
+		<view class="cashcoupon-box">
+			<view class="inner">
+				<view class="title">{{cashData.shopName}}代金券</view>
+				<view class="money">{{cashData.cashName}}</view>
+				<view class="dotted-line"></view>
+				<view class="time-limit"><text>{{cashData.cashDateTypeName}}</text><text class="sales-volume">半年销量 {{cashData.num}}</text></view>
+			</view>
+		</view>
+		<view class="regulations">
+			<view class="inner">
+				<view class="title">使用规则</view>
+				<view class="txt">
+					<text>
+						<label class="margin_left_8" v-if="cashData.buyLimitNum == 0 ">不限张数</label>
+						<label class="margin_left_8" v-else>单次限制使用{{cashData.buyLimitNum}}张</label>
+						<label class="margin_left_8" v-if="cashData.refund_rule == 1 ">随时退</label>
+						<label class="margin_left_8" v-else>{{cashData.refundCondition}}</label>
+						<label class="margin_left_8">过期自动退</label>
+					</text>
+					<text>有效期 : {{cashData.startDate}}至{{cashData.endDate}} 23:59</text>
+					<text>使用时间 : {{cashData.usedTime}}</text>
+					<text>适用范围 : {{cashData.suitableRangeName}}</text>
+					<text v-if="cashData.bookFlag == 1">需预约 {{cashData.bookRemark}}</text>
+					<text v-else>无需预约 {{cashData.bookRemark}}</text>
+					<text>{{cashData.remark}}</text>
+				</view>
+			</view>
+		</view>
+		<view class="bottombar">
+			<view class="price"><text>￥{{cashData.cashAmount * cashData.discountPercent/100}}</text><text class="noprice">￥{{cashData.cashAmount}}</text></view>
+			<view class="btnbox">
+				<view class="btn" @tap="buyCash">购买</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				cashData:{},
+				cashId:''
+			}
+		},
+		onLoad(e) {
+			if(e.cashId){
+				this.cashId = e.cashId;
+				this.initData(e.cashId);
+			}
+		},
+		methods: {
+			initData:function(cashId){
+				//获取商家订座配置
+				const url = '/memberapi/api/cash/read.do';
+				var sendData = {
+					cashId:cashId
+				}
+				this.request.get(url, sendData).then(res => {
+					this.cashData = res.data;
+				});
+			},
+			buyCash:function(){//提交订单
+				if(this.request.alreadyLogin()){
+					//提交订单
+					uni.navigateTo({
+						url:"/pages/food/submitOrder?cashId="+this.cashId
+					});
+				}
+			}
+		}
+	}
+</script>
+<style>
+	.margin_left_8{
+		margin-left: 10rpx;
+	}
+</style>
+

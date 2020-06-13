@@ -1,0 +1,333 @@
+<template>
+	<view class="page play strategy">
+		<view class="header">
+			<image class="icon" src="/static/img_new/gonglue/fanhui@3x.png" @click="goBack()"></image>
+		</view>
+		<mescroll-body @down="downCallBack" @init="initMescroll" :up="upOption">
+			<view class="top-banner">
+				<image class="img" :src="banner.photo" mode="aspectFill"></image>
+			</view>
+			<!-- 附近推荐 -->
+			<view v-if="nearList.length>0" class="column">
+				<view class="column-title" @click="gotoNearList()"><text class="txt">附近推荐</text><text class="right-more">更多>></text></view>
+
+				<scroll-view class="near-scroll" scroll-x="true">
+					<view class="item" v-for="(item,index) in nearList" :key="index" @click="gotoShopDetail(item)">
+						<image class="image" :src="item.thumbnailPath" mode="aspectFill"></image>
+						<view class="name text-over-hide">{{item.shopName}}</view>
+						<view class="distance">距您{{item.distance}}km</view>
+					</view>
+				</scroll-view>
+
+			</view>
+			<!-- 游玩路线 -->
+			<view class="column">
+				<view class="column-title" @click="gotoMoreRoute()"><text class="txt">游玩路线</text><text class="right-more">更多>></text></view>
+				
+				<view class="route">
+					<view class="item" v-for="(item,index) in routeList" :key="index" @click="gotoRouteDetail(item)">
+						<image class="image" :src="util.formatImagePath(item.thumbnailPath)" mode="aspectFill"></image>
+						<view class="title-view">
+							<text class="text text-two-line-hide">{{item.routeTitle}}</text>
+						</view>
+						
+					</view>
+				</view>
+				<view v-if="fourRouteItem.routeTitle" class="route-large" @click="gotoRouteDetail(fourRouteItem)">
+					<image class="image" :src="util.formatImagePath(fourRouteItem.thumbnailPath)" mode="aspectFill"></image>
+					<view class="title1 text-over-hide">{{fourRouteItem.routeTitle}}</view>
+				</view>
+			</view>
+			<!-- 精选推荐 -->
+			<view class="column">
+				<view class="column-title" @click="gotoMoreShop(1)"><text class="txt">精选推荐</text><text class="right-more">更多>></text></view>
+				
+				<recommend-shop-cell :shopList="recommendList"></recommend-shop-cell>
+			</view>
+			<!-- 攻略推荐 -->
+			<waterFallsFlow :typeId="1"></waterFallsFlow>
+		</mescroll-body>
+		<!-- 相关推荐结束 -->
+		<view class="publishbtn" @click="publishStrategy">
+			<image class="img" :src="util.getUserHeaderImage()" mode="aspectFit"></image>
+			<text>发布攻略</text>
+		</view>
+
+	</view>
+</template>
+
+<script>
+	import waterFallsFlow from "../module/waterfallsFlow.vue"
+	import recommendShopCell from '@/components/list-cell-view/recommend-shop-cell.vue';
+	export default {
+		components: {
+			waterFallsFlow,
+			recommendShopCell
+		},
+		data() {
+			return {
+				mescroll: "",
+				upOption: {
+					use: false //不使用上拉加载更多
+				},
+				banner:{
+					photo: ""
+				},
+				longtitude:'',//115.913536 
+				latitude:'' ,//28.683095 
+				fourRouteItem: {},
+				nearList: [],
+				routeList: [],
+				recommendList: [],
+				
+			}
+		},
+		onLoad() {
+			
+		},
+		onShow() {
+			const app = getApp();
+			if(app.globalData.plateform.length>0){
+				this.banner = app.globalData.plateform[0];
+			}
+		},
+		methods: {
+			initMescroll: function(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack: function(mescroll) {
+				this.getLocation(mescroll);
+				this.queryRouteList(mescroll);
+				this.queryRecommendList(mescroll);
+				// this.queryStrategyList(mescroll);
+			},
+			// 获取当前位置
+			getLocation: function(mescroll) {
+				var _self = this;
+				uni.getLocation({
+					type: 'gcj02',
+					success: function(res) {
+						_self.longtitude = res.longitude;
+						_self.latitude = res.latitude;
+						_self.queryNearList(mescroll);
+					},
+					fail:function(res){
+						_self.queryNearList(mescroll);
+					},
+					
+				});
+			},
+			// 查询附近推荐列表
+			queryNearList: function(mescroll) {
+				let url = '/memberapi/api/shops/queryShopList.do';
+				let data = {
+					pageNo: 1,
+					pageSize: 10,
+					subjectId: "1"
+				};
+				if (this.longtitude && this.latitude) {
+					data.coordinate = this.longtitude + "," + this.latitude;
+				}
+				this.request.get(url, data, mescroll).then(res => {
+					this.nearList = [];
+					this.nearList = this.util.formatShopList(res.list);
+					console.log("this.nearList == ",this.nearList.length);
+				})
+			},
+			// 查询游玩线路列表
+			queryRouteList: function(mescroll) {
+				let url = '/memberapi/api/route/list.do';
+				let data = {
+					pageNo: 1,
+					pageSize: 4
+				};
+				this.request.get(url, data,mescroll,false).then(res => {
+					this.routeList = res.list.slice(0,3);
+					if (res.list.length > 3) {
+						this.fourRouteItem = res.list[3];
+					}
+				})
+			},
+			// 查询精选推荐列表
+			queryRecommendList: function(mescroll) {
+				let url = '/memberapi/api/shops/queryRecommendShopList.do';
+				let data = {
+					pageNo: 1,
+					pageSize: 10,
+					subjectId: 1,
+					essenceType: 1
+				};
+				this.request.get(url, data,mescroll,false).then(res => {
+					this.recommendList = this.util.formatShopList(res.list);
+				})
+			},
+			// 返回
+			goBack: function() {
+				uni.navigateBack({})
+			},
+			// 查看更多附近推荐
+			gotoNearList:function(){
+				let coordinate = "";
+				if (this.longtitude && this.latitude) {
+					coordinate  = this.longtitude + "," + this.latitude;
+				}
+				uni.navigateTo({
+					url: '/pages/culture/nearPlaceList?coordinate=' + coordinate+"&subjectId=1"
+				});
+			},
+			// 查看更多相关推荐
+			gotoMoreShop: function(type) {
+				uni.navigateTo({
+					url: "/pages/index/plateform?type=" + type
+				})
+			},
+			// 进入店铺详情界面
+			gotoShopDetail: function(item) {
+				this.util.gotoShopDetail(item);
+			},
+			// 更多游玩线路
+			gotoMoreRoute: function() {
+				uni.navigateTo({
+					url: "/pages/newPage/playLine/playLine"
+				})
+			},
+			// 进入线路详情页
+			gotoRouteDetail: function(item) {
+				uni.navigateTo({
+					url:"/pages/newPage/playLine/details?routeId="+item.routeId
+				})
+			},
+			
+			// 发布攻略
+			publishStrategy: function() {
+				uni.navigateTo({
+					url:"/pages/strategy/strategyPublish?guideType=1"//游洪城guideType=1
+				})
+			}
+		}
+
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+
+	@import "../../../common/css/other_new.scss";
+
+	.near-scroll {
+		background-color: #FFFFFF;
+		color: #000000;
+		width: 100%;
+		height: 365rpx;
+		overflow: hidden;
+		white-space: nowrap;
+		padding-top: 30rpx;
+		padding-right: 20rpx;
+
+		.item {
+			width: 300rpx;
+			display: inline-block;
+			margin-left: 20rpx;
+			background-color: #FFFFFF;
+			box-shadow: 0rpx 0rpx 10rpx 1rpx rgba(0, 0, 0, 0.1);
+
+			.image {
+				width: 300rpx;
+				height: 210rpx;
+				background-color: #F5F5F5;
+				border-radius: 5px 5px 0px 0px;
+				box-shadow: 0rpx 0rpx 10rpx 1rpx rgba(0, 0, 0, 0.1);
+			}
+
+			.name {
+				font-size: 28rpx;
+				font-weight: bold;
+				padding: 10rpx 10rpx 0rpx 0rpx;
+				overflow: hidden;
+				margin-left: 20rpx;
+				
+			}
+
+			.distance {
+				font-size: 24rpx;
+				color: #4A4A4A;
+				margin-bottom: 10rpx;
+				margin-left: 20rpx;
+				padding-bottom: 10rpx;
+			}
+		}
+	}
+
+
+	.route{
+		display: flex;
+		flex-direction: row;
+		// justify-content: space-between;
+		padding: 25rpx 0rpx;
+		.item{
+			width: 222rpx;
+			margin-left: 20rpx;
+			box-shadow: 0rpx 0rpx 10rpx 1rpx rgba(0, 0, 0, 0.1);
+			.image {
+				width: 100%;
+				height: 150rpx;
+				background-color: #F5F5F5;
+				border-radius:5px 5px 0px 0px
+			}
+			.title-view{
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				width: 100%;
+				padding: 0rpx 12rpx 12rpx 12rpx;
+				font-size: 26rpx;
+				height: 90rpx;
+				line-height: 34rpx;
+				.text{
+					color: #333333;
+					text-align: center;
+				}
+			}
+			
+		}
+	}
+	.route-large{
+		margin: 0rpx 20rpx;
+		width: 706rpx;
+		font-size: 30rpx;
+		box-shadow: 0rpx 0rpx 10rpx 1rpx rgba(0, 0, 0, 0.1);
+		.image {
+			width: 100%;
+			height: 250rpx;
+			background-color: #F5F5F5;
+			border-radius: 5px 5px 0px 0px;
+		}
+		.title1 {
+			font-weight: 400;
+			text-align: left;
+			width: 680rpx;
+			font-size: 32rpx;
+			height: 70rpx;
+			margin-top: 10rpx;
+			color: #333333;
+			margin-left: 20rpx;
+			
+		}
+	}
+
+	.text-subtitle {
+		font-size: 26rpx;
+		color: #FBAC2B;
+	}
+
+	.nodata-image {
+		margin-top: 20rpx;
+		width: 750rpx;
+		height: 450rpx;
+	}
+	// .waterfall{
+	// 	width: 100%;
+	// 	height: 1000rpx;
+	// }
+</style>

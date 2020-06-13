@@ -1,0 +1,143 @@
+<template>
+	<view class="layout column">
+		<view class="ht-tab movie-tab">
+			<scroll-view id="tab-bar" class="scroll-h" :scroll-x="true" :show-scrollbar="true">
+				<view v-for="(tab,index) in platformLabelList" :key="tab.id" class="uni-tab-item" :id="tab.id" :data-current="index" @click="ontabtap">
+					<text class="uni-tab-item-title" :class="tabIndex==index ? 'uni-tab-item-title-active' : ''">{{tab.name}}<text
+						 :class="tabIndex==index ? 'line' : ''"></text></text>
+				</view>
+			</scroll-view>
+		</view>
+		<list-activity-shop-cell :shopList='activitylist'></list-activity-shop-cell>
+	</view>
+	
+</template>
+
+<script>
+	import listActivityShopCell from '@/components/list-cell-view/list-activity-shop-cell.vue'
+	export default{
+		components:{
+			listActivityShopCell
+		},
+		data(){
+			return {
+				tabIndex: 0,
+				platformLabelList:[
+					{name:'全部',id:	1},
+					{name:'美食',id:	2},
+					{name:'市集',id:	3},
+					{name:'互动',id:	4},
+				],
+				activitylist:[]
+			}
+		},
+		
+		onLoad(e) {
+			this.getactivtylist()
+		},
+		methods:{
+			ontabtap(e) {
+				let index = e.target.dataset.current || e.currentTarget.dataset.current;
+				this.tabIndex = index;
+				uni.setStorageSync("addData",index);
+			},
+			
+			
+			getactivtylist(){
+				let that = this
+				let url = '/memberapi/api/activity/activityShopList.do';
+				let data = {
+					pageNo:'1',
+					pageSize:'10',
+				};
+				that.request.get(url, data).then(res => {
+					console.log(res)	
+					res.list.forEach(function(item){
+						if (item.thumbnailPath&&item.thumbnailPath!="/static/img/common/banner.png") {
+							item.thumbnailPath = that.util.formatImagePath(item.thumbnailPath);
+						} else {
+							item.thumbnailPath = that.util.formatImagePath(item.logo);
+						}
+					})
+					that.activitylist = res.list
+					
+				}).catch((e)=>{
+					console.log(e)
+				})
+			}
+		}
+	}
+	
+	
+</script>
+
+<style>
+	.movie-tab{
+		position: fixed;
+		top: 0;
+		left: 0;
+	}
+	/*  #ifdef  H5  */
+	.movie-tab{
+		position: fixed;
+		top: 88rpx;
+		left: 0;
+	}
+	/*  #endif  */
+	
+	.scroll-h {
+		width: 750rpx;
+		height: 78rpx;
+		display: flex;
+		flex-direction: row;
+		white-space: nowrap;
+		background-color: #FFFFFF;
+		padding-top: 12rpx;
+	}
+	
+	.scroll-h.fixed {
+		position: fixed;
+		background: #FFFFFF;
+		top: 88rpx;
+		margin-top: var(--status-bar-height);
+		left: 0;
+		right: 0;
+		z-index: 100;
+	}
+	.uni-tab-item {
+		display: inline-block;
+		flex-wrap: nowrap;
+		margin-right: 132rpx;
+	}
+	
+	.uni-tab-item:first-child {
+		margin-left: 56rpx;
+	}
+	
+	.uni-tab-item-title {
+		color: #555;
+		font-size: 32rpx;
+		height: 45rpx;
+		line-height: 45rpx;
+		flex-wrap: nowrap;
+		white-space: nowrap;
+	}
+	
+	.uni-tab-item-title-active {
+		color: #31A2F8;
+	}
+	
+	.uni-tab-item-title-active .line {
+		width: 48rpx;
+		height: 6rpx;
+		line-height: 1;
+		display: block;
+		background: #31A2F8;
+		border-radius: 2rpx;
+		position: relative;
+		margin: auto;
+		top: 0rpx;
+	}
+	
+	
+</style>

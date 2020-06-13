@@ -1,0 +1,290 @@
+<template>
+	<view class="page">
+		<view class="header-nor line-bottom">
+			<image class="back" src="/static/img_new/common/back_black.png" @click="goBack()"></image>
+			<text class="title-txt">{{shopName}}</text>
+			<view class="media-item-line" style="position: absolute;"></view>
+		</view><!-- 头部结束 -->
+		<view class="wrapper">
+			<view class="amount-title">订单金额（元）<input class="amount" type="digit" placeholder="请确定后输入" placeholder-style="color:#EEEEEE" /></view>
+			<view class="media-item-line" style="position: absolute;"></view>
+			<view class="discount-title">优惠券<view class="discount">-100.00</view><img src="../../static/img/common/right-choose-arrow.png" @click="showCouponBox" /></view>
+			<view class="pay-instantly">立即买单</view>
+		</view>
+		<!-- 蒙版 -->
+		<view class="mask" v-show="showCoupon && discountList"></view>
+		<!-- 满减优惠券 -->
+		<view class="discount" v-show="showCoupon && discountList">
+			<view class="couponbox">
+				<image class="close" src="/static/img_new/topic/del.png" @click="closeDiscountBox()"></image>
+				<text class="couponbox-title">满减优惠券</text>
+				<text class="couponbox-con-title">可领取优惠券</text>
+				<view class="couponbox-con">
+					<view class="couponbox-con-list" v-for="(item, index) in discountList" :index="index" @click="getDiscount(item)">
+						<image class="bg-nor" :src="couponStateImg(item.receiveFlag)"></image>
+						<view class="couponbox-con-list__con">
+							<view class="numberbox" style="min-width: 113rpx;">￥<text class="number">{{item.price}}</text></view>
+							<view class="txt__right">
+								<text class="coupon-name">优惠券</text>
+								<text class="coupon-gz">满{{item.orderAmount}}可减</text>
+								<text class="coupon-time">{{item.startTime.substring(0, 10)}}-{{item.endTime.substring(0, 10)}}</text>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				shopId: 0,
+				shopName: '',
+				showCoupon: false,
+				discountList: []
+			}
+		},
+		onLoad(e) {
+			if (e.shopId) {
+				this.shopId = e.shopId;
+			}
+			if (e.shopName) {
+				this.shopName = e.shopName;
+			}
+		},
+		methods: {
+			goBack: function() {
+				uni.navigateBack({
+					
+				});
+			},
+			showCouponBox: function() {
+				this.showCoupon = true;
+			},
+			closeDiscountBox: function() {
+				this.showCoupon = false;
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.page {
+		background: #F5F5F5;
+	}
+	
+	//默认头部
+	.header-nor {
+		width: 100%;
+		height: 88rpx;
+		background: #FFFFFF;
+		position: fixed;
+		top: 0;
+		left: 0;
+		box-sizing: border-box;
+		z-index: 3;
+		padding: 0 30rpx;
+		@extend %flex-justify-content;
+
+		.back {
+			width: 40rpx;
+			height: 40rpx;
+			z-index: 4;
+		}
+
+		.title-txt {
+			width: 100%;
+			position: absolute;
+			height: 88rpx;
+			line-height: 88rpx;
+			font-size: $font36;
+			text-align: center;
+			z-index: 3;
+		}
+
+		.rightbox {
+			z-index: 4;
+
+			.icon {
+				width: 40rpx;
+				height: 40rpx;
+				font-size: $font32;
+			}
+		}
+	}
+
+	.wrapper {
+		height: 490rpx;
+		margin-top: 88rpx;
+		padding: 30rpx 46rpx 0rpx 46rpx;
+
+		.amount-title {
+			height: 150rpx;
+			display: flex;
+			align-items: center;
+			padding: 15rpx;
+			font-size: $font36;
+			
+			.amount {
+				width: 282rpx;
+				margin-left: 96rpx;
+			}
+		}
+
+		.discount-title {
+			height: 150rpx;
+			display: flex;
+			align-items: center;
+			padding: 15rpx;
+			font-size: $font36;
+			
+			.discount {
+				color: #DF2725;
+				font-size: $font32;
+				flex: 1 1 200rpx;
+				text-align: right;
+			}
+			
+			img {
+				width: 30rpx;
+				height: 30rpx;
+				padding: 20rpx;
+			}
+		}
+
+		.pay-instantly {
+			height: 100rpx;
+			width: 100%;
+			background: #EA494A;
+			color: white;
+			font-size: $font36;
+			margin-top: 60rpx;
+			text-align: center;
+			line-height: 100rpx;
+			border-radius: 20rpx;
+		}
+	}
+	
+	.mask {
+		width: 100%;
+		height: 100%;
+		z-index: 200;
+		background: #000000;
+		opacity: 0.8;
+		position: fixed;
+		top: 0;
+	}
+	
+	.discount {
+		position: fixed;
+		bottom: 0;
+		width: 100%;
+		background: #FEFEFE;
+		border-top-left-radius: 20rpx;
+		border-top-right-radius: 20rpx;
+		z-index: 999;
+	
+		.couponbox {
+			position: relative;
+			border-radius: 10rpx 10rpx 0 0;
+			padding-top: 30rpx;
+	
+			.close {
+				width: 40rpx;
+				height: 40rpx;
+				position: absolute;
+				top: 30rpx;
+				right: 30rpx;
+			}
+	
+			.couponbox-title {
+				font-size: 36rpx;
+				font-weight: bold;
+				display: block;
+				text-align: center;
+				letter-spacing: 10rpx;
+			}
+	
+			.couponbox-con-title {
+				color: #6A6A6A;
+				font-size: 26rpx;
+				display: block;
+				margin-top: 60rpx;
+				letter-spacing: 15rpx;
+				text-align: left;
+				padding-left: 80rpx;
+			}
+	
+			.couponbox-con {
+				padding: 30rpx 47rpx;
+				box-sizing: border-box;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				max-height: 762rpx;
+				overflow-y: scroll;
+	
+				.couponbox-con-list {
+					width: 595rpx;
+					height: 175rpx;
+					position: relative;
+					margin-bottom: 60rpx;
+	
+					.bg-nor {
+						width: 595rpx;
+						height: 175rpx;
+						z-index: 0;
+					}
+	
+					.couponbox-con-list__con {
+						position: absolute;
+						left: 0;
+						top: 0;
+						z-index: 1;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						height: 160rpx;
+						padding-left: 50rpx;
+	
+						.numberbox {
+							font-size: 32rpx;
+							color: #E84545;
+							font-weight: bold;
+							margin-right: 30rpx;
+	
+							.number {
+								font-size: 66rpx;
+							}
+						}
+	
+						.txt__right {
+							display: flex;
+							flex-direction: column;
+							align-items: center;
+	
+							.coupon-name {
+								font-size: 30rpx;
+								font-weight: bold;
+								letter-spacing: 15rpx;
+							}
+	
+							.coupon-gz {
+								font-size: 24rpx;
+							}
+	
+							.coupon-time {
+								font-size: 18rpx;
+								color: #BBBBBB;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+</style>

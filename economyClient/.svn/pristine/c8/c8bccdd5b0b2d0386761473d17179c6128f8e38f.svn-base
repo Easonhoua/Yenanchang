@@ -1,0 +1,158 @@
+<template>
+	<view class="page searchpage">
+		<view class="header">
+			<view class="back">
+				<image class="icon" src="/static/img_new/common/back_black.png" @click="goBack()"></image>
+			</view>
+			<view class="searchbox searchbox2" style="width: 450rpx;">
+				<input class="input" placeholder="请输入您要搜索的内容" placeholder-style="color:#888888" confirm-type="search" v-model="keyword"  @confirm="searchShop"/>
+				
+			</view>
+			<view class="btn-search" @click="searchShop">搜索</view>
+		</view>
+		<view class="tab">
+			<view class="left">
+				<view class="item" :class="tabIndex==0 ? 'active' : ''" @click="ontabtap(0)">区域</view>
+				<view class="item" :class="tabIndex==1 ? 'active' : ''" @click="ontabtap(1)">默认</view>
+				<view class="item" :class="tabIndex==2 ? 'active' : ''" @click="ontabtap(2)">时间</view>
+				<view class="item" :class="tabIndex==3 ? 'active' : ''" @click="ontabtap(3)">价格</view>
+			</view>
+			<view class="filter">
+				<text>筛选</text>
+				<image class="icon" src="/static/img_new/common/filter@3x.png"></image>
+			</view>
+		</view>
+		<mescroll-uni @down="downCallBack" @init="initMescroll" @up="upCallback">
+			<view class="tab-con">
+				<view class="list line-bottom"  v-for="(item,index) in hotelList" :key="index"  @click="toShopDetail(item)">
+					<view class="imgbox">
+						<image class="img" :src="item.thumbnailPath"></image>
+					</view>
+					<view class="righttxt">
+						<view class="name">{{item.shopName?item.shopName:'店铺名称'}}</view>
+						<view class="tag">
+							<block v-if="platformTypeId ==1"><!--美食-->
+								<text class="label">{{item.platformLabelsName}}</text>
+							</block>
+							<block v-else-if="platformTypeId ==2"><!--酒店-->
+								<text class="label">{{item.hotelTypeName}}</text>
+							</block>
+							<!--演出-->
+							<!-- <block v-else-if="platformTypeId ==3">
+								<text class="label">{{item.hotelTypeName}}</text>
+							</block> -->
+							<!--休闲-->
+							<!-- <block v-else-if="platformTypeId ==4">
+								<text class="label">{{item.hotelTypeName}}</text>
+							</block> -->
+							<!--学习-->
+							<!-- <block v-else-if="platformTypeId ==5">
+								<text class="label">{{item.hotelTypeName}}</text>
+							</block> -->
+							<!--健体-->
+							<!-- <block v-else-if="platformTypeId ==6">
+								<text class="label">{{item.hotelTypeName}}</text>
+							</block> -->
+							<!--景区-->
+							<!-- <block v-else-if="platformTypeId ==7">
+								<text class="label">{{item.hotelTypeName}}</text>
+							</block> -->
+							<!--购物-->
+							<!-- <block v-else-if="platformTypeId ==8">
+								<text class="label">{{item.hotelTypeName}}</text>
+							</block> -->
+							
+						</view>
+						<view class="pricebox">
+							￥<text class="price">{{item.standardPrice}}</text>特价优惠，限时抢购
+						</view>
+						<view class="address">
+							<view class="left">
+								<text class="txt">{{item.address}}</text>
+							</view>
+							<view class="right">{{item.pageview}}人来过</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</mescroll-uni>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				tabIndex:0,
+				keyword: '',
+				mescroll: '',
+				platformTypeId: '', //酒店
+				hotelList: [],
+				sortFlag:'distance-asc' //排序
+			}
+		},
+		onLoad(e) {
+			console.log(e.keyword)
+			if(e.keyword){
+				this.keyword = e.keyword;
+			}
+			if(e.platformTypeId){
+				this.platformTypeId= e.platformTypeId;
+			}
+		},
+		methods:{
+			ontabtap(index) {
+				this.tabIndex = index;
+				if(this.tabIndex ==0){
+					this.sortFlag = 'distance-asc';
+				}else if(this.tabIndex ==1){
+					this.sortFlag = 'a.shopId-desc'; 
+				}else if(this.tabIndex ==2){
+					this.sortFlag = 'createDate-desc'; 
+				}else{
+					this.sortFlag = 'discountPrice-desc'; 
+				}
+				this.downCallBack(this.mescroll);
+			},
+			initMescroll(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll) {
+				this.hotelList =[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll,topItemTap) {
+				let url = '/memberapi/api/shops/queryShopList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					platformTypeId: this.platformTypeId, //大类ID
+					keyword:this.keyword ,
+					sortFlag: this.sortFlag,
+				};
+				let that=this;
+				this.request.get(url,data,mescroll).then(res=>{
+					let currListData = res.list;
+					that.util.formatShopList(currListData);
+					that.hotelList = that.hotelList.concat(currListData); //追加新数据
+				})
+			},
+			searchShop: function(event) {
+				this.downCallBack(this.mescroll); 
+			},
+			// 返回
+			goBack: function() {
+				uni.navigateBack({})
+			},
+			//店铺明细
+			toShopDetail:function(item){
+				this.util.gotoShopDetail(item); 
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "@/common/css/other_new.scss";
+</style>

@@ -1,0 +1,254 @@
+{
+    "name" : "ye南昌",
+    "appid" : "__UNI__0FAEE11",
+    "description" : "ye南昌",
+    "versionName" : "1.0.2",
+    "versionCode" : 102,
+    "transformPx" : false,
+    "networkTimeout" : {
+        "request" : 15000,
+        "connectSocket" : 300000,
+        "uploadFile" : 300000,
+        "downloadFile" : 600000
+    },
+    /* 5+App特有相关 */
+    "app-plus" : {
+        "usingComponents" : true,
+        "nvueCompiler" : "uni-app",
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : true,
+            "delay" : 0
+        },
+        "safearea" : {
+            "bottom" : {
+                "offset" : "none"
+            }
+        },
+        /* 模块配置 */
+        "modules" : {
+            "Maps" : {},
+            "VideoPlayer" : {},
+            "Share" : {},
+            "OAuth" : {},
+            "Payment" : {}
+        },
+        /* 应用发布信息 */
+        "distribute" : {
+            /* android打包配置 */
+            "android" : {
+                "permissions" : [
+                    "<uses-feature android:name=\"android.hardware.camera\"/>",
+                    "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.BLUETOOTH\"/>",
+                    "<uses-permission android:name=\"android.permission.BLUETOOTH_ADMIN\"/>",
+                    "<uses-permission android:name=\"android.permission.CALL_PHONE\"/>",
+                    "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+                    "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
+                    "<uses-permission android:name=\"android.permission.GET_ACCOUNTS\"/>",
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+                    "<uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\"/>",
+                    "<uses-permission android:name=\"android.permission.MOUNT_UNMOUNT_FILESYSTEMS\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_CONTACTS\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_LOGS\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>",
+                    "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
+                    "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_CONTACTS\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>",
+                    "<uses-permission android:name=\"android.permission.BLUETOOTH\"/>",
+                    "<uses-permission android:name=\"android.permission.BLUETOOTH_ADMIN\"/>"
+                ],
+                "schemes" : "ncnewseconomyclient"
+            },
+            /* ios打包配置 */
+            "ios" : {
+                "privacyDescription" : {
+                    "NSLocationAlwaysAndWhenInUseUsageDescription" : "ye南昌需要访问您的位置以便为您推荐附近的美食、景点、酒店,方便您获取店铺位置并且导航到目的地",
+                    "NSPhotoLibraryUsageDescription" : "ye南昌需要访问您的相册以便您能使用相册的照片来上传头像、图片",
+                    "NSCameraUsageDescription" : "ye南昌需要访问您的摄像头以便您能使用相机拍照上传头像和图片以及使用扫一扫功能",
+                    "NSPhotoLibraryAddUsageDescription" : "ye南昌需要访问您的相册以便您能保存图片到相册",
+                    "NSLocationWhenInUseUsageDescription" : "ye南昌需要访问您的位置以便为您推荐附近的美食、景点、酒店,方便您获取店铺位置并且导航到目的地",
+                    "NSLocationAlwaysUsageDescription" : "ye南昌需要访问您的位置以便为您推荐附近的美食、景点、酒店,方便您获取店铺位置并且导航到目的地"
+                },
+                "idfa" : false,
+                "urlschemewhitelist" : "uppaysdk,uppaywallet,uppayx1,uppayx2,uppayx3,alipays",
+                "urltypes" : "ncnewseconomyclient,LCUnionPayUtilALiPay,LCUnionPayUtilYunPay"
+            },
+            "sdkConfigs" : {
+                "maps" : {
+                    "amap" : {
+                        "appkey_ios" : "a7c4f1b2cebada2afbf11bfb4ea79fe3",
+                        "appkey_android" : "3de09d2c04309b4e0c0318fd951f38bc"
+                    }
+                },
+                "speech" : {},
+                "payment" : {
+                    "weixin" : {
+                        "appid" : "wxde6e609b23b4b3e8",
+                        "UniversalLinks" : "https://ye.ncnews.com.cn/economyClient/"
+                    }
+                },
+                "push" : {},
+                "oauth" : {
+                    "weixin" : {
+                        "appid" : "wxde6e609b23b4b3e8",
+                        "appsecret" : "1ccba10c8cb1e0af91caf28090685e91",
+                        "UniversalLinks" : "https://ye.ncnews.com.cn/economyClient/"
+                    },
+                    "qq" : {
+                        "appid" : "1110113125"
+                    }
+                },
+                "share" : {
+                    "weixin" : {
+                        "appid" : "wxde6e609b23b4b3e8",
+                        "UniversalLinks" : "https://ye.ncnews.com.cn/economyClient/"
+                    },
+                    "qq" : {
+                        "appid" : "1110113125"
+                    }
+                },
+                "ad" : {}
+            },
+            "icons" : {
+                "android" : {
+                    "hdpi" : "unpackage/res/icons/72x72.png",
+                    "xhdpi" : "unpackage/res/icons/96x96.png",
+                    "xxhdpi" : "unpackage/res/icons/144x144.png",
+                    "xxxhdpi" : "unpackage/res/icons/192x192.png"
+                },
+                "ios" : {
+                    "appstore" : "unpackage/res/icons/1024x1024.png",
+                    "ipad" : {
+                        "app" : "unpackage/res/icons/76x76.png",
+                        "app@2x" : "unpackage/res/icons/152x152.png",
+                        "notification" : "unpackage/res/icons/20x20.png",
+                        "notification@2x" : "unpackage/res/icons/40x40.png",
+                        "proapp@2x" : "unpackage/res/icons/167x167.png",
+                        "settings" : "unpackage/res/icons/29x29.png",
+                        "settings@2x" : "unpackage/res/icons/58x58.png",
+                        "spotlight" : "unpackage/res/icons/40x40.png",
+                        "spotlight@2x" : "unpackage/res/icons/80x80.png"
+                    },
+                    "iphone" : {
+                        "app@2x" : "unpackage/res/icons/120x120.png",
+                        "app@3x" : "unpackage/res/icons/180x180.png",
+                        "notification@2x" : "unpackage/res/icons/40x40.png",
+                        "notification@3x" : "unpackage/res/icons/60x60.png",
+                        "settings@2x" : "unpackage/res/icons/58x58.png",
+                        "settings@3x" : "unpackage/res/icons/87x87.png",
+                        "spotlight@2x" : "unpackage/res/icons/80x80.png",
+                        "spotlight@3x" : "unpackage/res/icons/120x120.png"
+                    }
+                }
+            },
+            "splashscreen" : {
+                "android" : {
+                    "hdpi" : "unpackage/res/splashscreen/android/480-762.png",
+                    "xhdpi" : "unpackage/res/splashscreen/android/720-1242.png",
+                    "xxhdpi" : "unpackage/res/splashscreen/android/1080-1882.png"
+                },
+                "ios" : {
+                    "iphone" : {
+                        "portrait-896h@3x" : "unpackage/res/splashscreen/ios/1242-2688.png",
+                        "portrait-896h@2x" : "unpackage/res/splashscreen/ios/828-1792.png",
+                        "iphonex" : "unpackage/res/splashscreen/ios/1125-2436.png",
+                        "retina55" : "unpackage/res/splashscreen/ios/1242-2208.png",
+                        "retina47" : "unpackage/res/splashscreen/ios/750-1334.png",
+                        "retina40" : "unpackage/res/splashscreen/ios/640-1136.png",
+                        "retina35" : "unpackage/res/splashscreen/ios/640-960.png"
+                    }
+                }
+            }
+        },
+        "nativePlugins" : {
+            "Lckj-Chinaums-Pay" : {
+                "CurrentEnvironment" : "PROD",
+                "PPPaySDK" : "true",
+                "__plugin_info__" : {
+                    "name" : "Chinaums-Pay",
+                    "description" : "支付插件",
+                    "platforms" : "Android",
+                    "url" : "",
+                    "android_package_name" : "",
+                    "ios_bundle_id" : "",
+                    "isCloud" : false,
+                    "bought" : -1,
+                    "pid" : "",
+                    "parameters" : {
+                        "CurrentEnvironment" : {
+                            "des" : "当前环境",
+                            "key" : "PROD",
+                            "value" : ""
+                        },
+                        "PPPaySDK" : {
+                            "des" : "sdk",
+                            "key" : "true",
+                            "value" : ""
+                        }
+                    }
+                }
+            },
+            "LC-UnionPay" : {
+                "__plugin_info__" : {
+                    "name" : "银联支付插件",
+                    "description" : "银联支付插件",
+                    "platforms" : "iOS",
+                    "url" : "https://ext.dcloud.net.cn/plugin?id=1631",
+                    "android_package_name" : "com.ncnews.economyClient",
+                    "ios_bundle_id" : "com.ecnomyClient.lckj",
+                    "isCloud" : true,
+                    "bought" : 1,
+                    "pid" : "1631",
+                    "parameters" : {}
+                }
+            }
+        }
+    },
+    /* 快应用特有相关 */
+    "quickapp" : {},
+    /* 小程序特有相关 */
+    "mp-weixin" : {
+        "appid" : "",
+        "setting" : {
+            "urlCheck" : false,
+            "postcss" : true
+        },
+        "usingComponents" : true,
+        "permission" : {}
+    },
+    "mp-alipay" : {
+        "usingComponents" : true
+    },
+    "mp-baidu" : {
+        "usingComponents" : true
+    },
+    "mp-toutiao" : {
+        "usingComponents" : true
+    },
+    "h5" : {
+        "sdkConfigs" : {
+            "maps" : {
+                "qqmap" : {
+                    "key" : "GZ5BZ-SJ4CX-5YS4E-7CE6A-VKRF3-4UB64"
+                }
+            }
+        },
+        "title" : "ye南昌",
+        "router" : {
+            "mode" : "history",
+            "base" : "/app/member/"
+        },
+        "template" : "index.html"
+    }
+}

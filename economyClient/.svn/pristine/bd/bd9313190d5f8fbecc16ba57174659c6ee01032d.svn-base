@@ -1,0 +1,480 @@
+<!--话题首页-->
+<template>
+	<view class="bottombar">
+		<view class="inputbox">
+			<input class="input" @confirm="addComment()" placeholder="写个评论走个心" placeholder-style="color:#cbcbcb" v-model="commentRemark" />
+		</view>
+		<view class="righticon">
+			<view class="iconbox" @click="addGoodInfo()">
+				<view class="number">{{ canGoodInfo==2?1:0 }}</view>
+				<image class="icon" src="/static/img_new/gonglue/zan3.png"></image>
+			</view>
+			<view class="iconbox">
+				<view class="number">{{ commentNum }}</view>
+				<image class="icon" src="/static/img_new/gonglue/news.png"></image>
+			</view>
+			<view class="iconbox" @click="favoriteWithData()">
+				<view class="number">{{ canFavorite==2?1:0 }}</view>
+				<image class="icon" src="/static/img_new/gonglue/shoucang.png"></image>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		props: {
+			// 编号
+			relationId: {
+				type: [Number, String],
+				default: 0,
+			},
+			//类型
+			goodType: {
+				type: Number,
+				default: 0,
+			},
+			// 点赞数
+			likeNum: {
+				type: Number,
+				default: 0,
+			},
+			// 评论数
+			commentNum: {
+				type: Number,
+				default: 0,
+			},
+			//是否可收藏
+			canFavorite: {
+				type: Number,
+				default: 1, //1是，2否
+			},
+			//是否可点赞
+			canGoodInfo: {
+				type: Number,
+				default: 1, //1是，2否
+			}
+		},
+		data() {
+			return {
+				commentRemark: "", //评价内容
+				showShareView: false,
+				shareList: [],
+				shareData: {
+					type: Object,
+					default () {
+						return {
+							title: "ye南昌",
+							url: "https://vr.chinavryan.com/tour/35c8ddf4cf676fad",
+							imageUrl: "",
+							summary: "我在南昌，我正在使用ye南昌App，下载ye南昌App,让你爱上南昌！"
+						}
+					}
+				}
+			}
+		},
+		mounted() {
+			this.queryDetail(this.relationId, this.goodType);
+		},
+		methods: {
+			//添加收藏
+			favoriteWithData: function() {
+				if (this.request.alreadyLogin()) {
+					var url = "/memberapi/api/userFavorite/cancel.do";
+					var data = {
+						relationId: this.relationId,
+						favoriteType: this.goodType
+					}
+					if (this.canFavorite == 1) {
+						url = "/memberapi/api/userFavorite/add.do";
+					} else {
+						url = "/memberapi/api/userFavorite/cancel.do";
+					}
+					var that = this;
+					this.request.post(url, data).then(res => {
+						let canFavoriteValue = 1;
+						if (res.returncode === 0 && that.canFavorite == 1) {
+							that.request.toastTips("收藏成功");
+							canFavoriteValue = 2;
+						} else {
+							that.request.toastTips("取消收藏");
+							canFavoriteValue = 1;
+						}
+						let item = {
+							commentNum: that.commentNum,
+							likeNum: that.likeNum,
+							canFavorite: canFavoriteValue,
+						}
+						that.$emit('refresComment', item);
+					})
+				}
+			},
+			//点赞
+			addGoodInfo: function() {
+				if (this.request.alreadyLogin()) {
+					let url = '/memberapi/api/goodInfo/add.do';
+					let data = {
+						relationId: this.relationId,
+						goodType: this.goodType,
+					};
+					if (this.canGoodInfo == 1) { //添加点赞
+						url = '/memberapi/api/goodInfo/add.do';
+					} else { //取消点赞
+						url = '/memberapi/api/goodInfo/cancel.do';
+					}
+					var that = this;
+					this.request.post(url, data).then(res => {
+						let canGoodInfoValue = 1,
+							likeNumValue = that.likeNum;
+						if (res.returncode === 0 && that.canGoodInfo == 1) {
+							that.request.toastTips("点赞成功");
+							canGoodInfoValue = 2;
+							likeNumValue++;
+						} else {
+							that.request.toastTips("取消点赞");
+							canGoodInfoValue = 1;
+							likeNumValue--;
+						}
+						let item = {
+							canGoodInfo: canGoodInfoValue,
+							likeNum: likeNumValue,
+							commentNum: that.commentNum,
+						}
+						that.$emit('refresComment', item);
+					})
+				}
+			},
+			//分享
+			setupShareItem: function(provider, title, scene) {
+				var item = {
+					provider: provider,
+					scene: scene,
+					title: title,
+					image: "/static/img/share/" + scene + ".png"
+				}
+				return item;
+			},
+			shareButtonClick: function() {
+				this.util.shareWithData(this.shareData);
+				// var self = this;
+				// uni.getProvider({
+				// 	service:"share",
+				// 	success:function(res){
+				// 		//H5测试，真机调试或者打包时需要注释掉
+				// 		res.provider = ["weixin", "qq"];
+				// 		self.showShareView = true;
+				// 		self.shareList = [];
+				// 		for (var i = 0; i < res.provider.length; i++) {
+				// 			var item = res.provider[i];
+				// 			if(item == 'weixin'){
+				// 				self.shareList.push(self.setupShareItem("weixin","微信","WXSceneSession"));
+				// 				self.shareList.push(self.setupShareItem("weixin","朋友圈","WXSenceTimeline"));
+				// 			}
+				// 			if (item == 'qq'){
+				// 				self.shareList.push(self.setupShareItem("qq","qq","qq"));
+				// 				// 不能直接分享到QQ空间，可以分享到QQ，然后在QQ的界面里选择QQ空间。
+				// 				// self.shareList.push(self.setupShareItem("zone","qq空间"));
+				// 			}
+				// 		}
+
+				// 	}
+				// })
+			},
+			cancelShare: function() {
+				this.showShareView = false;
+			},
+			// shareItemClick:function(item){
+			// 	//console.log("this.shareData = ", JSON.stringify(this.shareData));
+			// 	//console.log("this.shareData.url = ", this.shareData.url);
+
+			// 	uni.share({
+			// 	    provider: item.provider,
+			// 	    scene: item.scene,//provider 为 weixin 时必选
+			// 	    type: 0,
+			// 	    href: this.shareData.url,
+			// 	    title: this.shareData.title,
+			// 	    summary: this.shareData.summary,
+			// 	    imageUrl: this.shareData.imageUrl,
+			// 	    success: function (res) {
+			// 	        //console.log("success:" + JSON.stringify(res));
+			// 	    },
+			// 	    fail: function (err) {
+			// 	        //console.log("fail:" + JSON.stringify(err));
+			// 	    }
+			// 	});
+			// },
+			//添加评论
+			addComment: function() {
+				if (this.request.alreadyLogin()) {
+					let url = '/memberapi/api/comment/add.do';
+					let data = {
+						relationId: this.relationId,
+						commentType: this.goodType,
+						commentRemark: this.commentRemark
+					};
+					var that = this;
+					this.request.post(url, data).then(res => {
+						let commentNumValue = that.commentNum;
+						if (res.returncode === 0) {
+							that.request.toastTips("评论成功");
+							commentNumValue++; //评论数+1
+							that.commentRemark = "";
+						} else {
+							that.request.toastTips("评论失败");
+						}
+						let data = {
+							commentNum: commentNumValue,
+							likeNum: that.likeNum,
+						}
+						that.$emit('refresComment', data);
+					})
+				}
+			},
+			queryDetail: function(relationId, commentType) {
+				let url = '/memberapi/api/guide/read.do';
+				let data = {};
+				let summary = "";
+				let toUrl = "";
+				if (commentType == 3) { //攻略
+					url = '/memberapi/api/guide/read.do';
+					data.guideId = relationId;
+					summary = "攻略分享";
+					toUrl = "/pages/guide/guideDetail?guideId=" + relationId;
+				}
+				if (commentType == 4) { //资讯	
+					url = '/memberapi/api/information/read.do';
+					data.informationId = relationId;
+					summary = "资讯分享";
+					toUrl = "/pages/consult/consultDetail?informationId=" + relationId;
+				}
+				if (commentType == 5) { //南昌名片
+					url = '/memberapi/api/wonderful/read.do';
+					data.wonderfulId = relationId;
+					summary = "南昌名片分享";
+					toUrl = "/pages/wonderful/wonderfulDetail?wonderfulId=" + relationId;
+				}
+				var that = this;
+				// console.info("res.data====",JSON.stringify(data)+"---"+relationId+"---"+commentType);
+				that.request.get(url, data).then(res => {
+					if (res.returncode == 0 && res.data) {
+						that.shareData.url = that.request.getBaseUrl() + "/wxapp" + toUrl;
+						that.shareData.title = res.data.title ? res.data.title : res.data.guideTitle ? res.data.guideTitle : res.data.videoTitle ?
+							res.data.videoTitle : "";
+						that.shareData.summary = summary;
+						that.shareData.imageUrl = that.util.formatImagePaths(res.data.thumbnailPath ? res.data.thumbnailPath : res.data
+							.videoCover ? res.data.videoCover : "");
+						// console.info("that.shareData",JSON.stringify(that.shareData));
+					}
+				})
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.bottombar {
+		width: 100%;
+		height: 120rpx;
+		position: fixed;
+		display: flex;
+		bottom: 0;
+		left: 0;
+		@extend %flex-justify-content;
+		padding: 0 20rpx;
+		background: #fff;
+		z-index: 20;
+
+		.righticon {
+			display: flex;
+			flex: 1;
+			padding: 0 40rpx;
+			@extend %flex-justify-content;
+
+			.iconbox {
+				width: 55rpx;
+				height: 55rpx;
+				position: relative;
+
+				.icon {
+					width: 55rpx;
+					height: 55rpx;
+				}
+
+				.number {
+					padding: 2rpx 10rpx;
+					background: #26497f;
+					color: #fff;
+					font-size: $font20;
+					position: absolute;
+					top: -10rpx;
+					right: -30rpx;
+					z-index: 2;
+					border-radius: 20rpx;
+				}
+			}
+
+			.sendbtn {
+				width: 140rpx;
+				height: 55rpx;
+				position: relative;
+				padding: 10rpx 35rpx;
+				color: #fff;
+				border-radius: 40rpx;
+				margin-left: -70rpx;
+				left: 50%;
+				// bottom: 0rpx;
+				background: linear-gradient(to right, #5989d1, #26497f);
+
+				.txt {
+					color: #FFFFFF;
+				}
+			}
+		}
+
+		.inputbox {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+
+			.input {
+				width: 276rpx;
+				vertical-align: middle;
+				margin-bottom: 0;
+				height: 33px;
+				border-radius: 16px;
+				background: #f4f4f4;
+				padding: 0 16px;
+			}
+
+			.input-flag {
+				width: 550rpx;
+				vertical-align: middle;
+				margin-bottom: 0;
+				background: #f4f4f4;
+				border-radius: 16px;
+				padding: 0 16px;
+				height: 33px;
+			}
+		}
+	}
+
+
+
+
+	.reply-init {
+		width: 100vw;
+		height: 98rpx;
+		line-height: 98rpx;
+		bottom: -2rpx;
+		position: fixed;
+		z-index: 100;
+		background-color: #FFFFFF;
+		margin: 30rpx 30rpx 0rpx 28rpx;
+	}
+
+	.edit-icon {
+		width: 34rpx;
+		height: 34rpx;
+		display: inline-block;
+		vertical-align: middle;
+		margin-left: 16rpx;
+	}
+
+	.edit-input {
+		width: 400rpx;
+		height: 60rpx;
+		background-color: #f4f4f4;
+		border-radius: 16rpx;
+		font-size: 26rpx;
+		padding-left: 60rpx;
+		display: inline-block;
+		margin-left: -50rpx;
+		vertical-align: middle;
+		margin-right: 20rpx;
+	}
+
+	.send-reply-pllogo {
+		width: 40rpx;
+		height: 40rpx;
+		vertical-align: middle;
+	}
+
+	.send-reply-sclogo {
+		width: 36rpx;
+		height: 32rpx;
+		margin-left: 20rpx;
+		vertical-align: middle;
+	}
+
+	.send-reply-fxlogo {
+		width: 40rpx;
+		height: 40rpx;
+		margin-left: 20rpx;
+		vertical-align: middle;
+	}
+
+	.send-reply-pl {
+		display: inline-block;
+		margin-right: 10rpx;
+	}
+
+	.send-reply-pl text {
+		font-size: 28rpx;
+		color: #545454;
+		vertical-align: middle;
+		margin-left: 6rpx;
+	}
+
+	.back-view {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100vw;
+		height: 100vh;
+		background: rgba(0, 0, 0, 0.4);
+		display: flex;
+		flex-direction: column;
+		z-index: 12;
+	}
+
+	.bottom-view {
+		position: fixed;
+		margin-top: auto;
+		width: 750rpx;
+		bottom: 100rpx;
+		z-index: 100;
+		background-color: #FFFFFF;
+		text-align: center;
+	}
+
+	.share-view {
+		width: 750rpx;
+		padding: 60rpx 0rpx;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.share-item {
+		width: 150rpx;
+		height: 150rpx;
+	}
+
+	.share-item-image {
+		width: 100rpx;
+		height: 100rpx;
+		padding: 10rpx;
+	}
+
+	.cancel-button {
+		border-top: 2rpx solid #F5F5F5;
+		width: 750rpx;
+		height: 100rpx;
+		line-height: 100rpx;
+		font-size: 28rpx;
+		/* padding-top: 12rpx; */
+		/* padding-bottom: 20rpx; */
+		bottom: 20rpx;
+	}
+</style>

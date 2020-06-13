@@ -1,0 +1,99 @@
+
+
+// 上下边线
+.line-top,.line-bottom{
+    position: relative;
+}
+.line-top:before{
+	content: " ";
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	height: 1px;
+	border-top: 1px solid rgba(184,180,169,0.2);
+	color: rgba(0,0,0,0.1);
+	color: var(--weui-FG-3);
+	-webkit-transform-origin: 0 0;
+	transform-origin: 0 0;
+	-webkit-transform: scaleY(0.5);
+	transform: scaleY(0.5);
+	z-index: 2;
+}
+.line-bottom:after{
+	content: " ";
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	height: 1px;
+	border-bottom: 1px solid rgba(184,180,169,0.2);
+	color: rgba(0,0,0,0.1);
+	color: var(--weui-FG-3);
+	-webkit-transform-origin: 0 0;
+	transform-origin: 0 0;
+	-webkit-transform: scaleY(0.5);
+	transform: scaleY(0.5);
+	z-index: 2;
+}
+view,input,button,textarea{
+	font-size:28rpx;
+	line-height:1.5;
+	color:#2A2835;
+}
+image,form{
+	width:100%;
+}
+.page{
+	background: #fff;
+}
+/* 字体大小 */
+.font20{
+	font-size: 20rpx;
+}
+.font24{
+	font-size: 24rpx;
+}
+.font32{
+	font-size: 32rpx;
+}
+.font36{
+	font-size: 36rpx;
+}
+.font42{
+	font-size: 42rpx;
+}
+/* 字体颜色 */
+.fontcolor-blue{
+	color:#264980;/*主色*/
+}
+.fontcolor-assist{
+	color:#866033;/*深辅助色*/
+}
+.fontcolor-tip{
+	color:#B8B4A9;/*提示色*/
+}
+/* 字数省略 */
+.txt-cut{
+	overflow: hidden;
+	text-overflow:ellipsis;
+	white-space: nowrap;
+	flex: 1;
+}
+.txt-cut-two{
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+}
+.assist-color{color:#B8B4A9}
+.btn{
+	border-radius: 40rpx;
+	background: #2A2835;
+	color:#fff;
+	display: inline-block;
+}
+.btn-min{
+	padding:8rpx 30rpx;
+	font-size:$font28;
+}

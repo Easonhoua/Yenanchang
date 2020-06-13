@@ -1,0 +1,75 @@
+<template>
+	<view class="page placelist">
+		<view class="search-form">
+			<view class="inner">
+				<image class="search-icon" src="../../static/img_new/common/search.png"></image>
+				<input class="input" placeholder="搜索" placeholder-style="color:#B8B4A9" v-model="keyword"  @confirm="searchShop" @blur="searchShop"/>
+			</view>
+		</view>
+		<view class="tab">
+			<view class="item" :class="tabIndex==0 ? 'active' : ''" @click="ontabtap(0)">目的地</view>
+			<view class="item" :class="tabIndex==1 ? 'active' : ''" @click="ontabtap(1)">附近</view>
+		</view>
+		<!--附件店铺-->
+		<block  v-if="tabIndex ==0">
+			<near-shop-list ref="nearShopList" :coordinate="coordinate" :subjectId="subjectId" :platformTypeId="platformTypeId"></near-shop-list>
+		</block>
+		<!--附件活动-->
+		<block v-else>
+			<near-activity-list ref="nearActivityList" :coordinate="coordinate"></near-activity-list>
+		</block>
+	</view>
+</template>
+
+<script>
+	import nearShopList from '@/pages/culture/nearShop.vue';
+	import nearActivityList from '@/pages/culture/nearActivity.vue';
+	export default {
+		components: {
+			nearShopList,
+			nearActivityList
+		},
+		data() {
+			return {
+				tabIndex: 0,
+				keyword: '',
+				coordinate:'',
+				subjectId:'',
+				platformTypeId:""
+			}
+		},
+		onLoad(e) {
+			if(e.coordinate){
+				this.coordinate = e.coordinate;
+			}
+			if(e.subjectId){
+				this.subjectId = e.subjectId;
+			}
+			if(e.platformTypeId){
+				this.platformTypeId= e.platformTypeId;
+			}
+		},
+		methods:{
+			//tab鼠鼠福福过大年
+			ontabtap(index) {
+				this.tabIndex = index;
+			},
+			searchShop: function(event) {
+				if(this.tabIndex ==0){
+					this.$refs.nearShopList.mescroll.num = 1;
+					this.$refs.nearShopList.keyword = event.detail.value;
+					this.$refs.nearShopList.downCallBack(this.$refs.nearShopList.mescroll);
+				}else{
+					this.$refs.nearActivityList.mescroll.num = 1;
+					this.$refs.nearActivityList.keyword = event.detail.value;
+					this.$refs.nearActivityList.downCallBack(this.$refs.nearActivityList.mescroll);
+				}
+			},
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "../../common/css/other.scss"; 
+</style>

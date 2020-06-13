@@ -1,0 +1,66 @@
+<template>
+	<view class="voucher-code" style="height: 100vh;">
+		<view class="voucher">
+			<view class="couponbox" style="height: 650rpx;">
+				<view class="name">
+					<image class="img" :src="util.formatImagePath(orderData.logo)"></image>
+					<view class="name-bd">
+						<view>{{orderData.shopName}}</view>
+						<view class="time">下单日期：{{orderData.orderDate}}</view>
+						<view class="time">订单状态：{{orderData.orderStatusName}}</view>
+					</view>
+					<image class="arrow-right" src="/static/img/common/right-choose-arrow.png" @click="gotoOrderDetail(orderData)"></image>
+				</view>
+				<view class="coupon-bd">
+					<view class="password"><text class="label">券码:{{orderData.orderId}}({{orderData.orderStatusName}})</text></view>
+					<view class="codebox">
+						<image class="code" :src="orderData.img"></image>
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import wxqrcode from "@/common/js/wxqrcode.js" // 二维码生成器
+	export default {
+		data() {
+			return {
+				orderData:{}
+			}
+		},
+		onLoad(e) {
+			console.log("orderId= ",e.orderId);
+			if(e.orderId){
+				this.orderData.orderId = e.orderId;
+				this.queryDetail(e.orderId);
+			}
+		},
+		methods: {
+			queryDetail: function(orderId) {
+				let data = {
+					orderId: orderId,
+				};
+				let url = "/memberapi/api/orders/readByItem.do";
+				var that = this;
+				this.request.post(url, data).then(res => {
+					if (res.returncode === 0) {
+						let result = res.data;
+						result.img = wxqrcode.createQrCodeImg(result.orderId.toString(), {
+							size: parseInt(300) //二维码大小  
+						});
+						that.orderData=result;
+						
+					}
+				});
+			}, 
+			gotoOrderDetail:function(item){
+				this.util.gotoOrderDetail(item.orderType,item.orderId);
+			},
+		},
+	}
+</script>
+
+<style>
+</style>

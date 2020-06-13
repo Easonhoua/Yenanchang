@@ -1,0 +1,419 @@
+<template>
+	<view class="content-white">
+		<!-- 顶部分类 -->
+		<scroll-view v-show="calcTop" id="tab-bar" class="scroll-h" :scroll-x="true" style="z-index: 99;">
+			<view v-for="(tab, index) in platformLabelList" :key="tab.labelId" class="uni-tab-item" :id="tab.labelId"
+			 :data-current="index" style="padding-left: 22rpx;padding-right: 0rpx;" @click="ontabtap">
+				<text class="uni-tab-item-title" :class="labelId == index ? 'uni-tab-item-title-active' : ''">
+					{{ tab.labelName }}
+					<text :class="labelId == index ? 'line' : ''"></text>
+				</text>
+			</view>
+		</scroll-view>
+
+		<mescroll-body @down="downCallBack" @up="upCallback" @init="initMescroll" :top="calcTop?50:0">
+			<!-- 赏文创地图 -->
+			<!-- <list-shop-cell v-if="subjectId == 2" :shopList="shopList"></list-shop-cell> -->
+			<view>
+				<view class="shop-item shadow-border" v-for="(item,index) in shopList" :key="index" @click="toShopDetail(item)">
+					<image class="image" :src="item.thumbnailPath" mode="scaleToFill"></image>
+					<view class="title">{{item.shopName}}</view>
+					<view class="display-row">
+						<image class="address-icon" src="/static/img_new/common/location_black@3x.png"></image>
+						<view class="address text-over-hide">{{item.address}}</view>
+						<image class="dz-icon" src="/static/img_new/common/dz_icon_nor@3x.png"></image>
+						<view class="dz-num">{{item.likeNum}}</view>
+					</view>
+				</view>
+			</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	import listShopCell from '@/components/list-cell-view/list-shop-cell.vue';
+	import tableListComponent from '@/components/tableList-component/tableList-component.vue';
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		components: {
+			listShopCell,
+			tableListComponent
+		},
+		data() {
+			return {
+				mescroll: '',
+				platformLabelList: [{
+					typeId: 0,
+					typeName: '全部'
+				}],
+				platformLabels: '', // 标签编号 有标签时以逗号分隔
+				labelId: 0,
+				subjectId: 0,
+				showEssence: false,
+				showNear: false,
+				keyword: '',
+				shopList: []
+			};
+		},
+
+		onLoad(e) {
+			if (e.subjectId) {
+				// this.querySubjectLabels(e.subjectId);
+				this.subjectId = e.subjectId;
+				// this.getAllTypeData();
+				if (e.title) {
+					uni.setNavigationBarTitle({
+						title: e.title
+					});
+				}
+			}
+			if (e.showNear) {
+				this.showNear = e.showNear;
+			}
+			if (e.showEssence) {
+				this.showEssence = e.showEssence;
+			}
+		},
+		computed:{
+			calcTop:function(){
+				return this.platformLabelList.length>1
+			}
+		},
+		methods: {
+			initMescroll(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll) {
+				this.sportsList = [];
+				this.querySubjectLabels(this.subjectId, mescroll);
+				// mescroll.resetUpScroll();
+			},
+			upCallback(mescroll) {
+				this.getAllTypeData(mescroll);
+				// this.$refs.tableList.queryList(mescroll,this.platformLabels,this.nearby,this.keyword,this.subjectId);
+			},
+			ontabtap(e) {
+				let index = e.target.dataset.current || e.currentTarget.dataset.current;
+				this.labelId = index;
+				this.platformLabels = e.currentTarget.id;
+				// this.downCallBack(this.mescroll);
+				this.mescroll.num = 1;
+				this.mescroll.size = 10;
+				this.upCallback(this.mescroll);
+			},
+			//获取全部商圈信息
+			getAllTypeData: function(mescroll) {
+				var that = this;
+				const url = '/memberapi/api/shops/queryRecommendShopList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size, //mescroll.size
+					subjectId: this.subjectId
+				};
+
+				if (that.platformLabels == -1) {
+					if (that.longtitude && that.latitude) {
+						data.coordinate = that.longtitude + ',' + that.latitude;
+						//data.distance = "5000";; //距离
+					}
+				} else if (that.platformLabels == 0) {
+					data.essenceType = 1;
+				} else {
+					data.labelId = that.platformLabels; //标签
+				}
+
+				that.request.get(url, data, mescroll).then(res => {
+					that.list = that.util.formatShopList(res.list);
+					if (mescroll.num == 1) that.shopList = [];
+					that.shopList = that.shopList.concat(res.list);
+				});
+			},
+
+			//6大主题对应的标签集合
+			querySubjectLabels: function(platformSubjectId, mescroll) {
+				this.platformLabelList = [];
+				if (platformSubjectId) {
+					const data = {
+						platformSubjectId: platformSubjectId
+					};
+					var that = this;
+					this.request.get('/memberapi/api/platform/querySubjectLabels.do', data).then(res => {
+						if (that.showEssence == true) {
+							var essenceTypeList = [{
+								labelId: 0,
+								typeId: this.platformSubjectId,
+								labelName: '精选推荐',
+								sortNum: 2
+							}];
+							that.platformLabelList = that.platformLabelList.concat(essenceTypeList);
+						}
+						if (that.showNear==true) {
+							var nearbyList = [{
+								labelId: -1,
+								typeId: this.platformSubjectId,
+								labelName: '附近',
+								sortNum: 1
+							}];
+							that.platformLabelList = that.platformLabelList.concat(nearbyList);
+						}
+						that.platformLabelList = that.platformLabelList.concat(res.list);
+
+						if (!that.platformLabels) that.platformLabels = that.platformLabelList[0].labelId;
+						mescroll.resetUpScroll();
+						// self.getAllTypeData(mescroll);
+					});
+				}
+			},
+
+			toShopDetail: function(item) {
+				this.util.gotoShopDetail(item);
+			}
+		}
+	};
+</script>
+
+<style lang="scss">
+	@import '../../common/css/other.scss';
+
+	/* 地图 */
+	.map {
+		width: 750rpx;
+		height: 450rpx;
+		/* 地图高度要动态计算不能写死 -320rpx为底部swiper和按钮的总高度 */
+		height: calc(-30rpx + 100vh);
+	}
+
+	.list {
+		width: 100vw;
+		height: calc(-450rpx - 80rpx + 100vh);
+		margin-top: 80rpx;
+		/* position: fixed; */
+		background-color: #ffffff;
+	}
+
+	/* 左右滑动的list-swiper */
+	.list-swiper {
+		position: absolute;
+		bottom: 100rpx;
+		width: 750rpx;
+		height: 220rpx;
+		background-color: #ffffff;
+	}
+
+	.list-item-view {
+		display: flex;
+		flex-direction: row;
+		width: 350px;
+		margin: 5px 12px 12px 12px;
+		height: 90px;
+		border: 1rpx solid #eeeeee;
+		border-radius: 4px;
+		box-shadow: 0px 0px 6px 1px rgba(70, 145, 123, 0.4);
+		background-color: #ffffff;
+		/* box-shadow: 0rpx 0rpx 10rpx 1rpx rgba(0, 0, 0, 0.08); */
+		/* background-color: #42917A; */
+	}
+
+	.list-item-leftView {
+		width: 270px;
+		height: 70px;
+		margin: 10px 0px 10px 10px;
+		line-height: 5px;
+	}
+
+	.list-item-rightView {
+		width: 75px;
+		height: 70px;
+		margin: 10px;
+	}
+
+	.list-item-name {
+		display: -webkit-box;
+		-webkit-box-orient: horizontal;
+		-webkit-line-clamp: 1;
+		text-overflow: clip;
+		overflow: hidden;
+		height: 40px;
+		font-size: 16px;
+		font-weight: 500;
+		line-height: 20px;
+		color: #333333;
+		/* color: lightgrey; */
+	}
+
+	.list-item-score {
+		font-size: 13px;
+		color: lightgrey;
+	}
+
+	.list-item-address {
+		width: 250px;
+		height: 32px;
+		font-size: 13px;
+		line-height: 16px;
+		color: gray;
+		/* color: lightgrey; */
+	}
+
+	.list-item-image {
+		/* width: 150rpx; */
+		/* height: 140rpx; */
+		width: 70px;
+		height: 70px;
+		margin-right: 10px;
+	}
+
+	.list-item-toView {
+		width: 20px;
+		height: 20px;
+		background: #39b54a;
+		margin: 0px 0px 0px 50px;
+	}
+
+	/* 底部菜单 */
+	.menu {
+		flex-wrap: nowrap;
+		white-space: nowrap;
+		position: absolute;
+		height: 40px;
+		background-color: white;
+		border-top: 1px solid #eeeeee;
+	}
+
+	.menu-item {
+		margin-left: 15px;
+		margin-right: 5px;
+		height: 38px;
+		line-height: 38px;
+		font-size: 15px;
+		color: #42917a;
+		display: inline-block;
+		flex-wrap: nowrap;
+		text-align: center;
+		justify-content: center;
+		align-content: center;
+	}
+
+	.menu-normal-btn {
+		/* width: 80rpx; */
+		height: 37px;
+		color: #000000;
+	}
+
+	.menu-select-btn {
+		/* width: 80rpx; */
+		height: 33px;
+		color: #42917a;
+		/* border-radius: 8rpx; */
+		border-bottom: 3px solid #42917a;
+	}
+
+	.map-line-limit {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		overflow: hidden;
+		max-width: 240px;
+	}
+
+	.scroll-h {
+		width: 750rpx;
+		height: 34px;
+		display: flex;
+		flex-direction: row;
+		white-space: nowrap;
+		background: #ffffff;
+	}
+
+	.scroll-h.fixed {
+		position: fixed;
+		background: #ffffff;
+		top: 44px;
+		margin-top: var(--status-bar-height);
+		left: 0;
+		right: 0;
+		z-index: 100;
+	}
+
+	.uni-tab-item {
+		display: inline-block;
+		flex-wrap: nowrap;
+		margin-right: 21px;
+	}
+
+	.uni-tab-item:first-child {
+		margin-left: 17px;
+	}
+
+	.uni-tab-item-title {
+		color: #555;
+		font-size: 16px;
+		height: 22px;
+		line-height: 22px;
+		flex-wrap: nowrap;
+		white-space: nowrap;
+	}
+
+	.uni-tab-item-title-active {
+		color: #31a2f8;
+	}
+
+	.uni-tab-item-title-active .line {
+		width: 24px;
+		height: 3px;
+		line-height: 1;
+		display: block;
+		background: #31a2f8;
+		border-radius: 1px;
+		position: relative;
+		margin: auto;
+		top: 0px;
+	}
+
+	.shop-item {
+		width: 700rpx;
+		margin: 20rpx 25rpx 30rpx 25rpx;
+		border-radius: 10rpx;
+		padding-bottom: 30rpx;
+		overflow: hidden;
+
+		.image {
+			width: 100%;
+			height: 360rpx;
+		}
+
+		.title {
+			width: 100%;
+			padding: 14rpx 30rpx;
+			font-size: 32rpx;
+		}
+
+		.address-icon {
+			margin-left: 30rpx;
+			width: 30rpx;
+			height: 30rpx;
+		}
+
+		.address {
+			width: 520rpx;
+			margin-left: 14rpx;
+			font-size: 26rpx;
+			font-weight: 300;
+			color: #CAC7C0;
+		}
+
+		.dz-icon {
+			width: 30rpx;
+			height: 26rpx;
+			margin-right: 10rpx;
+			margin-left: auto;
+		}
+
+		.dz-num {
+			color: #CAC7C0;
+			font-size: 26rpx;
+			margin-right: 30rpx;
+		}
+	}
+</style>

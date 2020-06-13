@@ -1,0 +1,244 @@
+<template>
+	<view class="conten">
+		<view class="status-bar"></view>
+		<view class="navi-bar">
+			<image class="setting" src="/static/img_new/main/set@3x.png" @click="gotoSetting()"></image>
+			<image class="news" src="/static/img_new/main/notice@3x.png"></image>
+		</view>
+		<mescroll-uni @down="dowmCallBack" @up="upCallback" @init="initMescroll" :down="downOption" >
+			<view class="page user">
+				<view class="userpanel">
+					<view class="user" style="margin-left: -30rpx;" @click="gotoUserInfo()">
+						<image class="userlogo" :src="userData.photo" mode="aspectFill"></image>
+						<text class="name">{{userData.nick}}</text>
+						<image class="edit" src="/static/img_new/main/edit@3x.png"></image>
+					</view>
+					
+					 <!-- //我的订单、我的卡卷，关于我们，客服电话 -->
+					<view class="column line-top">
+						<view class="item" v-for="(item,index) in topIndexs" :key="index" @click="listCellClick(item)">
+							<image class="icon" :src="item.icon"></image>
+							<view class="txt">{{item.text}}</view>
+						</view>
+					</view>
+				</view>
+				<!-- //收藏、话题、评论、活动 -->
+				<view class="column" style="padding: 20rpx 50rpx;margin-top: -40rpx;">
+					<view class="item" v-for="(item,index) in lowIndexs" :key="index" @click="listCellClick(item)">
+						<image class="icon" :src="item.icon"></image>
+						<view class="txt">{{item.text}}</view>
+					</view>
+				</view>
+				
+			</view>
+			<!-- //收藏的店铺list列表 -->
+			<shop-flow-cell ref="shopCell" :shopList="shopsList" :isUserFavorite="true"></shop-flow-cell>
+		</mescroll-uni>
+	</view>
+	</view>
+</template>
+
+<script>
+	import shopFlowCell from "@/components/list-cell-view/shop-flow-cell.vue"
+	export default {
+		components: {
+			shopFlowCell
+		},
+		data() {
+			return {
+				topIndexs: [], //我的订单、我的卡卷，关于我们，客服电话
+				lowIndexs: [], //收藏、话题、评论、活动
+				shopsList: [], //收藏的店铺list列表
+				loginStatus: false,
+				mescroll: "",
+				downOption: {
+					use: true,
+					auto: true,
+					autoShowLoading: true
+				},
+				upOption: {
+					use: true
+				},
+				userData: {
+					photo: "/static/img/common/banner.png",
+					nick: "立即登录"
+				},
+			}
+		},
+		onShow() {
+			this.userData = uni.getStorageSync("user");
+			console.log("this.userData = ",this.userData);
+			if (!this.userData) {
+				this.request.removeStorage();
+				this.userData = {
+					photo: "",
+					nick: "立即登录"
+				};
+				this.shopsList = [];
+				this.$refs.shopCell.formattingList(this.shopsList,0);	
+			}
+			this.dowmCallBack(this.mescroll);
+		},
+		onLoad() {
+			this.getUserIndexs();
+			uni.setStorageSync("addData", 0); //话题页签置为0
+		},
+		watch: {
+			userData(newUserData, oldUserData) {
+				this.userData = newUserData;
+				this.userData.photo = this.util.formatImagePath(this.userData.photo);
+			}
+		},
+		methods: {
+			initMescroll:function(mescroll){
+				this.mescroll = mescroll;
+			},
+			dowmCallBack: function(mescroll) {
+				//console.log("this.request.loginState() = ",this.request.loginState());
+				if (!this.request.loginState()) {
+					mescroll.endDownScroll();
+					mescroll.endUpScroll(false);
+					return;
+				}
+				this.request.getUserInfo(mescroll).then(res => {
+					this.userData = res;
+					mescroll.resetUpScroll();
+				})
+			},
+			upCallback:function(mescroll){
+				if (!this.request.loginState()) {
+					mescroll.endDownScroll();
+					mescroll.endUpScroll(false);
+					return;
+				}
+				let url = '/memberapi/api/userFavorite/list.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					favoriteType:"1"//店铺收藏1 线路收藏11
+				};
+				this.request.post(url, data, mescroll).then(res => {
+					this.$refs.shopCell.formattingList(res.list,mescroll.num);
+				})
+			},
+			getUserIndexs: function() {
+				this.topIndexs = [{
+						"url": "/pages/user/userIndex/order",
+						"icon": "/static/img_new/main/my_order@3x.png",
+						"text": "我的订单"
+					},
+					{
+						"url": "/pages/user/userIndex/coupon",
+						"icon": "/static/img_new/main/my_kaquan@3x.png",
+						"text": "我的卡券"
+					},
+					{
+						"url": "/pages/user/userIndex/about",
+						"icon": "/static/img_new/main/my_about@3x.png",
+						"text": "关于我们"
+					},
+					{
+						"url": "",
+						"icon": "/static/img_new/main/my_hpone@3x.png",
+						"text": "客服电话"
+					},
+				],
+				this.lowIndexs = [
+					{
+						"url":"/pages/user/userIndex/favorite",
+						"icon":"/static/img/user/user-favorite.png",
+						"text":"收藏"
+					},
+					{
+						"url":"/pages/newPage/topic/myTopic",
+						"icon":"/static/img/user/user_topic.png",
+						"text":"话题"
+					},
+					{
+						"url":"/pages/user/userIndex/comment",
+						"icon":"/static/img/user/user_comment.png",
+						"text":"评论"
+					},
+					{
+						"url":"/pages/user/userIndex/activity",
+						"icon":"/static/img/user/user_report.png",
+						"text":"活动"
+					}
+				]
+				
+			},
+			gotoUserInfo: function() {
+				if (this.request.alreadyLogin()) {
+					uni.navigateTo({
+						url: "/pages/user/userIndex/userInfo"
+					})
+				}
+			},
+			gotoSetting: function() {
+				if (this.request.alreadyLogin()) {
+					uni.navigateTo({
+						url: "/pages/user/setting/setting"
+					})
+				}
+			},
+			gotoTopic:function(){
+				if(this.request.alreadyLogin()){
+					uni.navigateTo({
+						url:"/pages/user/userIndex/favorite"
+					})
+				}
+			},
+			listCellClick: function(item) {
+				if (item.text == '客服电话'){
+					uni.makePhoneCall({
+						phoneNumber:"0791-86865004"
+					})
+				}else{
+					if (this.request.alreadyLogin()&&item.url) {
+						uni.navigateTo({
+							url: item.url
+						})
+					}
+				}
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "../../common/css/other.scss";
+
+	.status-bar {
+		height: var(--status-bar-height);
+		width: 100vw;
+		z-index: 3;
+		position: fixed;
+		background-color: #FFFFFF;
+	}
+
+	.navi-bar {
+		width: 100vw;
+		display: flex;
+		flex-direction: row;
+		height: 88rpx;
+		position: fixed;
+		top: var(--status-bar-height);
+		z-index: 4;
+		align-items: center;
+		background-color: #FFFFFF;
+
+		.setting {
+			width: 88rpx;
+			height: 88rpx;
+			padding: 24rpx;
+		}
+
+		.news {
+			width: 88rpx;
+			height: 88rpx;
+			margin-left: auto;
+			padding: 24rpx;
+		}
+	}
+</style>

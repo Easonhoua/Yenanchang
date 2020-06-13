@@ -1,0 +1,118 @@
+<!--话题整体模块-->
+<template>
+	<view class="layout column">
+		<view class="ht-tab movie-tab">
+			<scroll-view id="tab-bar" class="scroll-h" :scroll-x="true" :show-scrollbar="true">
+				<view v-for="(tab,index) in platformLabelList" :key="tab.id" class="uni-tab-item" :id="tab.id" :data-current="index" @click="ontabtap">
+					<text class="uni-tab-item-title" :class="tabIndex==index ? 'uni-tab-item-title-active' : ''">{{tab.name}}<text
+						 :class="tabIndex==index ? 'line' : ''"></text></text>
+				</view>
+			</scroll-view>
+		</view>
+		<!--话题-->
+		<block  v-if="tabIndex ==0">
+			<topic-list ref="topicList"></topic-list>
+		</block>
+		<!--攻略-->
+		<block v-else-if="tabIndex ==1">
+			<guide-list ref="guideList"></guide-list>
+		</block>
+		<!--活动-->
+		<block v-else-if="tabIndex ==2">
+			<activity-list ref="activityList"></activity-list>
+		</block> 
+		<block v-else>
+			<welfare-list ref="welfareList"></welfare-list>
+		</block> 
+	</view>
+</template>
+
+<script>
+	import topicList from '@/pages/topic/topic.vue';
+	import guideList from '@/pages/guide/guide.vue';
+	import activityList from '@/pages/column/activity.vue';
+	import welfareList from '@/pages/column/welfare.vue';
+	
+	export default{
+		components: {
+			topicList,
+			guideList,
+			activityList,
+			welfareList
+		},
+		data() {
+			return {
+				tabIndex: 0,
+				platformLabelList:[{"id":"1","name":"话题"},{"id":"2","name":"攻略"},{"id":"3","name":"城事"},{"id":"4","name":"公益"}],
+			}
+		},
+		onShow() {
+			this.tabIndex = uni.getStorageSync("addData");
+			uni.setStorageSync("addData",this.tabIndex);
+		},
+		methods:{
+			ontabtap(e) {
+				let index = e.target.dataset.current || e.currentTarget.dataset.current;
+				this.tabIndex = index;
+				uni.setStorageSync("addData",index);
+			},
+		}
+		
+	}
+</script>
+
+<style>
+	.scroll-h {
+		width: 750rpx;
+		height: 78rpx;
+		display: flex;
+		flex-direction: row;
+		white-space: nowrap;
+		background-color: #FFFFFF;
+		padding-top: 12rpx;
+	}
+	
+	.scroll-h.fixed {
+		position: fixed;
+		background: #FFFFFF;
+		top: 88rpx;
+		margin-top: var(--status-bar-height);
+		left: 0;
+		right: 0;
+		z-index: 100;
+	}
+	.uni-tab-item {
+		display: inline-block;
+		flex-wrap: nowrap;
+		margin-right: 132rpx;
+	}
+	
+	.uni-tab-item:first-child {
+		margin-left: 56rpx;
+	}
+	
+	.uni-tab-item-title {
+		color: #555;
+		font-size: 32rpx;
+		height: 45rpx;
+		line-height: 45rpx;
+		flex-wrap: nowrap;
+		white-space: nowrap;
+	}
+	
+	.uni-tab-item-title-active {
+		color: #31A2F8;
+	}
+	
+	.uni-tab-item-title-active .line {
+		width: 48rpx;
+		height: 6rpx;
+		line-height: 1;
+		display: block;
+		background: #31A2F8;
+		border-radius: 2rpx;
+		position: relative;
+		margin: auto;
+		top: 0rpx;
+	}
+</style>

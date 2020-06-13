@@ -1,0 +1,238 @@
+<template>
+	<view class="releaselist">
+		<view class="header-nor cityaffairs">
+			<view class="tab">
+				<view class="item" @click="queryAllTypeData()" :class="''==typeId ? 'active' : '' ">全部</view>
+				<block v-for="(item,index) in typeList" :key="index">
+					<view @tap="queryTypeData(item)" class="item" :class="item.itemValue==typeId ? 'active' : '' ">{{item.itemName}}</view>
+				</block>
+			</view>
+		</view>
+		<view class="tab-con">
+			<view class="sub-banner1">
+				<swiper v-if="bannerList.length" :autoplay="true" class="screen-swiper1" :class="dotStyle?'square-dot':'round-dot'"
+				 :indicator-dots="true" :circular="true" interval="5000" duration="500">
+					<swiper-item v-for="(item,index) in bannerList" :key="index" @click="bannerClick(item)">
+						<image :src="item.photo" class="bannerimg" mode="aspectFill" v-if="item.bannerClassification=='1'"></image>
+						<video style="width: 100%;height: 100%;" :src="item.bannerCover" autoplay loop muted :show-play-btn="false"
+						 :controls="false" objectFit="cover" v-if="item.bannerClassification=='2'"></video>
+					</swiper-item>
+				</swiper>
+			</view>
+			<view class="panel">
+				<view class="title" @click="clickTopicMore">
+					<view class="left">
+						<image class="icon" src="/static/img_new/topic/h_tl_icon1.png"></image>
+						<text class="txt">热门话题</text>
+					</view>
+					<image class="arrow-right" src="/static/img_new/common/right_arrow@3x.png"></image>
+				</view>
+				<view class="panel-con participate  line-bottom">
+					<view class="item" v-for="(topicItem, index) in topicList" :key="index" @click="toTopicDetails(topicItem)">
+						<view class="imgbox">
+							<image class="img" :src="topicItem.thumbnailPath"></image>
+						</view>
+						<view class="txtbox">
+							<view class="title">{{topicItem.topicTitle}}</view>
+							<view class="userbar">
+								<text class="people-number">{{topicItem.topicDynamicList.length}}人参与</text>
+								<view class="userlogo">
+									<image v-for="(userItem, index) in photoList" :key="index" class="logo login1" :src="userItem.photo?userItem.photo:'/static/img_new/common/head.png'"></image>
+								</view>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view><!-- 火热参与结束 -->
+			<view class="panel">
+				<view class="title" @click="findmore">
+					<view class="left">
+						<image class="icon" src="/static/img_new/topic/h_tl_icon2.png"></image>
+						<text class="txt">为你推荐</text>
+					</view>
+					<image class="arrow-right" src="/static/img_new/common/right_arrow@3x.png"></image>
+				</view>
+				<view>
+					<waterFallsFlow :typeId="typeId" :userType="userType" :isShowMore="false"></waterFallsFlow>
+				</view>
+			</view>
+		</view>
+		<view class="play" v-show="typeId!=''" @click="publishTopic()">
+			<view class="publishbtn">
+				<text>发布话题</text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import swiperBanner from "@/components/swiper-banner/swiper-banner.vue"
+	import waterFallsFlow from "@/pages/newPage/module/waterfallsFlow.vue"
+	export default {
+		components: {
+			waterFallsFlow,
+		},
+		data() {
+			return {
+				typeId: '',
+				userType: '',
+				typeName: '',
+				dotStyle: false,
+				typeList: null,
+				bannerList: null,
+				topicList: [],
+				photoList: [],
+				strategyList: []
+			}
+		},
+		onLoad() {
+			this.queryType();
+			this.queryHotTopic();
+		},
+		onShow() {
+			const app = getApp();
+			if (app.globalData.publish) {
+				this.bannerList = app.globalData.publish;
+			}
+		},
+		methods: {
+			// 获取话题类型
+			queryType: function() {
+				let url = "/memberapi/api/dictionaryType/list.do";
+				let data = {
+					"dictionaryCode": "TopicType" //文化南昌
+				}
+				this.request.get(url, data).then(res => {
+					if (res && res.list) {
+						this.typeList = res.list;
+					}
+				})
+			},
+			// 更多攻略
+			findmore() {
+				uni.navigateTo({
+					url: "/pages/strategy/strategySearch?guideType=" + this.typeId
+				})
+			},
+			// 获取对应话题类型话题
+			queryTypeData: function(item) {
+				this.typeId = item.itemValue;
+				this.typeName = item.itemName;
+				this.queryHotTopic();
+			},
+			queryAllTypeData: function() {
+				this.typeId = "";
+				this.queryHotTopic();
+			},
+			// 热门话题
+			queryHotTopic: function(typeId) {
+				this.photoList = [];
+				this.topicList = [];
+				let url = "/memberapi/api/topic/hotTopicList.do";
+				let data = {
+					"pageNo": 1,
+					"pageSize": 15
+				}
+				if (this.typeId !== 0) {
+					data = {
+						"pageNo": 1,
+						"pageSize": 2,
+						"topicType": this.typeId
+					}
+				}
+				this.request.get(url, data).then(res => {
+					if (res && res.list) {
+						console.log(res.list);
+						let topicList = res.list;
+						for (let i = 0; i < topicList.length && i < 2; i++) {
+							let topic = topicList[i];
+							if (topic.thumbnailPath) {
+								// item.thumbnailPath = this.util.formatImagePath(item.thumbnailPath);=
+								topic.thumbnailPath = this.util.formatImagePath(topic.thumbnailPath);
+							}
+
+							for (let j = 0; j < topic.topicDynamicList.length && j < 3; j++) {
+								let user = topic.topicDynamicList[j];
+								user.photo = this.util.formatImagePath(user.photo);
+								this.photoList.push(user);
+							}
+							this.topicList.push(topic);
+						}
+					}
+				})
+			},
+
+			// 发布话题
+			publishTopic: function() {
+				let that = this;
+				uni.navigateTo({
+					url: '/pages/publish/publish?typeName=' + that.typeName + "&topicType=" + that.typeId
+				})
+			},
+			toTopicDetails: function(item) {
+				uni.navigateTo({
+					url: 'topicDetails?topicId=' + item.topicId + '&topicType=' + this.topicType
+				})
+			},
+			//点击更多话题
+			clickTopicMore: function() {
+				uni.navigateTo({
+					url: 'hotTopic?topicType=' + this.typeId
+				});
+			},
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	.title {
+		height: 42px;
+	}
+	
+	.header-nor {
+		position: fixed;
+		height: 80rpx !important;
+		top: 0px !important;
+	}
+
+	.cityaffairs .tab {
+		margin-top: var(--status-bar-height);
+		padding: 0 50rpx !important;
+		margin-bottom: 0rpx;
+	}
+	
+	.releaselist .panel .title {
+		margin: 20rpx 0 10rpx 0 !important;
+	}
+	
+	.releaselist .tab-con {
+		padding-top: 80rpx !important;
+	}
+	
+	.cityaffairs .tab {
+		padding: 9rpx 30rpx 0rpx 30rpx !important;
+		
+		.item {
+			padding-bottom: 16rpx !important;
+		}
+	}
+
+	.sub-banner1 {
+		width: 750rpx;
+		height: 360rpx;
+		background: #fff;
+		box-sizing: border-box;
+	}
+
+	.bannerimg {
+		width: 100%;
+		height: 100%;
+	}
+
+	.screen-swiper1 {
+		min-height: 360rpx;
+	}
+
+	@import "../../common/css/other_new.scss";
+</style>

@@ -1,0 +1,141 @@
+<template>
+	<div class="maplayer">
+		<div class="close" @click="hiddenDetail">
+			<image class="close-icon" src="../../../static/img_new/common/close@3x.png"></image>
+		</div>
+		<text class="name">{{selectShop.shopName}}</text>
+		<div class="line-bottom"></div>
+		<div class="address">
+			<image class="address-icon" src="../../../static/img_new/common/location_black@3x.png"></image>
+			<text class="address-txt">{{selectShop.address}}</text>
+		</div>
+		<div class="line-bottom"></div>
+		<div class="toolbar">
+			<div class="toolbar-item" @click="gotoShopDetail()">
+				<image class="toolbar-icon" src="../../../static/img_new/common/details.png"></image><text class="min-txt">进入详情</text>
+			</div>
+			<div class="toolbar-item" @click="gotoNavigation()">
+				<image class="toolbar-icon" src="../../../static/img_new/common/navigation.png"></image><text class="min-txt">到这去</text>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	import util from '../../../common/js/util.js';
+	export default {
+		data() {
+			return {
+				selectShop: {},
+			}
+		},
+		onLoad() {
+			var _this=this;
+			uni.$on('mapDetailInfo', (data) => {
+				_this.selectShop = data.selectShop;
+			})
+		},
+		methods: {
+			gotoShopDetail() {
+				util.gotoShopDetail(this.selectShop);
+				const subNVue = uni.getSubNVueById('map_detail');
+				subNVue.hide('slide-in-left', 300, function() {
+					// 关闭subNVue后进行一些操作...
+				});
+				
+			},
+			hiddenDetail() {
+				this.detailFlag = false;
+			},
+			gotoNavigation() {
+				let _this=this;
+				util.openLocation(this.selectShop.coordinateLng, this.selectShop.coordinateLat, this.selectShop.shopName, this.selectShop
+					.address);
+			}
+		}
+	}
+</script>
+
+<style>
+	// 地图弹层
+	.maplayer {
+		border-radius: 5px;
+		padding: 14px;
+		background-color: #fff;
+	}
+
+	.close {
+		z-index: 99;
+		align-items: flex-end;
+	}
+
+	.line-top {
+		position: relative;
+		border-bottom-color: rgba(184, 180, 169, 0.2);
+		border-bottom-width: 1px;
+	}
+
+	.line-bottom {
+		position: relative;
+		border-bottom-color: rgba(184, 180, 166, 0.8);
+		border-bottom-width: 1px;
+		transform-origin: 0 0;
+		transform: scaleY(0.5);
+	}
+
+	.close-icon {
+		width: 16px;
+		height: 16px;
+	}
+
+	.name {
+		font-size: 16px;
+		padding: 7px 0;
+	}
+
+	.address {
+		padding: 15px 0;
+		/* margin-bottom: 14px; */
+		font-size: 12px;
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.address-icon {
+		width: 14px;
+		height: 14px;
+		margin-right: 2px;
+	}
+
+	.address-txt {
+		width: 250px;
+		overflow: hidden;
+		lines: 1;
+		text-overflow: ellipsis;
+		font-size: 14px;
+	}
+
+	.toolbar {
+		flex-direction: row;
+		justify-content: space-between;
+		margin-top: 10px;
+	}
+
+	.toolbar-item {
+		color: #264980;
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.toolbar-icon {
+		width: 30rpx;
+		height: 30rpx;
+		margin-right: 2px;
+		/* margin-top: -5px; */
+	}
+
+	.min-txt {
+		font-size: 14px;
+		color: #264980;
+	}
+</style>

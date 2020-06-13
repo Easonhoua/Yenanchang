@@ -1,0 +1,431 @@
+<template>
+	<view class="page play strategy">
+		<view class="top-banner" @click="enlargeImage(0)">
+			<image class="img" v-if="guideInfo.thumbnailPath && guideInfo.thumbnailPath.length > 0" :src="guideInfo.thumbnailPath[0]" mode="aspectFill"></image>
+		</view>
+		<view class="userinfor">
+			<view class="user">
+				<image class="imgicon" :src="guideInfo.photo ? guideInfo.photo : '/static/img_new/common/head.png'"></image>
+				<view class="txt">
+					<view class="name">{{ guideInfo.userName }}</view>
+					<view class="total">累计{{ guideInfo.likeNum }}获赞</view>
+				</view>
+			</view>
+			<!-- <view class="publish-total">
+				<view class="article-number"><image src="/static/img_new/gonglue/btn_icon1.png" class="icon"></image>水观音亭<text class="grey">2篇</text></view>
+				<view class="article-number"><image src="/static/img_new/gonglue/btn_icon2.png" class="icon"></image>南昌县<text class="grey">212篇</text></view>
+			</view> -->
+			<view class="travelsbox">
+				<view class="title">{{ guideInfo.guideTitle }}</view>
+				<view class="time">{{ guideInfo.createTime }}发布</view>
+			</view>
+			<!-- <jyf-parser :html="guideInfo.guideDetail ? '<style></style>'+guideInfo.guideDetail : ''"></jyf-parser> -->
+			<jyf-parser :html="guideInfo.guideDetail ? '<style>.img{width:100% !important;} img{width: 100%}</style>'+guideInfo.guideDetail : ''" @linkpress="golook"></jyf-parser>
+			<view class="scenicspot" v-if="guideInfo.shopsList" v-for="(item,index) in guideInfo.shopsList" :key="index">
+				<view class="imgbox">
+					<view class="label">{{ item.platformTypeName }}</view>
+					<image class="imgscen" :src="item.thumbnailPath" mode="aspectFill"></image>
+				</view>
+				<view class="txt">
+					<view class="title">{{ item.shopName }}</view>
+					<view class="label">{{ item.platformLabelsName }}</view>
+					<view class="score">
+						<text class="blue">{{ item.score }}分</text>
+						<text>{{ item.commentNum }}条点评</text>
+					</view>
+					<view class="linkbox" @click="toShopDetail(item)">
+						<!-- <text>免费</text> -->
+						<view class="link">去看看</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		<view class="comment">
+			<view class="dianzan">
+				<view class="btn-zan" @click="clickGood()">
+					<image class="icon" :src="guideInfo.canGoodInfo == 2 ? '/static/img_new/gonglue/zan.png' : '/static/img_new/gonglue/zan2.png'"></image>
+					{{ guideInfo.likeNum }}
+				</view>
+				<view class="user">
+					<image class="imguser" :src="item.photo ? item.photo : '/static/img_new/common/head.png'" v-for="(item, index) in goodInfoList" :key="index"></image>
+				</view>
+			</view>
+			<view class="comment-con">
+				<view class="title">
+					<text class="grey">评论({{ guideInfo.commentNum }})</text>
+					<text v-if="commentTotal > 3" class="right-more" @click="toCommentList()">更多>></text>
+				</view>
+				<view class="comment-con-list" v-for="(item, index) in commentList" :key="index">
+					<image class="img" :src="item.photo ? item.photo : '/static/img_new/common/head.png'"></image>
+					<view class="righttxt">
+						<view class="username">
+							<view class="name">{{ item.nick }}</view>
+							<view class="time">{{ item.commentTime }}</view>
+							<view class="zan" @click="commentClickGood(item)">
+								<image class="icon" :src="item.canGoodInfo == 2 ? '/static/img_new/gonglue/zan.png' : '/static/img_new/gonglue/zan2.png'"></image>
+								{{ item.goodCount }}
+							</view>
+						</view>
+						<view class="txt">
+							<view class="">{{ item.commentRemark }}</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		<!-- 攻略推荐 -->
+		<waterFallsFlow :typeId="guideType"></waterFallsFlow>
+		<view class="bottombar">
+			<view class="inputbox">
+				<input
+					:class="commentFlag ? 'input-flag' : 'input'"
+					@focus="onFocus()"
+					@blur="onBlur"
+					@confirm="addComment()"
+					placeholder="写个评论走个心"
+					placeholder-style="color:#cbcbcb"
+					v-model="commentRemark"
+				/>
+			</view>
+			<view class="righticon">
+				<view class="iconbox" v-if="!commentFlag" @click="clickGood()">
+					<view class="number">{{ guideInfo.likeNum }}</view>
+					<image class="icon" src="/static/img_new/gonglue/zan3.png"></image>
+				</view>
+				<view class="iconbox" v-if="!commentFlag">
+					<view class="number">{{ guideInfo.commentNum }}</view>
+					<image class="icon" src="/static/img_new/gonglue/news.png"></image>
+				</view>
+				<view class="iconbox" v-if="!commentFlag" @click="favoriteWithData()">
+					<view class="number">{{ guideInfo.favoriteNum }}</view>
+					<image class="icon" src="/static/img_new/gonglue/shoucang.png"></image>
+				</view>
+				<view v-if="commentFlag" class="sendbtn" style="z-index: 1000;"><view class="txt" v-on:click.stop="addComment">发送</view></view>
+			</view>
+		</view>
+		<!-- 相关推荐结束 -->
+	</view>
+</template>
+
+<script>
+	import waterFallsFlow from "../newPage/module/waterfallsFlow.vue"
+	import jyfParser from "@/components/jyf-parser/jyf-parser";
+export default {
+	components: {
+		waterFallsFlow,
+		jyfParser
+	},
+	data() {
+		return {
+			guideId: 0,
+			guideType:'',
+			guideInfo: {},
+			goodInfoList: [],
+			commentList: [],
+			strategyList: [],
+			commentRemark: '',
+			commentTotal: 0,
+			commentFlag: false,
+			shareData: {},
+			isFavorite: false,
+			favoriteType: '3'
+		};
+	},
+	onLoad(e) {
+		if(e.guideType){
+			this.guideType= e.guideType;
+		}
+		if (e.guideId) {
+			this.guideId = e.guideId;
+			this.readDetail();
+			this.queryGoodInfo();
+			this.queryCommentData();
+		}
+	},
+	// 导航栏右上角点击事件
+	onNavigationBarButtonTap(e) {
+		if (e.index == 0) {
+			this.util.shareWithData(this.shareData);
+		} else if (e.index == 1) {
+			this.util.favoriteWithData(this.isFavorite, this.favoriteType, this.guideId).then(res => {
+				this.isFavorite = res;
+			});
+		}
+	},
+	onPageScroll(e) {
+		// 为了解决滚动到最顶端时，是否收藏按钮颜色失效的问题
+		if (e.scrollTop < 10) {
+			this.util.setFavorite(this.isFavorite);
+		}
+	},
+	methods: {
+		
+		golook(e){
+			
+			// console.log(e)
+			let url = "";
+			var baseurl = this.util.GetRequest(e.href)
+			console.log(baseurl)
+			if (baseurl.platformTypeId == 1) {
+				url = "/pages/delicacies/delicacyDetail?shopId=" + baseurl.shopId 
+			} else if (baseurl.platformTypeId == 2) {
+				url = "/pages/hotel/hotelDetail?shopId=" + baseurl.shopId 
+			} else if (baseurl.platformTypeId == 3) {
+				url = "/pages/literature/literaturePlaceDetail?shopId=" + baseurl.shopId 
+			} else if (baseurl.platformTypeId == 4) {
+				url = "/pages/arder/arderShopDetail?shopId=" + baseurl.shopId 
+			} else if (baseurl.platformTypeId == 5) {
+				url = "/pages/science/scienceDetail?shopId=" + baseurl.shopId 
+			} else if (baseurl.platformTypeId == 6) {
+				url = "/pages/sports/sportsDetail?shopId=" + baseurl.shopId 
+			} else if (baseurl.platformTypeId == 7) {
+				url = "/pages/scenic/scenicDetail?shopId=" + baseurl.shopId 
+			} else if (baseurl.platformTypeId == 8) {
+				url = "/pages/purchase/purchaseList?shopId=" + baseurl.shopId 
+			} else if (baseurl.platformTypeId == 9) {
+				url = "/pages/literature/literaturePlaceDetail?shopId=" + baseurl.shopId 
+			}
+			uni.navigateTo({
+				url: url
+			});
+		},	
+		
+		onFocus() {
+			this.commentFlag = true;
+		},
+		onBlur() {
+			this.commentFlag = false;
+		},
+		readDetail() {
+			const url = '/memberapi/api/guide/read.do';
+			let data = {
+				guideId: this.guideId
+			};
+
+			this.request.get(url, data).then(res => {
+				this.guideInfo = res.data;
+				if (this.guideInfo.thumbnailPath) {
+					//this.guideInfo.thumbnailPath = this.util.formatImagePath(this.guideInfo.thumbnailPath,true);
+					this.guideInfo.thumbnailPath = this.util.formatImagePaths(this.guideInfo.thumbnailPath);
+				}
+				if (this.guideInfo.photo) {
+					this.guideInfo.photo = this.util.formatImagePath(this.guideInfo.photo, true);
+				}
+				if (this.guideInfo.userName && this.util.isPhoneNumber(this.guideInfo.userName)) {
+					this.guideInfo.userName = this.guideInfo.userName.replace(/[0-9]{4}/g, '****');
+				}
+				// if (this.guideInfo.guideDetail) {
+				// 	this.guideInfo.guideDetail = this.util.formatRichText(this.guideInfo.guideDetail);
+				// }
+				// 是否已经收藏
+				this.isFavorite = this.guideInfo.canFavorite == 2;
+				this.util.setFavorite(this.isFavorite);
+				// 分享的内容
+				this.shareData.url = this.util.getPageRuteWithDataString('guideId=' + this.guideId);
+				this.shareData.title = this.guideInfo.guideTitle;
+				this.shareData.summary = this.guideInfo.guideIntroduction||this.guideInfo.guideTitle;
+				this.shareData.imageUrl = this.guideInfo.thumbnailPath[0];
+				
+				if(this.guideInfo.shopsList != null && this.guideInfo.shopsList.length > 0){
+					this.util.formatShopList(this.guideInfo.shopsList);
+				}
+			});
+		},
+		queryGoodInfo() {
+			const url = '/memberapi/api/goodInfo/list.do';
+			let data = {
+				pageNo: 1,
+				pageSize: 7,
+				relationId: this.guideId
+			};
+
+			var that = this;
+			// 传"N"是为了不显示加载中的图片，避免出现多次加载中的bug,一个界面有多个请求，只需要在数据量比较大的请求显示加载中的动画就可以了
+			this.request.get(url, data, 'N').then(res => {
+				that.goodInfoList = res.list;
+				that.goodInfoList.forEach(item => {
+					if (item.photo) {
+						item.photo = this.util.formatImagePath(item.photo);
+					}
+				});
+			});
+		},
+		queryCommentData() {
+			let url = '/memberapi/api/comment/list.do';
+			let data = {
+				pageNo: 1,
+				pageSize: 3,
+				relationId: this.guideId, //
+				commentType: 3
+			};
+			var that = this;
+			// 传"N"是为了不显示加载中的图片，避免出现多次加载中的bug,一个界面有多个请求，只需要在数据量比较大的请求显示加载中的动画就可以了
+			this.request.get(url, data, 'N').then(res => {
+				that.commentTotal = res.totalRows;
+				that.commentList = res.list;
+
+				that.commentList.forEach(item => {
+					if (item.photo) {
+						item.photo = this.util.formatImagePath(item.photo);
+					}
+					if (item.nick && this.util.isPhoneNumber(item.nick)) {
+						item.nick = item.nick.replace(/[0-9]{4}/g, '****');
+					}
+				});
+			});
+		},
+		clickGood() {
+			if (this.request.alreadyLogin()) {
+				var url = '/memberapi/api/goodInfo/add.do';
+				if (this.guideInfo.canGoodInfo == 2) {
+					url = '/memberapi/api/goodInfo/cancel.do';
+				}
+				let data = {
+					goodType: 3,
+					relationId: this.guideId
+				};
+
+				var that = this;
+				this.request.post(url, data).then(res => {
+					if (res.returncode == 0) {
+						if (that.guideInfo.canGoodInfo == 2) {
+							that.request.toastTips('取消成功');
+							that.guideInfo.canGoodInfo = 1;
+							that.guideInfo.likeNum = that.guideInfo.likeNum - 1;
+							that.guideInfo.likeNum = that.guideInfo.likeNum < 0 ? 0 : that.guideInfo.likeNum;
+						} else {
+							that.request.toastTips('点赞成功');
+							that.guideInfo.canGoodInfo = 2;
+							that.guideInfo.likeNum = that.guideInfo.likeNum + 1;
+						}
+					}
+				});
+			}
+		},
+		commentClickGood(item) {
+			if (this.request.alreadyLogin()) {
+				var url = '/memberapi/api/goodInfo/add.do';
+				if (item.canGoodInfo == 2) {
+					url = '/memberapi/api/goodInfo/cancel.do';
+				}
+				let data = {
+					goodType: 10,
+					relationId: item.commentId
+				};
+
+				var that = this;
+				this.request.post(url, data).then(res => {
+					if (res.returncode == 0) {
+						if (item.canGoodInfo == 2) {
+							item.canGoodInfo = 1;
+							item.goodCount = item.goodCount - 1;
+							item.goodCount = item.goodCount < 0 ? 0 : item.goodCount;
+						} else {
+							item.canGoodInfo = 2;
+							item.goodCount = item.goodCount + 1;
+						}
+					}
+				});
+			}
+		},
+		//添加收藏
+		favoriteWithData: function() {
+			console.log('添加收藏添加收藏添加收藏添加收藏');
+			if (this.request.alreadyLogin()) {
+				var url = '/memberapi/api/userFavorite/cancel.do';
+				var data = {
+					relationId: this.guideId,
+					favoriteType: 3
+				};
+				if (this.guideInfo.canFavorite == 1) {
+					url = '/memberapi/api/userFavorite/add.do';
+				} else {
+					url = '/memberapi/api/userFavorite/cancel.do';
+				}
+				var that = this;
+				this.request.post(url, data).then(res => {
+					if (res.returncode === 0 && that.guideInfo.canFavorite == 1) {
+						that.request.toastTips('收藏成功');
+						that.guideInfo.canFavorite = 2;
+						that.guideInfo.favoriteNum = that.guideInfo.favoriteNum + 1;
+					} else {
+						that.request.toastTips('取消收藏');
+						that.guideInfo.canFavorite = 1;
+						that.guideInfo.favoriteNum = that.guideInfo.favoriteNum - 1;
+						that.guideInfo.favoriteNum = that.guideInfo.favoriteNum < 0 ? 0 : that.guideInfo.favoriteNum;
+					}
+				});
+			}
+		},
+		//添加评论
+		addComment: function(e) {
+			console.log('添加评论添加评论添加评论');
+			e.preventDefault();
+			if (this.request.alreadyLogin()) {
+				if (!this.commentRemark) {
+					that.request.toastTips('请填写评论');
+					return false;
+				}
+
+				let url = '/memberapi/api/comment/add.do';
+				let data = {
+					relationId: this.guideId,
+					commentType: 3,
+					commentRemark: this.commentRemark
+				};
+				var that = this;
+				this.request.post(url, data).then(res => {
+					if (res.returncode === 0) {
+						that.request.toastTips('评论成功');
+						that.guideInfo.commentNum = that.guideInfo.commentNum + 1;
+						that.commentRemark = '';
+						if (this.commentTotal < 3) {
+							this.queryCommentData();
+						}
+						this.onBlur();
+					} else {
+						that.request.toastTips('评论失败');
+					}
+				});
+			}
+		},
+		toStrategyDetail(guideId) {
+			uni.navigateTo({
+				url: '/pages/strategy/strategyDetail?guideId=' + guideId
+			});
+		},
+		toShopDetail(item) {
+			console.log(item)
+			this.util.gotoShopDetail(item);
+		},
+		toCommentList() {
+			uni.navigateTo({
+				url: '/pages/strategy/commentList?guideId=' + this.guideId + '&commentType=3'
+			});
+		},
+		enlargeImage: function(index) {
+			var images = [];
+			images.push(this.guideInfo.thumbnailPath);
+			uni.previewImage({
+				urls: images,
+				current: index,
+				indicator: 'number',
+				loop: true
+			});
+		},
+		// 返回
+		goBack: function() {
+			uni.navigateBack({});
+		}
+	}
+};
+</script>
+
+<style lang="scss">
+/*其他scss */
+@import '../../common/css/other_new.scss';
+.content {
+	margin-top: 20rpx;
+	background-color: #ffffff;
+}
+</style>

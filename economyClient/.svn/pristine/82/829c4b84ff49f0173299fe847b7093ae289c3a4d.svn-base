@@ -1,0 +1,443 @@
+<template>
+	<view class="layout" style="background-color: #FFFFFF;">
+		<view class="slidebox">
+			<swiper v-if="infoSwiperList.length" class="swiper" indicator-dots circular indicator-color="#FFFFFF"
+			 indicator-active-color="#267EFF" :interval="3000" :duration="1000">
+				<swiper-item v-for="(item,index) in infoSwiperList" :key="index">
+					<image class="image" :src="item" style="width: 750rpx;"></image>
+				</swiper-item>
+			</swiper>
+			<image v-else class="bg-image" src="/static/img/common/banner.png"></image>
+		</view>
+		<view class="details-top-yhc" style="padding: 0rpx;height: auto;">
+			<view class="clearfix inner" style="border-radius: 0rpx;padding-bottom: 10rpx;">
+				<view class="top-slider-place" style="padding: 0rpx;">
+					<view class="name">{{tradeAreaData.tradeName}}</view>
+					<view style="height: 50rpx; line-height: 50rpx;margin-top: 10rpx;">
+						<view class="multiline-limit-length font-12" style="display: inline-block;max-width: 550rpx;color: #4A4A4A;"><text
+							 class="">地址：{{tradeAreaData.address?tradeAreaData.address:'--'}}</text></view>
+						<image class="location-image" style="margin-top: -10rpx;" src="../../static/img/sports/location.png" @click="goDestination()"></image>
+					</view>
+					<!-- <view style="margin-top: 6rpx;border-top: 1rpx solid #E6E7E9;" @tap="goFloorInfo">
+						<view class="floor-nav">楼层导航</view>
+						<image src="../../static/img/common/arrow_right.png" style="width: 25rpx;height: 40rpx;float: right;display: inline-block;margin-top: -60rpx;" mode="aspectFill"></image>
+					</view> -->
+				</view>
+			</view>
+		</view>
+		<view class="detail-content" style="border-top: 16rpx solid #F9F9F9;" >
+			<view class="imgbox" v-for="(item,index) in activityList" :key="index">
+				<image class="itemimg" :src="item.imagePath" @click="goactivityDetail(item.activityId)"></image>
+			</view>
+		</view>
+		
+		
+		<!-- 大牌show开始 -->
+		<view style="background-color: #FFFFFF; border-top: 16rpx solid #F9F9F9; margin-bottom: 10rpx;">
+			<view style="margin-top: 30rpx;">
+				<view style="display: inline-block;font-size: 32rpx;font-weight: 600;margin-left: 30rpx;">热门商家推荐</view>
+				<!-- v-if="shopLength>5" -->
+				<view  style="display: inline-block;margin-right: 30rpx;float: right;" @click="getAllShop">
+					<view style="display: inline-block;font-size: 30rpx;margin-right: 10rpx;">查看全部</view>
+					<image src="../../static/img_new/common/right_arrow@3x.png" style="width: 12rpx;height: 22rpx;"></image>
+				</view>
+			</view>
+			<view class="type-list">
+				<view class="curr-goods" v-for="(item,index) in tradeShopList" :key="index" @tap="toShopDetail(item)">
+					<view v-if="index<3">
+						<image :src="item.thumbnailPath" style="width: 220rpx;height: 220rpx;" mode="aspectFill"></image>
+						<view class="curr-goods-title discover-line-limit-three">{{item.shopName}}</view>
+					</view>
+					<view v-else style="margin-top: 10rpx;">
+						<image :src="item.thumbnailPath" style="width: 220rpx;height: 220rpx;" mode="aspectFill"></image>
+						<view class="curr-goods-title discover-line-limit-three">{{item.shopName}}</view>
+					</view>
+				</view>
+			</view>
+			<view v-if="shopLength==0" class="showMoreShop">暂无数据</view>
+		</view>
+		<view class="slidebox" v-if="tradeAreaData.imageBanner">
+			<swiper v-if="tradeAreaData.imageBanner" class="swiper" indicator-dots circular indicator-color="#FFFFFF"
+			 indicator-active-color="#267EFF" :interval="3000" :duration="1000">
+				<swiper-item v-for="(item,index) in tradeAreaData.imageBanner" :key="index">
+					<image class="image" :src="item" style="width: 750rpx;"></image>
+				</swiper-item>
+			</swiper>
+			<image v-else class="bg-image" src="/static/img/common/banner.png"></image>
+		</view>
+		<!-- 大牌show结束 -->
+		<!-- 楼层导览开始 综合体的时候才显示楼层，特色街没有楼层不显示 -->
+		<view v-if="tradeType==2" style="background-color: #FFFFFF; border-top: 16rpx solid #F9F9F9; margin-bottom: 10rpx;">
+			<view style="margin-top: 30rpx;">
+				<view style="font-size: 32rpx;font-weight: 600;margin-left: 30rpx;">楼层导览</view>
+				<view v-for="(item,index) in platformTradeFloorList" :key="index" style="margin-top: 30rpx;border-bottom: 2rpx solid #F9F9F9;">
+					<view>
+						<view class="floor-name">{{item.floorName?item.floorName:'--'}}</view>
+						<view v-if="item.profilePath?true:false" style="display: inline-block;margin-left: 20rpx;font-size: 28rpx;" @click="showProfilePath(item.profilePath)">{{item.floorTitle}}</view>
+						<view v-if="item.floorShopsList.length>8" style="display: inline-block;margin-right: 30rpx;float: right;" @click="getAllFloorShop(item.floorId)">
+							<view style="display: inline-block;color: #0F70FC;font-size: 30rpx;margin-right: 10rpx;">查看全部</view>
+							<image src="../../static/img/common/arrow_right.png" style="width: 22rpx;height: 28rpx;display: inline-block;"
+							 mode="aspectFill"></image>
+						</view>
+					</view>
+					<view class="type-list">
+						<view class="curr-goods" style="margin-top: 10rpx;" v-for="(currShop,i) in item.floorShopsList"
+						 :key="i" @tap="toShopDetail(currShop)">
+							<view v-if="i<8">
+								<image :src="currShop.thumbnailPath" lazy-load style="width: 210rpx;height: 210rpx;" mode="aspectFill"></image>
+								<view class="curr-goods-title discover-line-limit-three">{{currShop.shopName}}</view>
+							</view>
+						</view>
+					</view>
+					<view v-if="item.floorShopsList.length==0" class="showMoreShop" style="font-size: 28rpx;">暂无数据</view>
+				</view>
+				<view v-if="platformTradeFloorList.length==0" class="showMoreShop">暂无数据</view>
+			</view>
+		</view>
+		<!-- 楼层导览结束 -->
+		<view @click="toShopRegister" style="background-color: #FFFFFF; border-top: 16rpx solid #F9F9F9; margin-bottom: 10rpx;padding: 20rpx 0rpx 20rpx 0rpx;">
+			<image src="../../static/img/discover/shop-logo.png" style="width: 34rpx;height: 34rpx;display: inline-block;float: left;margin-left: 30rpx;margin-top: 4rpx;"
+			 mode="aspectFill"></image>
+			<view style="display: inline-block;margin-left: 30rpx;font-size: 28rpx;">我是商家，免费认领/管理该地点</view>
+			<image src="../../static/img/common/arrow_right.png" style="width: 22rpx;height: 28rpx;display: inline-block;float: right; margin-right: 30rpx;margin-top: 6rpx;"
+			 mode="aspectFill"></image>
+		</view>
+
+
+
+		<view class="detail-content" style="border-top: 16rpx solid #F9F9F9;">
+			<view class="title font-18" style="margin-left: 30rpx;margin-right: 30rpx; padding: 10rpx 0rpx 16rpx 0rpx;color: #000000;">商圈介绍</view>
+			<view class="font-14" style="margin-left: 30rpx;margin-right: 30rpx;">
+				<rich-text :nodes="tradeAreaData.tradeTheme?tradeAreaData.tradeTheme:'暂无商圈介绍'" style="margin-right: 20rpx;"></rich-text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import uniRate from "@/components/uni-rate/uni-rate.vue";
+	import columnSwiper from '@/pages/column/column-swiper.vue';
+	export default {
+		components: {
+			uniRate,
+			columnSwiper
+		},
+		data() {
+			return {
+				infoSwiperList: [],
+				shopLength: 0,
+				tradeAreaData: {
+					tradeId: 1,
+					coordinate: ''
+				},
+				tradeType:1,//1:特色街(没有楼层) 2:综合体(有楼层)
+				gradientColor: "transparent",
+				tradeShopList: [],
+				tradeFloorShopList: [],
+				platformTradeFloorList: [],
+				partitionId: '',
+				upOption: {
+					onScroll: true,
+					page: {
+						num: 0, // 当前页码,默认0,回调之前会加1,即callback(page)会从1开始
+						size: 9 // 每页数据的数量,默认10
+					}
+				},
+				activityList:[]
+			}
+		},
+		onLoad(option) {
+			if (option.tradeId) {
+				this.tradeAreaData.tradeId = option.tradeId;
+				this.tradeAreaData.coordinate = option.coordinate;
+			}
+			this.tradeType = option.tradeType;
+			uni.setNavigationBarTitle({
+				title:this.tradeType==1?'特色街':'综合体'
+			})
+		},
+		onReady() {
+			var _this = this;
+			if(_this.tradeType == 2){//综合体的时候才查询楼层
+				_this.getFloorShopList(_this.tradeAreaData.tradeId);
+			}
+			_this.getCurrTradeAbout(_this.tradeAreaData.tradeId);
+			_this.getShopList(_this.tradeAreaData.tradeId);
+			_this.getActivityList(_this.tradeAreaData.tradeId)
+		},
+		methods: {
+			// /api/activity/list.do?tradeId=xxx&pageNo=1&pageSize=10&activityType=4
+			getActivityList: function(tradeId) {
+				//获取店铺信息列表activityType
+				var that = this;
+				let url = '/memberapi/api/activity/list.do';
+				let data = {
+					pageNo: 1,
+					pageSize: 6,
+					tradeId: tradeId,
+					activityType: 4,
+				};
+				
+				that.request.get(url, data).then(res => {
+					console.log(res)
+					that.activityList = [];
+					let currListData = res.list;
+					currListData.forEach(function(item){
+						item.imagePath = that.util.formatImagePaths(item.imagePath)[0];
+					})
+					console.log(currListData)
+					that.activityList = that.tradeShopList.concat(currListData); //添加新数据
+				})
+			},
+			
+			
+			getCurrTradeAbout: function(tradeId) {
+				let url = '/memberapi/api/platform/read.do'
+				let data = {
+					tradeId: tradeId
+				};
+				var that = this;
+				this.request.get(url, data).then(res => {
+					if (res.returncode == 0) {
+						var currData = res.data;
+						if (currData.imagePath) {
+							let currDataImagePath = this.util.formatImagePaths(currData.imagePath);
+							//图片显示前三张
+							for (var i = 0; i < currDataImagePath.length; i++) {
+								this.infoSwiperList.push(currDataImagePath[i]);
+								if (i == 2) {
+									break;
+								}
+							}
+						}
+						if (currData.imageBanner) {
+							currData.imageBanner = this.util.formatImagePaths(currData.imageBanner);
+						}
+						if (currData.tradeTheme) {
+							currData.tradeTheme = currData.tradeTheme.replace(/\<img/g,
+								'<img style="width:100%;height:auto;display:block"').replace(/\width: (\d*)px/g,'').replace(/\height: (\d*)px/g,'');
+								
+						}
+						if (currData.tradeActivity) {
+							currData.tradeActivity = currData.tradeActivity.replace(/\<img/g,
+								'<img style="width:100%;height:auto;display:block"').replace(/\width: (\d*)px/g,'').replace(/\height: (\d*)px/g,'');
+						}
+						this.tradeAreaData = currData;
+
+					} else {
+						uni.showToast({
+							title: '获取商圈信息失败'
+						})
+					}
+
+				})
+			},
+			getShopList: function(tradeId) {
+				//获取店铺信息列表
+				let url = '/memberapi/api/shops/queryShopList.do';
+				let data = {
+					pageNo: 1,
+					pageSize: 6,
+					platformTradeId: tradeId,
+					essenceType: 1,
+				};
+				var that = this;
+				this.request.get(url, data).then(res => {
+					that.tradeShopList = [];
+					let currListData = res.list;
+					that.shopLength = res.totalRows;
+					that.util.formatShopList(currListData);
+					that.tradeShopList = that.tradeShopList.concat(currListData); //添加新数据
+				})
+			},
+			goFloorInfo: function() {
+				uni.navigateTo({
+					url: '../floor/floor?tradeId=' + this.tradeAreaData.tradeId
+				})
+			},
+			goDestination: function() {
+				uni.openLocation({
+					longitude: Number(this.tradeAreaData.coordinateLng),
+					latitude: Number(this.tradeAreaData.coordinateLat),
+					name: this.tradeAreaData.tradeName,
+					address: this.tradeAreaData.address
+				})
+			},
+			toShopDetail: function(item) {
+				//根据shopData.platformTypeId的值不同跳转到不同的页面
+				this.util.gotoShopDetail(item);
+			},
+			getAllShop: function() {
+				uni.navigateTo({
+					url: 'allEssenceTypeShop?tradeId=' + this.tradeAreaData.tradeId
+				})
+			},
+			getAllFloorShop: function(currFloorId) {
+				uni.navigateTo({
+					url: 'allFloorShop?tradeId=' + this.tradeAreaData.tradeId + '&floorId=' + currFloorId
+				})
+			},
+			getFloorShopList: function() {
+				const url = '/memberapi/api/platform/getTradeFloorGuideInfo.do';
+				let data = {
+					tradeId: this.tradeAreaData.tradeId
+				};
+				var that = this;
+				this.request.get(url, data).then(res => {
+					that.platformTradeFloorList = [];
+					res.list.forEach(item => {
+						if(item.profilePath){
+							item.profilePath = that.util.formatImagePath(item.profilePath);
+						}
+						that.util.formatShopList(item.floorShopsList);
+					});
+					that.platformTradeFloorList = that.platformTradeFloorList.concat(res.list);
+				})
+			},
+			showProfilePath:function(profilePath){
+				let profilePaths = [];
+				if(profilePath){
+					profilePaths.push(profilePath);
+				}
+				uni.previewImage({
+					urls:profilePaths
+				})
+			},
+			toShopRegister: function() {
+				this.util.gotoWebView('http://sj.ncrbw.cn:8080/app/h5/index.html#/pages/user/login/login');
+			},
+			goactivityDetail(activityId){
+				console.log('222')
+				uni.navigateTo({
+					url: "discoverDetails?activityId=" + activityId
+				})
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	image{will-change: transform}
+	.location-image {
+		float: right;
+		margin-right: 40rpx;
+		min-width: 50rpx;
+		width: 50rpx;
+		height: 50rpx;
+	}
+
+	.type-list {
+		margin: 10rpx 26rpx 30rpx 26rpx;
+	}
+
+	.type-list image {
+		width: 220rpx;
+		height: 158rpx;
+	}
+
+	.curr-goods {
+		margin: 20rpx 6rpx 0 6rpx;
+		display: inline-block;
+	}
+
+	.curr-goods text {
+		margin-left: 10rpx;
+	}
+
+	.curr-goods-title {
+		font-size: 28rpx;
+		color: #000000;
+		font-weight: bold;
+		text-align: center;
+	}
+
+	.type-list .img {
+		width: 20rpx;
+		height: 20rpx;
+		margin-right: 4rpx;
+	}
+
+	.type-list .goods-describe {
+		font-size: 20rpx;
+		color: #7C7C7C;
+		margin-left: 10rpx;
+	}
+
+	.discover-line-limit-two {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap; //文本不换行，这样超出一行的部分被截取，显示...
+		max-width: 330rpx;
+	}
+
+	.discover-line-limit-three {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap; //文本不换行，这样超出一行的部分被截取，显示...
+		max-width: 220rpx;
+	}
+
+	.discover-line-limit-four {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap; //文本不换行，这样超出一行的部分被截取，显示...
+		max-width: 150rpx;
+	}
+
+	.floor-nav {
+		height: 50rpx;
+		line-height: 50rpx;
+		color: #31A2F8;
+		font-size: 32rpx;
+		margin-top: 16rpx;
+		margin-bottom: 16rpx;
+	}
+
+	.swiper {
+		width: 750rpx;
+		height: 420rpx;
+		z-index: 0;
+
+		.image {
+			width: 100%;
+			height: 420rpx;
+		}
+	}
+
+	.bg-image {
+		width: 750rpx;
+		height: 350rpx;
+		z-index: 0;
+	}
+
+	.showMoreShop {
+		width: 750rpx;
+		height: 70rpx;
+		line-height: 70rpx;
+		color: #4A4A4A;
+		font-size: 32rpx;
+		text-align: center;
+		/* border-top: 2rpx solid #F9F9F9; */
+	}
+
+	.floor-name {
+		display: inline-block;
+		font-size: 28rpx;
+		width: auto;
+		max-width: 400rpx;
+		min-width: 50rpx;
+		height: 50rpx;
+		background-color: #4384F8;
+		color: #FFFFFF;
+		text-align: center;
+		line-height: 50rpx;
+		margin-left: 30rpx;
+	}
+	.imgbox{
+		padding: 0 30rpx;
+	}
+	.itemimg{
+		width: 100%;
+		margin-bottom: 50rpx;
+	}
+</style>

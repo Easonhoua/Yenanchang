@@ -1,0 +1,182 @@
+<template>
+	<view class="Rankingview">
+		<image class="bg_img" :src='backgroundimg'></image>
+		<view class="rankinglistview">
+			<view class="reallist">
+				<view class="listitem" v-for="(item,index) in rankinglist" :key="index" @click="toShopDetail(item)">
+					<view class="xuhao">
+						<image v-if="index===0" src="../../../static/img_new/Rankinglist/champion.png" class="huangguansize"></image>
+						<image v-else-if="index===1" src="../../../static/img_new/Rankinglist/runner-up.png" class="huangguansize"></image>
+						<image v-else-if="index===2" src="../../../static/img_new/Rankinglist/ThirdPlace.png" class="huangguansize"></image>
+						<text v-else class="xuhaotxt">{{ index+1 }}</text>
+					</view>
+					<view class="itemleft">
+						<view class="itemtitle">{{ item.shopName}}</view>
+						<view class="rateview">
+							<uni-rate class="star" active-color="#F24724" margin="3" :value="item.score" disabled="true" size="16" ></uni-rate>
+							<text class="scoretxt">{{item.score}}分</text>
+						</view>
+						
+						<view class="itemtips">
+							<image class="fangzi" src="../../../static/img_new/Rankinglist/shop.png"></image>
+							<text class="tipstxt">{{item.platformLabelsName}}</text>
+						</view>
+					</view>
+					<image class="rightimg" :src="item.logo"></image>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import uniRate from "@/components/uni-rate/uni-rate.vue";
+	export default {
+		components: {
+			uniRate
+		},
+		data() {
+			return {
+				rankingId: '',
+				rankingdata: {},
+				rankinglist:[],
+				backgroundimg:''
+			}
+		},
+		onLoad(opt) {
+			if(opt.rankingId){
+				this.getRankinglist(opt.rankingId)
+			}
+			this.getRankinglist(opt.rankingId)
+		},
+		methods: {
+			//店铺明细
+			toShopDetail(item){
+				this.util.gotoShopDetail(item); 
+			},
+			getRankinglist(rankingId){
+				let url = '/memberapi/api/ranking/rankShopList.do';
+				let data = {
+					rankingId: rankingId,
+				};
+				this.request.get(url, data).then(res => {
+					// console.log(res)
+					// if(res.data.thumbnailPath){
+					// 	this.bannerimg = this.util.formatImagePath(res.data.thumbnailPath)
+					// }
+					if(res.data.backgroundPath){
+						this.backgroundimg = this.util.formatImagePath(res.data.backgroundPath)
+					}
+					
+					res.data.rankingShopsQueryList.forEach(item => {
+						if (item.logo) {
+							item.logo = this.util.formatImagePath(item.logo);
+						}
+						
+					});
+					console.log(res.data.rankingShopsQueryList)
+					this.rankinglist = res.data.rankingShopsQueryList;
+				}).catch(function(error){
+					console.log(error);
+				});
+			},
+		}
+	}
+</script>
+
+<style>
+	.Rankingview{
+		width: 100%;
+		height: 2510rpx;
+		position: relative;
+	}
+	.bg_img{
+		position: absolute;
+		width: 100%;
+		height: 2510rpx;
+		left: 0;
+		top: 0;
+	}
+		
+	.rankinglistview{
+		padding-top: 540rpx;
+	}
+	.reallist{
+		width: 750rpx;
+		height: 1280rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	.listitem{
+		position: relative;
+		width: 584rpx;
+		height: 182rpx;
+		border-bottom: 1rpx solid #CCCCCC;
+		padding: 30rpx 20rpx 20rpx 100rpx;
+		box-sizing: border-box;
+	}
+	.xuhao{
+		position: absolute;
+		left: 0;
+		top: 50%;
+		transform: translateY(-26%);
+	}
+	.huangguansize{
+		width: 66rpx;
+		height: 59rpx;
+	}
+	.xuhaotxt{
+		margin-left: 20rpx;
+		font-size: 48rpx;
+		color: #F24724;
+		font-weight: bold;
+	}
+	.itemleft{
+		height: 100%;
+		float: left;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-around;
+	}
+		
+	.itemtitle{
+		width: 280rpx;
+		overflow: hidden;
+		text-overflow:ellipsis;
+		white-space: nowrap;
+		font-size: 30rpx;
+		color: #333333;
+		font-weight: bold;
+		/* margin-bottom: 30rpx; */
+	}	
+	.rateview{
+		display: flex;
+		align-items: center;
+	}
+	.scoretxt{
+		color: #333333;
+		margin-left: 20rpx;
+		font-size:24rpx;
+	}
+	.itemtips{
+		display: flex;
+		align-items: center;
+	}
+	.fangzi{
+		width: 25rpx;
+		height: 22rpx;
+		margin-right: 20rpx;
+	}
+	.tipstxt{
+		font-size: 20rpx;
+		color: #999999;
+		
+	}
+	
+	.rightimg{
+		float: right;
+		width: 156rpx;
+		height: 114rpx;
+	}
+</style>

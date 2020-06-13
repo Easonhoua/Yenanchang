@@ -1,0 +1,193 @@
+<template>
+	<view class="page placelist">
+		<view class="search-form">
+			<view class="inner">
+				<image class="search-icon" src="../../static/img_new/common/search.png"></image>
+				<input class="input" placeholder="搜索" placeholder-style="color:#B8B4A9" v-model="keyword"  @confirm="searchShop" @blur="searchShop"/>
+			</view>
+		</view>
+		<view class="tab">
+			<view class="item classify" v-on:click.stop="showType">
+				{{clickUntitledName}}<text class="i" :class="untitledIndex?'up':'down'"></text>
+				<view class="sub-classify" v-if="!untitledIndex">
+					<view class="subitem" v-on:click.stop="searchShopLabels()">全部</view>
+					<block v-if="untitledList.length">
+						<view class="subitem" v-for="(item,index) in untitledList" :key="index" v-on:click.stop="searchShopLabels(item)">
+							<image class="icon" :src="item.untitledLogo" mode="aspectFill"></image>{{item.untitledName}}
+						</view>
+					</block>
+				</view>
+			</view>
+			<view class="item" :class="tabIndex==0 ? 'active' : ''" @click="ontabtap(0)">最热</view>
+			<view class="item" :class="tabIndex==1 ? 'active' : ''" @click="ontabtap(1)">最近</view>
+			<view class="item" :class="tabIndex==2 ? 'active' : ''" @click="ontabtap(2)">最新</view>
+		</view>
+		<mescroll-uni @down="downCallBack" @init="initMescroll" @up="upCallback" >
+			<view class="tab-con">
+				<view class="module">
+					<view class="list play">
+						<view class="item" v-for="(item,index) in nearShopList" :key="index" @click="toShopDetail(item)">
+							<view class="imgbox">
+								<image class="img" :src="item.thumbnailPath" mode="aspectFill"></image>
+							</view>
+							<view class="txt">
+								<view class="item-title font32 txt-cut">{{item.shopName?item.shopName:'店铺名称'}}</view>
+								<view class="bottom-bar">
+									<view class="assist-color font24 txt-cut"><image class="dingwei" src="../../static/img_new/common/location_black@3x.png"></image>{{item.address}}</view>
+									<view class="assist-color font24"><image class="icon-dz" src="../../static/img_new/common/dz_icon_nor@3x.png"></image><text>{{item.likeNum}}</text></view>
+								</view>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</mescroll-uni>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				centerLatitude: 28.683095, //显示选中的marker坐标的经度
+				centerLongitude: 115.913536, //显示选中的marker坐标的维度
+				markers: [],
+				swiperCurrent: 0,
+				clickUntitledName:'分类',
+				tabIndex: 0,
+				coordinate:'',
+				mescroll:'',
+				nearShopList: [], //附近的店铺
+				untitledList:[], //分类集合
+				keyword: '',//查询条件
+				platformTypeId:'',//分类
+				platformLabels:'', //标签
+				untitledIndex:true,
+				sortFlag:'pageview-desc', //排序方式
+			}
+		},
+		onLoad(e) {
+			if(e.coordinate){
+				this.coordinate = e.coordinate;
+			}
+			if(e.platformLabels){
+				this.platformLabels= e.platformLabels;
+			}
+			if(e.placeName){
+				uni.setNavigationBarTitle({
+					title:e.placeName
+				});
+			}
+			if(e.platformTypeId){
+				this.platformTypeId = e.platformTypeId;
+			}
+		},
+		methods:{
+			//获取经纬度
+			getLocation:function(){
+				var self = this;
+				uni.getLocation({
+					type: 'gcj02',
+					geocode: true,
+					success: function(res) {
+						self.centerLatitude = res.latitude;
+						self.centerLongitude = res.longitude;
+					},fail(res) {
+					}
+				});
+			},
+			
+			initMescroll:function(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack:function(mescroll){
+				mescroll.resetUpScroll();
+			},
+			upCallback:function(mescroll){
+				this.queryUntitledList(); //分类
+				this.queryNearHotel(mescroll);
+			},
+			queryNearHotel: function(mescroll) {
+				let url = '/memberapi/api/shops/queryShopList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					essenceType:1,
+					coordinate: this.coordinate,
+					//platformTypeId: this.platformTypeId,
+					labelId: this.platformLabels,
+					keyword: this.keyword,
+					distance: "5000",
+					sortFlag: this.sortFlag
+				};
+				this.request.get(url, data, mescroll).then(res => {
+					let shopList = res.list;
+					this.util.formatShopList(shopList);
+					
+					if (mescroll.num == 1) this.nearShopList = [];
+					this.nearShopList = this.nearShopList.concat(shopList);
+				})
+			},
+			//店铺明细
+			toShopDetail:function(item){
+				this.util.gotoShopDetail(item); 
+			},
+			queryUntitledList:function(){
+				var url = "/memberapi/api/untitled/list.do";
+				var data={};
+				this.request.get(url,data).then(res=>{
+					for (let item of res.list) {
+						item.untitledLogo = this.util.formatImagePath(item.untitledLogo);
+					}
+					this.untitledList = res.list;
+				})
+			},
+			searchShop: function(event) {
+				this.mescroll.num = 1;
+				this.keyword = event.detail.value;
+				this.downCallBack(this.mescroll);
+			},
+			searchShopLabels:function(item){
+				if(item){
+					this.clickUntitledName = item.untitledName;
+					this.platformLabels = item.platformLabels;
+								
+					uni.setNavigationBarTitle({
+						//title:item.platformLabelsName
+						title:item.untitledName
+					})
+				}else{
+					this.clickUntitledName = '全部';
+					this.platformLabels = '';
+					uni.setNavigationBarTitle({
+						title:'全部'
+					})
+				}
+				this.mescroll.num = 1;
+				this.downCallBack(this.mescroll);
+				
+				this.showType();
+			},
+			showType:function(){
+				this.untitledIndex = !this.untitledIndex;
+			},
+			ontabtap(index) {
+				this.tabIndex = index;
+				if(this.tabIndex==0){
+					this.sortFlag="pageview-desc"; //浏览量
+				}else if(this.tabIndex==1){
+					this.sortFlag="distance-asc"; //最近
+				}else if(this.tabIndex==2){
+					this.sortFlag="a.shopId-desc";//最新
+				}
+				this.mescroll.num = 1;
+				this.downCallBack(this.mescroll);
+			},
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "../../common/css/other.scss"; 
+</style>

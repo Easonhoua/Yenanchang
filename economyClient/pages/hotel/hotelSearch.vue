@@ -1,0 +1,185 @@
+<template>
+	<view class="content-white">
+		<view class="status-bar" style="background-color: #FFFFFF;z-index: 8;"></view>
+		<view class="navi-bar">
+			<image class="navi-bar-back" src="/static/img/common/icon_back.png" @click="back"></image>
+			<view class="navi-bar-search">
+				<view class="navi-bar-date">
+					<view class="date-text">住 {{util.formatMinutesDay(reserveDate.inDate)}}</view>
+					<view class="date-text">离 {{util.formatMinutesDay(reserveDate.outDate)}}</view>
+				</view>
+				<view class="navi-line"></view>
+				<image class="search-image" src="/static/img/index/ss.png"></image>
+				<input class="search-input" type="text" v-model="keyword" placeholder="酒店/地名/关键字" placeholder-style="color:rgba(173,174,174,1)" @confirm="searchHotel"/>
+			</view>
+			<!-- <image class="navi-bar-map" src="/static/img/common/icon_map.png" @click="mapButtonClick"></image> -->
+		</view>
+
+		<mescroll-body @down="downCallBack" @init="initMescroll" @up="upCallback" top="88rpx" :topbar="true">
+			<list-shop-cell :shopList="hotelList" :useCellClick='true' @shopListItemClick="shopListItemClick"></list-shop-cell>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	import listShopCell from "@/components/list-cell-view/list-shop-cell.vue"
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		components: {
+			listShopCell
+		},
+		data() {
+			return {
+				mescroll: '',
+				keyword: "", //关键字
+				dateValue: ['2019-12-10','2019-12-11'],
+				reserveDate:{
+					inDate:'2019-12-10',//入住时间
+					outDate:'2019-12-11',//离店时间
+					days:"1"//入住天数
+				},
+				hotelList: []
+			}
+		},
+		onLoad(option) {
+			if(option.keyword){
+				this.keyword = option.keyword
+			}
+			this.reserveDate = uni.getStorageSync("reserveDate");
+		},
+		methods: {
+			initMescroll(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll) {
+				this.hotelList = [];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll) {
+				//获取项目信息列表
+				const url = '/memberapi/api/shops/queryShopList.do';
+				let coordinate = '';
+				if (this.longtitude && this.latitude) {
+					coordinate = this.longtitude + "," + this.latitude;
+				}
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					keyword: this.keyword,
+					// coordinate: coordinate,
+					platformTypeId: 2,//酒店
+					sortFlag: "distance-asc"
+				};
+				var that = this;
+				this.request.get(url, data, mescroll).then(res => {
+					let currListData = res.list;
+					// currListData.forEach(item => {
+					// 	if (item.thumbnailPath) {
+					// 		let thumbnailPath = JSON.parse(item.thumbnailPath);
+					// 		item.thumbnailPath = that.request.getBaseImagePath() + thumbnailPath.filePath_220;
+					// 	}
+					// 	let distance = this.util.distance(this.latitude, this.longtitude, item.coordinateLat, item.coordinateLng);
+					// 	this.$set(item, 'distance', parseFloat(parseInt(distance.toString().split(".")[0]) / 1000).toFixed(2));
+					// });
+					this.hotelList = this.hotelList.concat(currListData); //追加新数据
+				})
+
+
+			},
+			searchHotel:function(){
+				this.mescroll.num = 1;
+				this.downCallBack(this.mescroll);
+			},
+			back: function() {
+				uni.navigateBack({
+
+				})
+			},
+			mapButtonClick:function(){
+				uni.navigateTo({
+					url:"/pages/playMap/playMap1"
+				})
+			},
+			shopListItemClick: function(obj) {
+				
+				uni.navigateTo({
+					url: "hotelDetail?" +'&fatherPage=hotelSearch' +'&shopId=' + obj.shopId + '&coordinate=' + obj.coordinate 
+				})
+			},
+		}
+	}
+</script>
+
+<style>
+	.navi-bar {
+		width: 100vw;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		position: fixed;
+		top: var(--status-bar-height);
+		height: 98rpx;
+		z-index: 9;
+		background-color: #FFFFFF;
+	}
+
+	.navi-bar-back {
+		width: 75rpx;
+		height: 60rpx;
+		padding: 15rpx;
+		padding-left: 30rpx;
+	}
+
+	.navi-bar-search {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		width: 630rpx;
+		height: 76rpx;
+		max-height: 76rpx;
+		background-color: rgba(244, 245, 247, 1);
+		border-radius: 8rpx;
+		
+	}
+
+	.navi-bar-date {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		height: 56rpx;
+		max-height: 56rpx;
+		padding: 0rpx 20rpx;
+	}
+	.navi-line{
+		width: 1rpx;
+		height: 40rpx;
+		background-color: rgba(173, 174, 174, 0.8);
+	}
+	.date-text{
+		font-size: 22rpx;
+		height: 28rpx;
+		color: #333333;
+	}
+	.search-image {
+		width: 32rpx;
+		height: 32rpx;
+		margin-left: 20rpx;
+		margin-right: 20rpx;
+	}
+
+	.search-input {
+		font-size: 28rpx;
+		width: 330rpx;
+	}
+
+	.navi-bar-map {
+		width: 70rpx;
+		height: 80rpx;
+		padding: 17rpx 0rpx 17rpx 24rpx;
+		/* background-color: #007AFF; */
+		
+	}
+	
+	
+</style>

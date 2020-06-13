@@ -1,0 +1,114 @@
+<template>
+	<view class="content activity">
+		<mescroll-uni @down="downCallBack" @init ="initMescroll" @up="upCallback" top="88rpx" :topbar="true">
+			<column-swiper :info="infoSwiperList" @toDetail="toDetail" ></column-swiper>
+			<!-- 列表开始 -->
+			<view class="listbox">
+				<view class="list" v-for="(item,index) in activityList" :key="index" @tap="toDetail(item.activityId,index)">
+					<view class="list-img"><image :src="item.imagePath[0]"></image></view>
+					<view class="list-bd">
+						<view class="title">{{item.activityTitle}}</view>
+						<view class="txt">时间：{{item.activityTime}} </view>
+						<view class="txt"><text>状态： </text><text class="blue">{{item.endDateStr}}</text></view>
+						<view class="read"><text>浏览量 {{item.pageView}}</text><text>报名数 {{item.maxNum}}</text></view>
+						<view class="link orange"   v-if="item.statusStr ==1">马上报名</view>
+						<view class="link" v-else>查看详情</view>
+					</view>
+				</view>
+			</view>	
+		</mescroll-uni>
+	</view>
+</template>
+
+<script>
+	import columnSwiper from '@/pages/column/column-swiper.vue';
+	export default {
+		components: {
+			columnSwiper
+		},
+		props:{
+			// 坐标
+			coordinate:{
+				type:String,
+				default:"115.857963,28.683016"
+			},
+		},
+		data() {
+			return {
+				infoSwiperList: [],
+				mescroll : '',
+				keyword:'',
+				activityList:[],
+				date:0,
+			}
+		},
+		methods: {
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.activityList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				 //附近的店铺活动
+				let url = '/memberapi/api/activity/queryNearActivityList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					keyword:this.keyword,
+					coordinate: this.coordinate,
+					distance: "5000",
+					sortFlag: "distance-asc"
+				};
+				var that = this;
+				this.request.get(url,data,mescroll).then(res=>{
+					const newData = res.list;
+					let ii=0;
+					newData.forEach(item => {
+						if(item.endDate &&  item.endDate >= that.util.formatDate(new Date())){
+							//item.endDate = item.endDate.replace(/-/ig, "/");
+							item.endDateStr = '报名进行中';
+							item.statusStr=1;
+						}else{
+							item.endDateStr = '报名已结束';
+							item.statusStr=2;
+						}
+					});
+					this.infoSwiperList = [];
+					for (let item of newData) {
+						//抬头图
+						if(item.imagePath && this.mescroll.num === 1 && ii<=2){
+							var infoSwiper =[{
+								"id":item.activityId,
+								"content":item.activityTitle,
+								"status":item.statusStr,
+								"url":this.util.formatImagePaths(item.imagePath)[0],
+							}];
+							this.infoSwiperList = this.infoSwiperList.concat(infoSwiper);
+							ii++;
+						}						
+						item.imagePath = this.util.formatImagePaths(item.imagePath);
+						//console.log("item.imagePath = ", item.imagePath);
+					}
+					if(res.list.length === 0 || this.mescroll.num === 1)  this.activityList = [];
+					this.activityList = this.activityList.concat(newData); //追加新数据
+				})
+			},
+			toDetail:function(activityId,index){
+				if(index){
+					this.activityList[index].pageView++;
+				}
+				uni.navigateTo({
+					url:"../activity/activityDetail?activityId="+activityId
+				})
+			}
+		}
+	}
+</script>
+
+<style>
+	
+</style>

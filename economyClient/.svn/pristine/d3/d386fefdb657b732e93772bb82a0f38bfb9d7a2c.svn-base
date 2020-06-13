@@ -1,0 +1,371 @@
+<!--话题首页-->
+<template>
+	<view class="layout column">
+		<mescroll-uni @down="downCallBack" @init="initMescroll" @up="upCallback">
+			<!--话题-->
+			<view class="col-tabcon">
+				<view class="list-cell">
+					<view class="inner">
+						<view class="user">
+							<!-- <text class="gz">+关注</text> -->
+							<image class="img" :src="topicDynamicData.photo"></image>
+							<view class="right-txt">
+								<view class="line-h"><text class="name">{{topicDynamicData.nick}}</text></view>
+								<text class="time">{{topicDynamicData.publishTime}}</text>
+							</view>
+						</view>
+						<view class="txt">
+							<text style="color: #31A2F8;" v-on:click.stop="topicView(topicDynamicData)">#{{topicDynamicData.topicTitle}}#</text>{{topicDynamicData.dynamicRemark}}
+						</view>
+						<view v-if="topicDynamicData.dynamicImg && topicDynamicData.dynamicImg.length >1" class="imgbox">
+							<view  v-for="(itemImage,indexImage) in topicDynamicData.dynamicImg" :key="indexImage">
+								<image class="img" :src="itemImage" mode="aspectFill"></image>
+							</view>
+						</view>
+						
+						<view v-if="topicDynamicData.dynamicImg && topicDynamicData.dynamicImg.length == 1" class="imgboxbig" style="padding-bottom: 25rpx;">
+							<image class="img" :src="topicDynamicData.dynamicImg[0]" mode="widthFix"></image>
+						</view>
+					</view>
+				</view>
+			</view>
+			<view class="review">
+				<view class="review-dis">
+					<view></view>
+					<view class="review-title">
+						<text class="review-about">评论</text>
+					</view>
+				</view>
+				<view class="review-line" v-for="(item,index) in topicDynamicCommentList" :key="index">
+					<view class="display-row" style="margin-top: 10rpx;">
+						<image class="review-photo" :src="item.photo"></image>
+						<view class="display-column">
+							<text class="review-name font-14" style="color: #000000;">{{item.nick}}</text>
+							<text class="review-name font-12">{{item.commentTime}}</text>
+						</view>
+						
+						<image class="review-dz" :src="item.canGoodInfo ==1?'/static/img/index/dz.png' : '/static/img/index/dz_yes.png'" @tap="addGoodInfo(item,index)"></image>
+						<text class="review-dznum font-14">{{item.attendNum}}</text>
+					</view>
+					<view class="review-content">{{item.dynamicRemark}}</view>
+					<!-- <view> 回复暂时不做
+						<text class="reply-tip">回复</text>
+						<text class="review-date">10月27日</text>
+						<image class="review-dz" src="../../static/img/column/group_9.png"></image>
+					</view> -->
+				</view>
+			</view>
+		</mescroll-uni>
+		<!-- <view class="bottom-btn-outter-gp">
+			<button class="bottom-btn-gp" @tap="addTopicDynamicComment()">写评论</button>
+		</view> -->
+		<view class="bottom-corner-button" @tap="addTopicDynamicComment()">写评论</view>
+		<!--评价弹出框-->
+		<uni-popup ref="popup" type="bottom">
+			<view>
+				<textarea class="textarea textarea-h" placeholder="写评论" :focus="true" v-model="dynamicRemark"></textarea>
+			</view>
+			<view class="uni-popup-grou-button">
+				<view class="uni-popup-cancel-button" @click="cancelBtn('popup')">取消</view>
+				<view class="uni-popup-confirm-button" :loading="loading" :disabled="loading" @click="confirmBtn('popup')">确定</view>
+			</view>
+		</uni-popup>
+	</view>
+</template>
+
+<script>
+	var utils = require('@/common/js/util.js');
+	import uniPopup from '@/components/uni-popup/uni-popup.vue'
+	export default {
+		components: {
+			uniPopup
+		},
+		data() {
+			return {
+				loading: false,
+				dynamicRemark: '', //评论内容
+				mescroll: '',
+				topicDynamicData: {},
+				topicDynamicCommentList: [], //最新话题动态
+				clickIndex: 0,
+				userData: {}
+			}
+		},
+		onLoad(e) {
+			if (e.dynamicId) {
+				this.topicDynamicData.dynamicId = e.dynamicId;
+				this.queryDetail(e.dynamicId);
+			}
+			if (e.clickIndex) {
+				this.clickIndex = e.clickIndex;
+			}
+		},
+		onNavigationBarButtonTap() {
+			var self = this;
+			uni.showActionSheet({
+				itemList: ["投诉举报"],
+				complete(res) {
+					if (res.tapIndex == 0) {
+						self.util.tipOff(self.topicDynamicData.dynamicId);
+					}
+				}
+			})
+		},
+		methods: {
+			queryDetail: function(dynamicId) {
+				let url = '/memberapi/api/topicDynamic/read.do';
+				let data = {
+					dynamicId: dynamicId
+				};
+				var that = this;
+				this.request.get(url, data).then(res => {
+					if (res.returncode == 0) {
+						that.topicDynamicData = res.data;
+						if (that.topicDynamicData.photo) {
+							that.topicDynamicData.photo = that.util.formatImagePath(that.topicDynamicData.photo);
+						}
+						if (that.topicDynamicData.dynamicImg) {
+							that.topicDynamicData.dynamicImg = that.util.formatImagePaths(that.topicDynamicData.dynamicImg);
+						}
+						if (that.topicDynamicData.publishTime) {
+							that.topicDynamicData.publishTime = that.util.formatMinutesDay(that.topicDynamicData.publishTime);
+						}
+					}
+				})
+			},
+			initMescroll(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll) {
+				this.topicDynamicCommentList = [];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll) {
+				//获取最新的话题信息
+				const url = '/memberapi/api/topicDynamicComment/list.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					dynamicId: this.topicDynamicData.dynamicId
+				};
+				var that = this;
+				this.request.get(url, data, mescroll).then(res => {
+					let newData = res.list;
+					newData.forEach(item => {
+						// if (item.photo) {
+						// 	let photo = JSON.parse(item.photo);
+						// 	if (photo.filePath_220) {
+						// 		item.photo = that.request.getBaseImagePath() + photo.filePath_220;
+						// 	} else {
+						// 		item.photo = that.request.getBaseImagePath() + photo.filePath;
+						// 	}
+						// }
+						item.photo = this.util.formatImagePath(item.photo);
+						item.commentTime = this.util.formatMinutesDay(item.commentTime);
+					});
+					if (res.list.length === 0 || this.mescroll.num === 1) this.topicDynamicCommentList = [];
+					this.topicDynamicCommentList = this.topicDynamicCommentList.concat(newData); //追加新数据
+				})
+			},
+			//动态评价添加
+			addTopicDynamicComment: function() {
+				this.$refs['popup'].open();
+			},
+			//评论取消
+			cancelBtn(type) {
+				this.$refs[type].close();
+			},
+			//评论提交
+			confirmBtn(type) {
+				if (this.request.alreadyLogin()) {
+					let url = '/memberapi/api/topicDynamicComment/add.do';
+					let data = {
+						dynamicId: this.topicDynamicData.dynamicId,
+						dynamicRemark: this.dynamicRemark,
+					};
+					var that = this;
+					that.loading = true;
+					this.request.post(url, data).then(res => {
+						if (res.returncode === 0) {
+							that.request.toastTips("新增成功");
+							that.$refs[type].close();
+							that.downCallBack(that.mescroll);
+							that.updateTopic();
+						} else {
+							that.loading = false;
+							that.request.toastTips("新增失败");
+						}
+					})
+				}
+			},
+			updateTopic: function() {
+				var pages = getCurrentPages();
+				var prevPage = pages[pages.length - 2]; //上一个页面
+				prevPage.$refs.topicList.updateTopicDynamicList(this.clickIndex);
+			},
+			//评论点赞
+			addGoodInfo: function(item, index) {
+				let url = '/memberapi/api/goodInfo/add.do';
+				let data = {
+					relationId: item.commentId,
+					goodType: 7, //话题评论
+				};
+				if (item.canGoodInfo == 1) { //添加点赞
+					url = '/memberapi/api/goodInfo/add.do';
+				} else { //取消点赞
+					url = '/memberapi/api/goodInfo/cancel.do';
+				}
+				var that = this;
+				this.request.post(url, data).then(res => {
+					if (res.returncode === 0 && item.canGoodInfo == 1) {
+						that.request.toastTips("点赞成功");
+						that.topicDynamicCommentList[index].attendNum++;
+						that.topicDynamicCommentList[index].canGoodInfo = 2;
+					} else {
+						that.request.toastTips("取消点赞");
+						that.topicDynamicCommentList[index].attendNum--;
+						that.topicDynamicCommentList[index].canGoodInfo = 1;
+					}
+					this.downCallBack(this.mescroll);
+				})
+			},
+		}
+	}
+</script>
+
+<style>
+	.review {
+		border-top: 20rpx solid #F2F2F2;
+		width: 750rpx;
+	}
+
+	.review-dis {
+		margin: 30rpx 30rpx 30rpx 30rpx;
+	}
+
+	.review-title {
+		text-align: left;
+	}
+
+	.review-about {
+		font-size: 32rpx;
+		font-weight: bold;
+		color: #4A4A4A;
+		/* margin-left: 16rpx; */
+		margin-right: 16rpx;
+		vertical-align: middle;
+	}
+
+	.review-about-line {
+		height: 3rpx;
+		width: 94rpx;
+		background-color: #979797;
+		display: inline-block;
+		vertical-align: middle;
+	}
+
+	.review-photo {
+		width: 66rpx;
+		height: 66rpx;
+		border-radius: 100rpx;
+		display: inline-block;
+		/* margin-top: 4rpx; */
+		vertical-align: middle;
+		margin-right: 20rpx;
+		margin-left: 15px;
+	}
+
+	.review-dz {
+		width: 36rpx;
+		height: 36rpx;
+		/* display: inline-block; */
+		margin-left: auto;
+		margin-right: 12rpx;
+		/* margin-top: 14rpx; */
+		/* position: absolute; */
+		/* right: 32rpx; */
+		vertical-align: middle;
+	}
+
+	.review-name {
+		color: #9D9D9D;
+		vertical-align: middle;
+	}
+
+	.review-dznum {
+		color: #545454;
+		/* position: absolute; */
+		/* right: 30rpx; */
+		/* vertical-align: middle; */
+		/* margin-top: 10rpx; */
+		margin-right: 30rpx;
+	}
+
+	.review-content {
+		margin: 10rpx 0 0 120rpx;
+		font-size: 28rpx;
+		color: #4A4A4A;
+	}
+
+	.review-date {
+		font-size: 24rpx;
+		color: #989898;
+		margin-left: 30rpx;
+		margin-right: 50rpx;
+	}
+
+	.reply-tip {
+		margin-left: 86rpx;
+		font-size: 24rpx;
+		color: #000000;
+	}
+
+	.review-line {
+		padding-bottom: 17px;
+		border-bottom: 2rpx solid #F5F5F5;
+	}
+
+	.bottom-btn-outter-gp {
+		width: 100vw;
+		height: 98rpx;
+		line-height: 98rpx;
+		background-color: #FFFFFF;
+		bottom: 0rpx;
+		position: fixed;
+		z-index: 100;
+	}
+
+	.bottom-btn-gp {
+		width: 275rpx;
+		height: 64rpx;
+		line-height: 64rpx;
+		font-size: 32rpx;
+		text-align: center;
+		border-radius: 0;
+		position: fixed;
+		color: #FFFFFF;
+		background-color: #425257;
+		z-index: 9999;
+		border-radius: 15rpx;
+		margin: 17rpx 30rpx 17rpx 445rpx;
+	}
+
+	.uni-popup-grou-button {
+		margin-top: 10px;
+		display: flex;
+	}
+
+	.uni-popup-cancel-button {
+		width: 100%;
+		text-align: left;
+		font-size: 14px;
+		color: #3b4144;
+	}
+
+	.uni-popup-confirm-button {
+		width: 100%;
+		text-align: right;
+		font-size: 14px;
+		color: #007AFF;
+	}
+</style>

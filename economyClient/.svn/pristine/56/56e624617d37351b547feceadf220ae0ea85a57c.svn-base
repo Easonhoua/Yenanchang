@@ -1,0 +1,128 @@
+<template>
+	<view class="commentlist recommend">
+		<view class="list" v-for="(item,index) in theShopList" :key="index" @click="toShopDetail(item)">
+			<view class="imgbox">
+				<image class="img" :src="item.thumbnailPath"></image>
+			</view>
+			<view class="righttxt">
+				<view class="name">{{item.shopName}}</view>
+				<view class="score"><text class="label">{{item.score}}分</text><text class="label">{{item.commentNum}}条点评分</text><text class="tag">美食林臻选分</text></view>
+				<view class="category"><text class="label">寿司</text><text class="label">日本料理</text><text class="label">{{item.standardPrice}}元/人</text></view>
+				<view class="distance">距景区{{item.distance}}m</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		props: {
+			// 店铺列表
+			shopList: {
+				type: Array,
+				default () {
+					return []
+				}
+			},
+			// 标题
+			shopTitle:{
+				type:String,
+				default:''
+			},
+			coordinate:{
+				type:String,
+				default:''
+			},
+		},
+		data() {
+			return {
+				theShopList:[
+					{shopName:'测试',score:'3',commentNum:'333',standardPrice:'33333',distance:'9898'},
+					{shopName:'测试',score:'3',commentNum:'333',standardPrice:'33333',distance:'9898'},
+					{shopName:'测试',score:'3',commentNum:'333',standardPrice:'33333',distance:'9898'}
+				],
+				logo:""
+			};
+		},
+		created() {
+			this.setCellData(this.theShopList);
+		},
+		watch: {
+			shopList(newShopList,oldShopList){
+				this.formattingList(newShopList);
+			}
+		},
+		methods: {
+			setCellData:function(shopList){
+				this.formattingList(shopList);
+			},
+			formattingList:function(shopList){
+				this.util.formatShopList(shopList);
+				this.theShopList = shopList;
+			},
+			toShopDetail:function(item){
+				this.util.gotoShopDetail(item); 
+			},
+			toShopList:function(){
+				uni.navigateTo({
+					url: '/pages/culture/nearPlaceList?coordinate=' + this.coordinate+"&platformTypeId=7"
+				});
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	.list{
+		display: flex;
+		margin-bottom: 26rpx;
+	}
+	
+	.imgbox{
+		width: 224rpx;
+		height: 222rpx;
+		margin-right: 20rpx;
+		
+	}	
+		.img{
+			width: 224rpx;
+			height: 222rpx;
+			border-radius: 10rpx;
+		}
+		.righttxt{
+			padding-top: 24rpx;
+		}
+			.name{
+				font-size: 15px;
+				font-weight: 650;
+				margin-bottom: 10px;
+			}
+			.score{
+				margin-bottom: 4rpx;
+				font-size: 22rpx;
+				color: #666666;
+			}	
+				.label{
+					margin-right: 10rpx;
+					display: inline-block;
+				}
+				.tag{
+					background: #f8efed;
+					color: #e66563;
+					padding: 2rpx 4rpx;
+				}
+			
+			.category{
+				color: #666666;
+				margin-bottom: 4rpx;
+				font-size: 22rpx;
+			}	
+				
+			
+			
+		
+	
+	
+	@import "@/common/css/other_new.scss";
+</style>

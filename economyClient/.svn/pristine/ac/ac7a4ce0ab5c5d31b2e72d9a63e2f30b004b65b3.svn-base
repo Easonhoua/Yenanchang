@@ -1,0 +1,123 @@
+<template>
+	<view class="page searchpage">
+		<view class="header">
+			<view class="back">
+				<image class="icon" src="../../../static/img_new/common/back_black.png"></image>
+			</view>
+			<view class="searchbox">
+				<image class="icon" src="../../../static/img_new/common/search.png"></image>
+				<input class="input" placeholder="香格里拉" placeholder-style="color:#888888" />
+			</view>
+		</view>
+		<view class="tab">
+			<view class="left">
+				<view class="item">区域</view>
+				<view class="item active">默认</view>
+				<view class="item">时间</view>
+				<view class="item">价格</view>
+			</view>
+			<view class="filter">
+				<text>筛选</text>
+				<image class="icon" src="../../../static/img_new/common/filter@3x.png"></image>
+			</view>
+		</view>
+		<view class="tab-con">
+			<view class="list line-bottom">
+				<view class="imgbox">
+					<image class="img" src="../../../static/img_new/play/y_zhoubian3.png"></image>
+				</view>
+				<view class="righttxt">
+					<view class="name">红谷滩香格里拉大酒店舒适单人房</view>
+					<view class="tag">
+						<text class="label">舒适</text>
+						<text class="label">大空间</text>
+						<text class="label">天空蓝</text>
+					</view>
+					<view class="pricebox">
+						￥<text class="price">900</text>特价优惠，限时抢购
+					</view>
+					<view class="address">
+						<view class="left">
+							<text class="txt">红谷滩</text> | <text class="txt">香格里拉</text>
+						</view>
+						<view class="right">50分钟前来过</view>
+					</view>
+				</view>
+			</view>
+			<view class="list line-bottom">
+				<view class="imgbox">
+					<image class="img" src="../../../static/img_new/play/y_zhoubian3.png"></image>
+				</view>
+				<view class="righttxt">
+					<view class="name">红谷滩香格里拉大酒店舒适单人房</view>
+					<view class="tag">
+						<text class="label">舒适</text>
+						<text class="label">大空间</text>
+						<text class="label">天空蓝</text>
+					</view>
+					<view class="pricebox">
+						￥<text class="price">900</text>特价优惠，限时抢购
+					</view>
+					<view class="address">
+						<view class="left">
+							<text class="txt">红谷滩</text> | <text class="txt">香格里拉</text>
+						</view>
+						<view class="right">50分钟前来过</view>
+					</view>
+				</view>
+			</view>
+			<view class="list line-bottom">
+				<view class="imgbox">
+					<image class="img" src="../../../static/img_new/play/y_zhoubian3.png"></image>
+				</view>
+				<view class="righttxt">
+					<view class="name">红谷滩香格里拉大酒店舒适单人房</view>
+					<view class="tag">
+						<text class="label">舒适</text>
+						<text class="label">大空间</text>
+						<text class="label">天空蓝</text>
+					</view>
+					<view class="pricebox">
+						￥<text class="price">900</text>特价优惠，限时抢购
+					</view>
+					<view class="address">
+						<view class="left">
+							<text class="txt">红谷滩</text> | <text class="txt">香格里拉</text>
+						</view>
+						<view class="right">50分钟前来过</view>
+					</view>
+				</view>
+			</view>
+			<view class="list line-bottom">
+				<view class="imgbox">
+					<image class="img" src="../../../static/img_new/play/y_zhoubian3.png"></image>
+				</view>
+				<view class="righttxt">
+					<view class="name">红谷滩香格里拉大酒店舒适单人房</view>
+					<view class="tag">
+						<text class="label">舒适</text>
+						<text class="label">大空间</text>
+						<text class="label">天空蓝</text>
+					</view>
+					<view class="pricebox">
+						￥<text class="price">900</text>特价优惠，限时抢购
+					</view>
+					<view class="address">
+						<view class="left">
+							<text class="txt">红谷滩</text> | <text class="txt">香格里拉</text>
+						</view>
+						<view class="right">50分钟前来过</view>
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "../../../common/css/other_new.scss";
+</style>

@@ -1,0 +1,143 @@
+<template>
+	<view class="releaselist">
+		<!-- #ifdef APP-PLUS -->
+		<view class="status_bar">
+			<view class="top_view"></view>
+		</view>
+		<!-- #endif -->
+		<view class="header-search">
+			<image class="back" src="/static/img_new/common/back_black.png" @click="goBack()"></image>
+			<view class="searchbox">
+				<image class="icon" src="/static/img_new/common/search.png"></image>
+				<input class="input" placeholder="搜索感兴趣话题" placeholder-style="color:#999999" confirm-type="search" v-model="keyword"  @confirm="searchTopic" />
+			</view>
+		</view>
+		<view class="search-con-box">
+			<mescroll-uni @down="downCallBack" @init="initMescroll" @up="upCallback" top="180">
+				<view class="search-con" v-for="(item, index) in topicList" :key="index" v-on:click.stop="clickTopic(item)">
+					<image class="icon" :src="getImgSrc(index, item)"></image>
+					<view class="search-con-txt line-bottom">
+						<text class="title">{{item.topicTitle}}</text>
+						<text class="address">{{item.attendNum}}人参与</text>
+					</view>
+				</view>
+			</mescroll-uni>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		components: {},
+		data() {
+			return {
+				keyword: '',
+				mescroll: '',
+				topicType:'',
+				topicList: [], //店铺选择
+			}
+		},
+		onLoad(e) {
+			if(e.topicType){
+				this.topicType=e.topicType;
+			}
+		},
+		methods: {
+			initMescroll(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll) {
+				this.shopsList = [];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll) {
+				const url = '/memberapi/api/topic/topicList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					topicTitle: this.keyword,
+					topicType:this.topicType
+				};
+				var that = this;
+				this.request.get(url, data, mescroll).then(res => {
+					if (res.list.length === 0 || this.mescroll.num === 1) this.topicList = [];
+					if (res.data && res.data.length !== 0) {
+						this.topicList = this.topicList.concat(res.data);
+					}
+					this.topicList = this.topicList.concat(res.list); //追加新数据
+				})
+			},
+			goBack: function() {
+				uni.navigateBack({})
+			},
+			getImgSrc: function(index, item) {
+				switch (index) {
+					case 0:
+						return '/static/img_new/topic/s_h@3x.png';
+					default:
+						return '/static/img_new/topic/s_n@3x.png';
+				}
+			},
+			clickTopic: function(item) {
+				let data = {
+					topicTitle: item.topicTitle,
+					topicId: item.topicId
+				};
+				uni.$emit('common_topic', data);
+				uni.navigateBack({});
+			},
+			//搜索
+			searchTopic: function(event) {
+				this.keyword = event.detail.value;
+				this.downCallBack(this.mescroll);
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.status_bar {
+		height: var(--status-bar-height);
+		width: 100%;
+		background-color: #FFFFFF;
+	}
+
+	.top_view {
+		height: var(--status-bar-height);
+		width: 100%;
+		position: fixed;
+		background-color: #FFFFFF;
+		top: 0;
+		z-index: 999;
+	}
+
+	.search-con {
+		padding: 0 0 0 15px;
+
+		.search-con-txt {
+			flex-direction: row !important;
+			align-items: center;
+			max-width: 600rpx;
+
+			.title {
+				display: inline-block;
+				white-space: nowrap;
+				max-width: 80%;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+
+			.address {
+				margin-left: 10px;
+				display: inline-block;
+				white-space: nowrap;
+				width: 20%;
+				text-overflow: ellipsis;
+				text-align: right;
+			}
+		}
+	}
+
+	/*其他scss */
+	@import "../../common/css/other_new.scss";
+</style>

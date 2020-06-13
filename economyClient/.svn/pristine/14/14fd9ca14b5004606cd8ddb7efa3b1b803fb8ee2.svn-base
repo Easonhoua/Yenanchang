@@ -1,0 +1,396 @@
+<template>
+	<view class="page">
+		<image class="bg" src="/static/img_new/activity/pj_top_bg.jpg" mode="widthFix"></image>
+		<view class="main">
+		<view class="activity__top">
+			<view class="activity-flex">
+				<image class="activity__top-txt" src="/static/img_new/activity/pj_txt1.png"></image>
+				<image class="activity__top-arrow" src="/static/img_new/activity/pj_arrow.png"></image>
+			</view>
+			<!-- 优惠券 -->
+			<view class="couponbox">
+				<view class="couponbox-item">
+					<text class="fh">￥</text>
+					<view class="couponbox-item-con">
+						<text class="number">10</text>
+						<text class="gz">满120可用</text>
+						<view class="couponbox-item-btn">立即领取</view>
+					</view>
+				</view>
+				<view class="couponbox-item">
+					<text class="fh">￥</text>
+					<view class="couponbox-item-con">
+						<text class="number">10</text>
+						<text class="gz">满120可用</text>
+						<view class="couponbox-item-btn">立即领取</view>
+					</view>
+				</view>
+				<view class="couponbox-item">
+					<text class="fh">￥</text>
+					<view class="couponbox-item-con">
+						<text class="number">10</text>
+						<text class="gz">满120可用</text>
+						<view class="couponbox-item-btn">立即领取</view>
+					</view>
+				</view>
+				<view class="couponbox-item">
+					<text class="fh">￥</text>
+					<view class="couponbox-item-con">
+						<text class="number">10</text>
+						<text class="gz">满120可用</text>
+						<view class="couponbox-item-btn">立即领取</view>
+					</view>
+				</view>
+			</view>
+			<view class="btnbar">
+				<view class="coupon-btn-block red" @click="gomianHome">进入主场></view>
+			</view>
+		</view>
+		<view class="activity__bottom">
+			<view class="activity__bottom-txt">
+				<image class="txt" src="/static/img_new/activity/pj_txt2.png"></image>
+				<view class="txt-en">Happiness five parts </view>
+			</view>
+			<image class="lightning" src="/static/img_new/activity/pj_icon.png"></image>
+			<!-- 列表 -->
+			<view class="activity-listbox">
+				<!-- 右图样式 -->
+				<view class="activity-list">
+					<view class="lefttxt">
+						<view class="titlebox">
+							<text class="title">幸福五部曲一</text>
+							<text class="title">“靓”爆眼球的视觉享受</text>
+							<view class="title-line"></view>
+						</view>
+						
+						<view class="subtitle">
+							
+							</view>
+						<view class="lefttxt-con">
+							VR球幕、3Dmapping秀、互动水帘、浪漫萤火虫、新媒体艺术体验馆、声控水柱、激光秀，绚丽美景让你应接不暇。
+						</view>
+					</view>
+					<view class="imgbox">
+						<image class="img" src=""></image>
+					</view>
+				</view>
+				<!-- 左图样式 -->
+				<view class="activity-list activity-list2">
+					<view class="imgbox">
+						<image class="img" src=""></image>
+					</view>
+					<view class="lefttxt">
+						<view class="titlebox">
+							<text class="title">幸福五部曲一</text>
+							<text class="title">“靓”爆眼球的视觉享受</text>
+							<view class="title-line"></view>
+						</view>
+						
+						<view class="subtitle">
+							
+							</view>
+						<view class="lefttxt-con">
+							VR球幕、3Dmapping秀、互动水帘、浪漫萤火虫、新媒体艺术体验馆、声控水柱、激光秀，绚丽美景让你应接不暇。
+						</view>
+					</view>
+				</view>
+				<!-- 右图样式 -->
+				<view class="activity-list">
+					<view class="lefttxt">
+						<view class="titlebox">
+							<text class="title">幸福五部曲一</text>
+							<text class="title">“靓”爆眼球的视觉享受</text>
+							<view class="title-line"></view>
+						</view>
+						
+						<view class="subtitle">
+							
+							</view>
+						<view class="lefttxt-con">
+							VR球幕、3Dmapping秀、互动水帘、浪漫萤火虫、新媒体艺术体验馆、声控水柱、激光秀，绚丽美景让你应接不暇。
+						</view>
+					</view>
+					<view class="imgbox">
+						<image class="img" src=""></image>
+					</view>
+				</view>
+				<!-- 左图样式 -->
+				<view class="activity-list activity-list2">
+					<view class="imgbox">
+						<image class="img" src=""></image>
+					</view>
+					<view class="lefttxt">
+						<view class="titlebox">
+							<text class="title">幸福五部曲一</text>
+							<text class="title">“靓”爆眼球的视觉享受</text>
+							<view class="title-line"></view>
+						</view>
+						
+						<view class="subtitle">
+							
+							</view>
+						<view class="lefttxt-con">
+							VR球幕、3Dmapping秀、互动水帘、浪漫萤火虫、新媒体艺术体验馆、声控水柱、激光秀，绚丽美景让你应接不暇。
+						</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		<view class="bottombar">
+			<view class="btnbar">
+				<view class="coupon-btn-block yellow">立即抢券 ></view>
+			</view>
+			<view class="btnbar">
+				<view class="coupon-btn-block pink">分享到朋友圈 ></view>
+			</view>
+		</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default{
+		data(){
+			return{
+				
+			}
+		},
+		onLoad() {
+			let url = '/memberapi/api/coupon/list.do';
+			let data = {
+				couponType:'2',
+				pageNo:'1',
+				pageSize:'10',
+				relationId:'17'
+			};
+			this.request.post(url, data).then(res => {
+				console.log(res)
+			}).catch((e)=>{
+				console.log(e)
+			})
+		},
+		methods:{
+			gomianHome(){
+				uni.navigateTo({
+					url:'./activityMianHome'
+				})
+			}
+		}
+		
+	}
+	
+	
+	
+</script>
+
+<style lang="scss">
+	.bg{
+		z-index: 0;
+	}
+	.main{
+		position: absolute;
+		top:0;
+		left:0;
+		z-index: 1;
+	}
+	.activity__top{
+		padding-bottom:580rpx;
+	}
+	.activity__bottom{
+		background:rgba(255,242,0,1);
+		position: relative;
+		padding:80rpx 30rpx 50rpx 30rpx;
+	}
+	.activity-flex{
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-direction: column;
+		margin-top:618rpx;
+	}
+	.activity__top-txt{
+		width:272rpx;
+		height:60rpx;
+		margin-bottom:30rpx;
+	}
+	.activity__top-arrow{
+		width:32rpx;
+		height:28rpx;
+	}
+	.couponbox{
+		display: flex;
+		justify-content: space-between;
+		margin-top:70rpx;
+		margin-bottom:90rpx;
+		padding:0 20rpx;
+		.couponbox-item{
+			width:180rpx;
+			height:240rpx;
+			background: url(~@../../../static/img_new/activity/pj_itembg.png) no-repeat;
+			background-size:180rpx 240rpx;
+			display:flex;
+			flex-direction: column;
+			align-items: flex-start;
+			justify-content:center;
+			color:#fff;
+			position: relative;
+			.couponbox-item-con{
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				flex-direction: column;
+				color:#fff;
+				margin:0 auto;
+			}
+			.fh{
+				position: absolute;
+				top: 30rpx;
+				left: 32rpx;
+				font-size: 18rpx;
+				text-shadow:0rpx 4rpx 4rpx rgba(40,0,0,0.25);
+			}
+			.number{
+				font-size:44rpx;
+				display: inline-block;
+				padding-bottom:8rpx;
+				border-bottom:1px solid #fff;
+				margin-bottom:13rpx;
+				text-shadow:0rpx 4rpx 4rpx rgba(40,0,0,0.25);
+				text-align: center;
+				font-weight: bold;
+			}
+			.gz{
+				font-size:16rpx;
+				font-weight: bold;
+				margin-bottom:13rpx;
+				text-shadow:0rpx 4rpx 4rpx rgba(40,0,0,0.25);
+			}
+			.couponbox-item-btn{
+				width: 126rpx;
+				height:40rpx;
+				text-align: center;
+				font-size:16rpx;
+				color:#FFFFFF;
+				border-radius: 24rpx;
+				border:1rpx solid #FFFFFF;
+				transform: scale(0.7);
+			}
+		}
+	}
+	.btnbar{
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-bottom:26rpx;
+	}
+	.coupon-btn-block{
+		width:382rpx;
+		height:74rpx;
+		line-height:74rpx;
+		text-align: center;
+		font-family:Adobe Heiti Std;
+		font-size:40rpx;
+		font-style:italic;
+		&.red{
+			background: url(~@../../../static/img_new/activity/pj_btn1.png) no-repeat;
+			background-size:382rpx 74rpx;
+			color:#FFFFFF;
+		}
+		&.yellow{
+			background: url(~@../../../static/img_new/activity/pj_btn3.png) no-repeat;
+			background-size:382rpx 74rpx;
+			color:rgba(0,0,0,1);
+		}
+		&.pink{
+			background: url(~@../../../static/img_new/activity/pj_btn2.png) no-repeat;
+			background-size:382rpx 74rpx;
+			color:#FFFFFF;
+		}
+	}
+	.lightning{
+		width: 126rpx;
+		height:272rpx;
+		position: absolute;
+		right:84rpx;
+		top:-122rpx;
+	}
+	.activity__bottom-txt{
+		.txt{
+			width:287rpx;
+			height:50rpx;
+		}
+		.txt-en{
+			color:rgba(0,0,0,1);
+			font-size:32rpx;
+			font-style:italic;
+		}
+	}
+	.activity-listbox{
+		background: #FFFFFF;
+		padding:33rpx;
+		margin-top:44rpx;
+		.activity-list{
+			display: flex;
+			margin-bottom:60rpx;
+			.lefttxt{
+				flex: 1;
+				.titlebox{
+					position: relative;
+					display: flex;
+					flex-direction: column;
+					align-items: flex-end;
+					margin-bottom: 48rpx;
+					.title{
+						font-size:26rpx;
+						font-family:Adobe Heiti Std;
+						font-weight:bold;
+						font-style:italic;
+						z-index: 1;
+					}
+					.title-line{
+						width:100%;
+						height:11rpx;
+						background:rgba(255,240,2,1);
+						position: absolute;
+						bottom:8rpx;
+						z-index: 0;
+					}
+				}
+				.lefttxt-con{
+					font-size:24rpx;
+					font-family:Adobe Heiti Std;
+					font-style:italic;
+					line-height:42rpx;
+					font-weight: bold;
+				}
+			}
+			.imgbox{
+				width:324rpx;
+				height:438rpx;
+				flex-shrink: 0;
+				margin-left:30rpx;
+				background: #f3f5f7;
+				.img{
+					width:324rpx;
+					height:438rpx;
+				}
+			}
+		}
+		.activity-list2{
+			.lefttxt{
+				.titlebox{
+					align-items: flex-start;
+				}
+			}
+			.imgbox{
+				margin-left: 0;
+				margin-right:30rpx;
+			}
+		}
+		
+	}
+	.bottombar{
+		background: #060505;
+		padding:66rpx 0;
+	}
+</style>

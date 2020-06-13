@@ -1,0 +1,137 @@
+<template>
+	<!-- style="margin-top: -2rpx;" -->
+	<view class="slidebox" >
+		<block v-if="info && info.length > 0">
+			<uni-swiper-dot :info="info" :current="current" mode="nav"  :dots-styles="dotsStyles" field="content">
+				<swiper class="swiper-box" @change="change">
+					<swiper-item v-for="(item, index) in info" :key="index" @tap="toDetail(item)">
+						<view class="swiper-item">
+							<image :src="item.url" style="width: 750rpx;height: 400rpx;" mode="aspectFill" />
+						</view>
+					</swiper-item>
+				</swiper>
+			</uni-swiper-dot>
+		</block>
+	</view>
+</template>
+
+<script>
+	import uniSwiperDot from '@/components/uni-swiper-dot/uni-swiper-dot.vue'
+	export default {
+		components: {
+			uniSwiperDot
+		},
+		props: {
+			info: {
+				type: Array,
+				default () {
+					return []
+				}
+			},
+		},
+		data() {
+			return {
+				current: 0,
+				dotsStyles: {backgroundColor: '',//rgba(0, 0, 0, .3)
+						border: '0.5px rgba(255,255,255,255) solid',
+						color: '#fff',
+						selectedBackgroundColor: 'rgba(255,255,255,255)',
+						selectedBorder: '1px rgba(255,255,255,255) solid'}
+			}
+		},
+		methods: {
+			change(e) {
+				this.current = e.detail.current
+			},
+			toDetail:function(item){
+				this.$emit('toDetail', item.id);
+			}
+		}
+	}
+</script>
+
+<style>
+	page {
+		display: flex;
+		flex-direction: column;
+		box-sizing: border-box;
+		background-color: #efeff4
+	}
+
+	view {
+		font-size: 28upx;
+		line-height: inherit
+	}
+
+	.example {
+		padding: 0 30upx 30upx
+	}
+
+	.example-title {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		font-size: 32upx;
+		color: #464e52;
+		padding: 30upx 30upx 30upx 50upx;
+		margin-top: 20upx;
+		position: relative;
+		background-color: #fdfdfd;
+		border-bottom: 1px #f5f5f5 solid
+	}
+
+	.example-title__after {
+		position: relative;
+		color: #031e3c
+	}
+
+	.example-title:after {
+		content: '';
+		position: absolute;
+		left: 30upx;
+		margin: auto;
+		top: 0;
+		bottom: 0;
+		width: 6upx;
+		height: 32upx;
+		background-color: #ccc
+	}
+
+	.example .example-title {
+		margin: 40upx 0
+	}
+
+	.example-body {
+		padding: 30upx;
+		background: #fff
+	}
+
+	.example-info {
+		padding: 30upx;
+		color: #3b4144;
+		background: #fff
+	}
+
+	.swiper-box {
+		height: 400upx;
+	}
+
+	.swiper-item {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100%;
+		background: #eee;
+		color: #fff;
+	}
+
+	.swiper-item image {
+		width: 100%;
+		height: 100%;
+	}
+	.uni-bg-blue {
+		background: #007aff;
+	}
+
+	 
+</style>

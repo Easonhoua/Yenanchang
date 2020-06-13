@@ -1,0 +1,199 @@
+<template>
+	<view class="page">
+		<mescroll-body @down="downCallBack" @up="upCallback" @init="initMescroll">
+			<view class="my-coupon" v-for="(item, index) in couponList" :key="index">
+				<view class="my-coupon-item" @click="toDelicacyDetails(item)">
+					<image class="bg" :src="couponImg(item.couponStatus)"></image>
+					<view class="my-coupon-left">
+						<view class="top">
+							<view>
+								<view class="numberbox red">￥<text class="number">{{item.price}}</text></view>
+							</view>
+							<view class="my-coupon-con">
+								<text class="name">满{{item.orderAmount}}可减</text>
+								<view class="time">{{item.startTime.substring(0, 10)}}-{{item.endTime.substring(0, 10)}}</view>
+							</view>
+						</view>
+						<view class="seperator"></view>
+						<view class="bottom">
+							<view class="txt">该优惠券仅限于{{item.relationName}}使用，其他不可使用</view>
+						</view>
+					</view>
+				</view>
+			</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		data() {
+			return {
+				mescroll: '',
+				couponList: []
+			}
+		},
+		methods: {
+			initMescroll: function(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack: function(mescroll) {
+				mescroll.resetUpScroll();
+			},
+			upCallback: function(mescroll) {
+				let url = '/memberapi/api/couponRecord/list.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size
+				};
+				this.request.post(url, data, mescroll).then(res => {
+					if (mescroll.num == 1) this.couponList = [];
+					this.couponList = this.couponList.concat(res.list);
+					console.log(this.couponList);
+				})
+			},
+			couponImg: function(status) {
+				// status: 1-未使用 2-已使用 3-已过期
+				if (status === 1) {
+					return '/static/img_new/food/coupon_status_use_instantly.png';
+				} else if (status === 2) {
+					return '/static/img_new/food/coupon_status_used.png';
+				} else if (status === 3) {
+					return '/static/img_new/food/coupon_status_out_of_date.png';
+				}
+			},
+			toDelicacyDetails: function(item) {
+				let url = null;
+				var type = item.couponType;
+				if (type === 1) {
+					// 1-商圈
+					url = '/pages/discover/discoverAbout?tradeId='+item.relationId+'&tradeType='+item.tradeType;
+					uni.navigateTo({
+						url: url
+					})
+				} else if( type===2) {
+					uni.navigateTo({
+						url: "/pages/activity/activityDetail?activityId="+item.relationId
+					})
+				} else if (type === 3) {
+					item.shopId = item.relationId;
+					this.util.gotoShopDetail(item);
+				}
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.my-coupon {
+		.my-coupon-item {
+			width: 640rpx;
+			height: 183rpx;
+			position: relative;
+			margin: 44rpx auto 44rpx auto;
+
+			.bg {
+				z-index: 0;
+				width: 640rpx;
+				height: 183rpx;
+				position: absolute;
+			}
+
+			.my-coupon-left {
+				z-index: 1;
+				position: absolute;
+				width: 523rpx;
+				background-size: 523rpx 183rpx;
+				display: flex;
+				flex-direction: column;
+				padding-left: 40rpx;
+
+				.top {
+					display: flex;
+					align-items: center;
+					justify-content: space-between;
+
+					.time {
+						font-size: 16rpx;
+						color: #999;
+						margin-top: 8rpx;
+						transform: scale(0.8);
+					}
+				}
+
+				.name {
+					font-size: 24rpx;
+					margin-top: 4rpx;
+				}
+
+				.seperator {
+					width: 235px;
+					height: 1rpx;
+					line-height: 1;
+					display: inline;
+					border-radius: 30px;
+					position: relative;
+					border: 1px dotted #eeeeee;
+					margin-left: -10px;
+				}
+
+				.bottom {
+					height: 56rpx;
+
+					.txt {
+						font-size: 12px;
+						color: #999;
+						transform: scale(0.7);
+						transform-origin: 0% 0%;
+						width: 750rpx;
+						line-height: 56rpx;
+					}
+
+
+				}
+
+				.numberbox {
+					font-size: 36rpx;
+					font-weight: bold;
+
+					.number {
+						font-size: 80rpx;
+						font-weight: bold;
+					}
+				}
+
+				.label {
+					font-size: 20rpx;
+				}
+			}
+
+			.my-coupon-con {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: space-between;
+				flex: 1;
+			}
+
+			.red {
+				color: #F24724;
+			}
+		}
+
+		.my-coupon-un {
+			background-size: 640rpx 180rpx;
+
+			.red {
+				color: #999;
+			}
+
+			.my-coupon__left {
+				.name {
+					color: #999;
+				}
+			}
+		}
+	}
+</style>

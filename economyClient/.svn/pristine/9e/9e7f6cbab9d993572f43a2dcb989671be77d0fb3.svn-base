@@ -1,0 +1,313 @@
+<template>
+	<view class="layout">
+		<view class="navi-bar">
+			<view class="status-bar"></view>
+			<view class="navi-bar navi-bar1">
+				<image class="navi-bar-back" src="/static/img/common/icon_back.png" @click="back"></image>
+				<view @click="selectAddress">{{areaAddress}}</view>
+				<view class="right-buttons">
+					<!-- <image class="right-buttons-item" src="/static/img/common/icon_share.png"></image> -->
+				</view>
+			</view>
+		</view>
+		<mpvue-city-picker themeColor="#FE350F" ref="mpvueCityPicker" :pickerValueDefault="pickerValueDefault"
+		 @onCancel="selectAddressCancel" @onConfirm="selectAddressConfirm"></mpvue-city-picker>
+		 
+		<view class="ranklist-top" v-if="rankingList && rankingList.length > 0">
+			<mescroll-body @down="downCallBack" @init ="initMescroll" @up="upCallback" top="120">
+				<view class="ranklist" v-for="(item,index) in rankingList.slice(0, imgSize)" :key="index">
+					<block v-for="(itemI,indexI) in rankingList" :key="indexI">
+						<view class="item"  v-if="indexI >= 4*index && indexI <=4*index+3" @click="viewRanking(itemI)">
+							<text class="txt">{{itemI.rankingName}}</text>
+							<view class="masking"></view>
+							<image class="img" :src="util.formatImagePath(itemI.thumbnailPath)" mode="aspectFill"></image>
+						</view>
+					</block>
+				</view>
+				
+				<view class="near-title">附近上榜</view>
+				<list-shop-cell :shopList="shopList"></list-shop-cell>
+				
+			</mescroll-body>
+		</view>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	import listShopCell from "@/components/list-cell-view/list-shop-cell.vue";
+	import mpvueCityPicker from '@/components/mpvue-citypicker/mpvueCityPicker.vue';
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		components: {
+			listShopCell,
+			mpvueCityPicker
+		},
+		data() {
+			return {
+				areaAddress:'全城',
+				areaCode:'', //区域编号
+				pickerValueDefault: [0,0,1],
+				mescroll : '',
+				longtitude:'',
+				latitude:'',
+				rankingType:1, //排行榜类型
+				rankingList:[],
+				shopList:[],
+				imgSize:1,
+			}
+		},
+		onLoad(e) {
+			if(e.rankingType){
+				this.rankingType = e.rankingType;
+				this.queryRankingList(e.rankingType);
+			}
+		},
+		onShow() {
+			var that = this;
+			uni.getLocation({
+			    type: 'gcj02',
+			    success: function (res) {
+					that.longtitude = res.longitude;
+					that.latitude = res.latitude;
+			        //console.log('当前位置的经度：' + res.longitude);
+			        //console.log('当前位置的纬度：' + res.latitude);
+			    },
+				fail() {
+					
+				}
+			});
+		},
+		methods: {
+			back: function() {
+				uni.navigateBack({})
+			},
+			queryRankingList:function(rankingType){
+				const url = '/memberapi/api/ranking/listByRankingType.do';
+				let data = {
+					rankingType: this.rankingType
+				};
+				var that = this;
+				this.request.get(url,data).then(res=>{
+					that.rankingList = res.list;
+					if(that.rankingList  && that.rankingList.length > 0 ){
+						that.imgSize = Math.ceil(that.rankingList.length/4);
+					}
+				})
+			},
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.shopList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				
+				let coordinate='';
+				if(this.longtitude && this.latitude){
+					coordinate = this.longtitude+","+this.latitude;
+				}
+				//获取项目信息列表
+				const url = '/memberapi/api/shops/queryRankingShopList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					rankingType: this.rankingType,
+					coordinate:coordinate,
+					district:this.areaCode,
+				};
+				var that = this;
+				this.request.get(url,data,mescroll).then(res=>{
+					let currListData = res.list;
+					that.shopList = that.shopList.concat(currListData); //追加新数据
+				})
+			},
+			viewRanking:function(item){
+				uni.navigateTo({
+					url:'/pages/food/foodRank?rankingId='+item.rankingId
+				})
+			},
+			//省市区选择
+			selectAddress:function(){
+				// #ifdef APP-PLUS
+					plus.key.hideSoftKeybord();
+				// #endif
+				this.$refs.mpvueCityPicker.show();
+			},
+			//省市区选择点击取消
+			selectAddressCancel:function(e) {
+				this.$refs.mpvueCityPicker.hide();
+			},
+			//省市区选择点击确定
+			selectAddressConfirm:function(e) {
+				//console.log("clickAreaAddress == ",e.label.split("-")[2]+"--e.areaCode:"+e.areaCode);
+				this.areaAddress =e.label.split("-")[2];
+				this.areaCode =e.areaCode;
+				this.downCallBack(this.mescroll);
+			},
+		}
+	}
+</script>
+
+<style>
+	.navi-bar {
+		width: 100vw;
+		/* #ifdef APP-PLUS */
+		height: var(--status-bar-height);
+		/* #endif */
+		/* #ifdef H5 */
+		height: 88rpx;
+		/* #endif */
+		z-index: 7;
+		position: fixed;
+	}
+	
+	.status-bar {
+		position: fixed;
+		height: var(--status-bar-height);
+		width: 100vw;
+		z-index: 8;
+	}
+	
+	.navi-bar1 {
+		width: 100vw;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		position: fixed;
+		top: var(--status-bar-height);
+		/* height: var(--window-top); */
+		height: 88rpx;
+		z-index: 9;
+		padding-right: 30rpx;
+		margin-bottom: 300rpx;
+	}
+	
+	.navi-bar-back {
+		width: 75rpx;
+		height: 60rpx;
+		padding: 15rpx;
+		padding-left: 30rpx;
+	}
+	
+	.right-buttons {
+		height: 100%;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		/* padding-right: 15rpx; */
+		justify-content: space-between;
+		z-index: 10;
+	}
+	
+	.right-buttons-item {
+		width: 68rpx;
+		height: 80rpx;
+		padding: 20rpx 15rpx 20rpx 15rpx;
+		z-index: 11;
+		margin-right: 10rpx;
+	}
+	
+	.back-view {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100vw;
+		height: 100vh;
+		background: rgba(0, 0, 0, 0.4);
+		display: flex;
+		flex-direction: column;
+		z-index: 9999;
+	}
+	
+	.bottom-view {
+		position: fixed;
+		margin-top: auto;
+		width: 750rpx;
+		bottom: 0rpx;
+		z-index: 10000;
+		background-color: #FFFFFF;
+		text-align: center;
+	}
+	
+	.share-view {
+		width: 750rpx;
+		padding: 60rpx 0rpx;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	.share-item {
+		width: 150rpx;
+		height: 150rpx;
+	}
+	
+	.share-item-image {
+		width: 100rpx;
+		height: 100rpx;
+		padding: 10rpx;
+	}
+	
+	.cancel-button {
+		border-top: 2rpx solid #F5F5F5;
+		width: 750rpx;
+		height: 100rpx;
+		line-height: 100rpx;
+		font-size: 28rpx;
+		/* padding-top: 12rpx; */
+		/* padding-bottom: 20rpx; */
+		bottom: 20rpx;
+	}
+	
+	.ranklist{
+		width:100%;
+		display: flex;
+		justify-content:space-around;
+		padding:8rpx;
+	}
+	.ranklist .item{
+		height:150rpx;
+		flex: 1;
+		margin:0 8rpx;
+		border-radius: 15rpx;
+		overflow: hidden;
+		position: relative;
+	}
+	.ranklist .item .masking{
+		width:100%;
+		height:150rpx;
+		background: rgba(0,0,0,.4);
+		z-index: 1;
+		position: absolute;
+		left:0;
+		top:0;
+	}
+	.ranklist .item .txt{
+		width:100%;
+		position: absolute;
+		text-align: center;
+		top:80rpx;
+		font-size:32rpx;
+		color:#fff;
+		z-index: 4;
+	}
+	.ranklist .item .img{
+		width:100%;
+		height:100%;
+		border-radius: 15rpx;
+	}
+	.near-title{
+		font-size: 40rpx;
+		font-weight: bold;
+		width: 100vw;
+		background-color: #FFFFFF;
+		padding-left: 30rpx;
+		padding-bottom: 20rpx;
+	}
+</style>

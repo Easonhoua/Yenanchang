@@ -1,0 +1,397 @@
+<template>
+	<view class="page index">
+		<view class="headerNew">
+			<view class="location">
+				<image class="icon" src="../../static/img_new/common/location-blue@3x.png"></image>
+				<view class="city">{{address}}</view>
+				<view class="date">
+					<text class="datetime">{{nowDate.getDate()}}</text>
+					<text>{{nowDate.toDateString().split(" ")[1]}}.{{nowDate.getFullYear()}}</text>
+				</view>
+			</view>
+			<view v-if="searchFlag" class="weatherNew">{{weatherData.temperature}}℃ <text style="font-size: 24rpx;">{{weatherData.weather}}</text>
+			</view>
+			<view v-else class="weatherNew" @click="toSearch">
+				<image class="weather-icon" style="	width:50rpx;height:50rpx;" src="../../static/img_new/common/search.png">
+				</image>
+			</view>
+		</view><!-- 头部结束 -->
+
+		<mescroll-body @down="downCallBack" @up="upCallback" @init="initMescroll" :up="upOption" @scroll="myScroll">
+			<view class="slideboxNew" >
+				<image class="vr" src="../../static/img_new/main/vr.png" @tap="goToVr"></image><!-- vr连接 -->
+				<swiper :autoplay="true" style="height: 492rpx;" class="screen-swiper" :class="dotStyle?'square-dot':'round-dot'" :indicator-dots="true"
+				 :circular="true" interval="5000" duration="500" >
+					<swiper-item  v-for="(item,index) in bannerList" :key="index" @click="bannerClick(item)" >
+						<image style="height: 492rpx;" :src="item.photo" mode="scaleToFill" v-if="item.bannerClassification=='1'"></image>
+						<video style="height: 492rpx;" :src="item.photo" :poster="item.bannerCover" objectFit="cover" v-if="item.bannerClassification=='2'"></video>
+					</swiper-item>
+				</swiper>
+			</view>
+			<!-- 轮播图结束 -->
+			<!-- 	<view class="user-statistics">
+			<image class="icon" src="../../static/img_new/main/tj.png"></image>
+			<text>8800人正在漫游</text>
+			<view class="userbox">
+				<view class="userlogo one"><image class="img" src="../../static/img_new/main/qb.png"></image></view>
+				<view class="userlogo two"><image class="img" src="../../static/img_new/main/qb.png"></image></view>
+				<view class="userlogo three"><image class="img" src="../../static/img_new/main/qb.png"></image></view>
+				<view class="userlogo four"><image class="img" src="../../static/img_new/main/qb.png"></image></view>
+				<view class="userlogo five"><image class="img" src="../../static/img_new/main/qb.png"></image></view>
+			</view>
+		</view> -->
+			<!-- 在线用户统计结束 -->
+			<view class="module" style="padding-bottom:0;">
+				<view class="title">畅游<text class="more" @tap="topicItemClick(0)">更多</text></view>
+				<swiper class="main play play_h" next-margin="60rpx">
+					<swiper-item class="" v-for="(item,index) in tourismList" @click="shopItemClick(item)"  :key="index">
+						<view class="item">
+							<view class="imgbox">
+								<image class="img" mode="scaleToFill"  :src="item.thumbnailPath"></image>
+							</view>
+							<view class="txt">
+								<view class="item-title txt-cut">{{item.shopName}}</view>
+								<view class="bottom-bar">
+									<text class="assist-color font24">{{item.address}}</text>
+									<view class="assist-color font24">
+										<image class="icon-dz" src="../../static/img_new/common/dz_icon_nor@3x.png"></image><text>{{item.likeNum}}</text>
+									</view>
+								</view>
+							</view>
+						</view>
+					</swiper-item>
+				</swiper>
+			</view>
+			<!-- 畅游结束 -->
+			<view class="module" style="padding-right:0;">
+				<view class="title" style="padding-right:28rpx">去吧<text class="more" @tap="topicItemClick(1)">更多</text></view>
+				<swiper class="main senic" display-multiple-items="2" style="height: 320rpx;" next-margin="34rpx">
+					<swiper-item class="item" v-for="(item,index) in goList" @click="shopItemClick(item)" :key="index">
+						<view class="imgbox">
+							<image class="img" :src="item.thumbnailPath"></image>
+						</view>
+						<view class="txt">
+							<text class="mark">{{item.platformLabelsName}}</text>
+							<view class="item-title font28 txt-cut">{{item.shopName}}</view>
+							<view class="bottom-bar">
+								<view class="item-title font24 txt-cut" style="width: 80%;">
+									<image class="location-icon" src="../../static/img_new/common/location@3x.png"></image>
+									{{item.address}}
+								</view>
+							</view>
+						</view>
+					</swiper-item>
+				</swiper>
+			</view>
+			<!-- 去吧结束 -->
+			<view class="module" style="padding:17rpx;">
+				<view class="title" style="padding:0 17rpx">城事<text class="more" @click="gotoAtivityList">更多</text></view>
+				<view class="main event play">
+					<view class="item" v-for="(item,index) in activitys" :key="index" @tap="toActivityDetail(item.activityId)">
+						<view class="imgbox">
+							<image class="img"  :src="item.imagePath[0]"></image>
+						</view>
+						<view class="txt">
+							<view class="item-title font28 txt-cut">{{item.activityTitle}}</view>
+							<view class="bottom-bar">
+								<text class="assist-color font24">{{item.startDate}}-{{item.endDate}}</text>
+							</view>
+						</view>
+					</view>
+				</view>
+			</view>
+			<!-- 城事结束 -->
+			<view class="module">
+				<view class="title">话题<text class="more" @click="gotoTopicList">更多</text></view>
+				<view class="main masonry">
+					<view class="item" v-for="(item,index) in topicDynamicList" :key="index"  @tap="topicDynamicview(item,index)">
+						<view class="item_content content-lar" v-if="item.dynamicImg">
+							<view class="imgbox">
+								<image class="img" mode='widthFix' :src="item.dynamicImg[0]"></image>
+							</view>
+							<view class="txt">
+								<view class="item-title font28 txt-cut"><text class="fontcolor-blue">#{{item.topicTitle}}#</text>{{item.topicRemark}}</view>
+								<view class="bottom-bar">
+									<view class="userbox assist-color font24">
+										<view class="userimg">
+											<image class="img" src="../../static/img_new/main/ht2.png"></image>
+										</view>
+										<text class="name txt-cut">{{item.nick}}</text>
+									</view>
+									<view class="assist-color font24">
+										<image class="icon-dz" src="../../static/img_new/common/dz_icon_nor@3x.png"></image><text>1880</text>
+									</view>
+								</view>
+							</view>
+						</view>
+					</view>
+					
+				</view>
+			</view>
+			<!-- 话题结束 -->
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		data() {
+			return {
+				mescroll: '',
+				upOption: {
+					// page: {
+					// 	num: 0,
+					// 	size: 23,
+					// 	time: null
+					// }
+					onScroll:true
+				},
+				nowDate: new Date(),
+				longtitude: '', //经纬度
+				latitude: '',
+				address: '南昌',
+				weatherData: {
+					temperature: 10,
+					weather: '晴'
+				},
+				bannerList: [],
+				tourismList: [],
+				goList:[],
+				activitys:[],
+				topicDynamicList:[],
+				
+				cardCur: 0,
+				dotStyle: false,
+				towerStart: 0,
+				direction: '',
+				searchFlag:true
+			};
+		},
+		onLoad() {
+			this.getLocation();
+			uni.setStorageSync("addData", 0); //话题页签置为0
+		},
+		onReady() {
+			var agree = uni.getStorageSync("agreeUserDeal");
+			if (!agree) {
+				// #ifdef APP-PLUS
+				const subNVue = uni.getSubNVueById('userDealPrivacy');
+				subNVue.show();
+				// #endif
+
+			}
+			const app = getApp();
+			if (app.globalData.main) {
+				this.bannerList = app.globalData.main;
+			} else {
+				setTimeout(function() {
+					this.bannerList = app.globalData.main;
+				}, 3000)
+			}
+
+
+		},
+		methods: {
+
+			getLocation: function() {
+				var self = this;
+				uni.getLocation({
+					type: 'gcj02',
+					geocode: true,
+					success: function(res) {
+						self.longtitude = res.longitude;
+						self.latitude = res.latitude;
+						//console.log(res.address)
+						if (res.address) {
+							res.address.district = res.address.district.replace("区", "");
+							res.address.district = res.address.district.replace("新区", "");
+							self.address = res.address.district;
+
+						}
+					},
+					fail(res) {
+						//console.log("res = ",res);
+					}
+				});
+			},
+			//查询天气
+			queryWeatherData: function() {
+				//高德天气接口
+				var url = 'https://restapi.amap.com/v3/weather/weatherInfo';
+				var data = {
+					city: "360100",
+					key: "6ee25e3f24ef6a38dc71762e8011cd4b" //ye南昌-web服务天气key
+				}
+				uni.request({
+					url: url,
+					data: data,
+					success: (res) => {
+						if (res.data.lives[0]) {
+							this.weatherData = res.data.lives[0];
+							if (this.weatherData.temperature == 'undefined') this.weatherData.temperature = 10;
+							if (this.weatherData.weather == 'undefined') this.weatherData.weather = 晴;
+						}
+					}
+				})
+			},
+			getListInfo: function(platformTypeId,showLoading) {
+				
+				let url = '/memberapi/api/shops/shopsAndExtendsList.do';
+				let data = {
+					pageNo: 1,
+					pageSize: 10, //mescroll.size
+					essenceType: 1, //精选
+					platformTypeId: platformTypeId
+				};
+
+				if (this.keyword) {
+					data.keyword = this.keyword;
+				}
+
+
+				return this.request.get(url, data, null, showLoading);
+			},
+			initMescroll: function(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack: function(mescroll) {
+				//this.getActivityList();
+				this.queryWeatherData();
+				let _this = this;
+				this.getListInfo(7,false).then(res => {
+					let shopList = res.list;
+					_this.util.formatShopList(shopList);
+					_this.tourismList =res.list;
+				});
+				this.getListInfo(9,false).then(res => {
+					let shopList = res.list;
+					_this.util.formatShopList(shopList);
+					_this.goList =shopList;
+				});
+				this.getActivityList();
+				mescroll.resetUpScroll();
+			},
+			//活动详情
+			toActivityDetail: function(activityId) {
+				let statusStr = 0;
+				this.activitys.forEach(item => {
+					if (item.activityId == activityId)
+						statusStr = item.statusStr;
+				});
+				uni.navigateTo({
+					url: "/pages/activity/activityDetail?activityId=" + activityId + "&statusStr=" + statusStr
+				})
+			},
+			upCallback: function(mescroll, showLoading) { //获取店铺信息列表
+				//获取最新的话题信息
+				const url = '/memberapi/api/topicDynamic/list.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size
+				};
+				var that = this;
+				this.request.get(url, data, mescroll).then(res => {
+					let newData = res.list;
+					newData.forEach(item => {
+						if(item.dynamicImg){
+							item.dynamicImg = this.util.formatImagePaths(item.dynamicImg);
+						}
+						if (item.publishTime) {
+							item.publishTime = this.util.formatMinutesDay(item.publishTime.replace(/-/ig, "/"));
+						}
+					});
+					if (res.list.length === 0 || this.mescroll.num === 1) this.topicDynamicList = [];
+					this.topicDynamicList = this.topicDynamicList.concat(newData); //追加新数据
+				})
+			},
+			bannerClick: function(item) {
+				this.util.bannerClick(item);
+			},
+			shopItemClick:function(item){
+				this.util.gotoShopDetail(item); 
+			},
+			
+			getActivityList: function() {
+				let url = '/memberapi/api/activity/list.do';
+				let data = {
+					pageNo: 1,
+					pageSize: 4,
+					activityType:2
+				};
+				this.request.get(url, data).then(res => {
+			
+					var now = new Date();
+					for (let item of res.list) {
+						item.startDate = this.util.formatMinutesDay(item.startDate);
+						item.endDate = this.util.formatMinutesDay(item.endDate);
+						item.imagePath = this.util.formatImagePaths(item.imagePath);
+					}
+					this.activitys = res.list;
+				});
+			},
+			topicDynamicview:function(item,index){
+				uni.navigateTo({
+					url: "/pages/topic/topicdynamicView?dynamicId=" + item.dynamicId+"&clickIndex="+index
+				})
+			},
+			topicItemClick: function(index) {
+				// const subNVue = uni.getSubNVueById('userDealPrivacy');
+				// subNVue.show();
+				// return;
+				var urls = ['/pages/index/plateform',
+					'/pages/literature/literature',
+					'/pages/delicacies/delicacies',
+					'/pages/purchase/purchase',
+					"/pages/science/science", 
+					"/pages/sports/sports"
+				];
+				uni.navigateTo({
+					url: urls[index]
+				})
+			
+			},
+			gotoAtivityList:function(){
+				uni.setStorageSync("addData",2);
+				uni.navigateTo({
+					url:"../column/column"
+				})
+			},
+			gotoTopicList:function(){
+				uni.setStorageSync("addData",0);
+				uni.navigateTo({
+					url:"../column/column"
+				})
+			},
+			goToVr: function() {
+				uni.navigateTo({
+					url: '../webView/webView?webUrl=https://vr.chinavryan.com//tour/35c8ddf4cf676fad' + '&webTitle='
+				});
+			},
+			myScroll: function(e) {
+				var scrollTop  = e.scrollTop;
+				if(scrollTop > 50){
+					this.searchFlag = false;
+				}else{
+					this.searchFlag = true;
+				}
+			},
+			toSearch:function(){
+				uni.navigateTo({
+					url:"/pages/search/search"
+				})
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	uni-swiper {
+		display: block;
+		height: 492rpx;
+	}
+
+	/*其他scss */
+	@import "../../common/css/other.scss";
+</style>

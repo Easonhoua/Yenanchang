@@ -1,0 +1,153 @@
+<template>
+	<view class="layout letime">
+		<screenComponent platformTypeId="6" platformLabels='21' @screenLike="screenLike" ref="myScreen"></screenComponent>
+		<view class="contain">
+			<mescroll-body @down="downCallBack" @init ="initMescroll" @up="upCallback" top="130">
+				<view class="ht-card card"  v-for="(item,index) in sportsList" :key="index">
+					<view class="card-bd card-bd-box-shadow" style="border-radius: 0rpx;" @click="toDetail(item)">
+						<view class="ct-list" >
+							<image class="img" :src="item.thumbnailPath?item.thumbnailPath:'/static/img/common/banner.png'"></image>
+							<view class="righttxt">
+								<view class="name">{{item.shopName}}</view>
+								<view class="score">
+									<uni-rate :value="item.score" disabled="true" size="14" style="display: inline-flex; margin-right: -20rpx;"></uni-rate>
+									<text class="number">{{item.commentNum}}条</text>
+									<text class="number">¥{{item.discountPrice}}/人</text>
+								</view>
+								<view class="locale font24 ">{{item.address}}</view>
+								<view v-if="item.shopsPhone" class="coupon coupon2">
+									<view class="list-buttom"><label class="mark blue">订</label><text class="yw">{{item.discountPrice}}起</text><label class="mark blue" style="margin-left: 240rpx;" v-on:click.stop="telPhone(item.shopsPhone)">预定</label></view>
+								</view>
+							</view>
+						</view>
+					</view>
+				</view>
+			</mescroll-body>
+		</view>
+	</view>
+</template>
+
+<script>
+	import screenComponent from '@/components/screen-component/screen-component.vue';
+	import uniRate from "@/components/uni-rate/uni-rate.vue";
+	var _self;
+	export default {
+		components: {
+			uniRate,
+			screenComponent
+		},
+		data() {
+			return {
+				mescroll : '',
+				keyword:'',
+				platformTypeId:6,
+				platformLabels:21,
+				searchData:{},
+				sportsList:[],
+				longtitude:'',
+				latitude:''
+				}
+		},
+		onLoad() {
+			_self = this;
+		},
+		mounted() {
+			this.$refs.myScreen.getTypeLabel();
+		},
+		onShow() {
+			uni.getLocation({
+			    type: 'gcj02',
+			    success: function (res) {
+					_self.longtitude = res.longitude;
+					_self.latitude = res.latitude;
+			        //console.log('当前位置的经度：' + res.longitude);
+			        //console.log('当前位置的纬度：' + res.latitude);
+			    }
+			});
+		},
+		methods: {
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.sportsList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				//获取项目信息列表
+				const url = '/memberapi/api/shops/queryShopList.do';
+				let coordinate='';
+				if(this.longtitude && this.latitude){
+					coordinate = this.longtitude+","+this.latitude;
+				}
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					keyword: this.keyword,
+					coordinate:coordinate,
+					subjectId:'6',
+					// platformTypeId:this.platformTypeId,
+					// labelId:this.platformLabels,
+					sortFlag:'distance-desc'
+				};
+				let sendDate =Object.assign({}, this.searchData, data);
+				var that = this;
+				this.request.get(url,sendDate,mescroll).then(res=>{
+					let currListData = res.list;
+					currListData.forEach(item => {
+						// if(item.thumbnailPath){
+						// 	let thumbnailPath = JSON.parse(item.thumbnailPath);
+						// 	if(thumbnailPath.filePath_220){
+						// 		item.thumbnailPath = that.request.getBaseImagePath() + thumbnailPath.filePath_220;
+						// 	}else{
+						// 		item.thumbnailPath = that.request.getBaseImagePath() + thumbnailPath.filePath;
+						// 	}
+						// }
+						if(item.thumbnailPath){
+							item.thumbnailPath = this.util.formatImagePath(item.thumbnailPath);
+						}else{
+							item.thumbnailPath = this.util.formatImagePath(item.logo);
+						}
+						
+						let distance = this.util.distance(this.latitude,this.longtitude,item.coordinateLat,item.coordinateLng);
+						this.$set(item,'distance',parseFloat(parseInt(distance.toString().split(".")[0])/1000).toFixed(2));
+					});
+					this.sportsList = this.sportsList.concat(currListData); //追加新数据
+				})
+			},
+			screenLike(searchData){
+				this.searchData= searchData;
+				//console.log("this.searchData: " + JSON.stringify(this.searchData));
+				this.downCallBack(this.mescroll);
+			},
+			onNavigationBarSearchInputChanged (input) {
+				//console.log(input);
+				this.keyword = input.text;
+				this.downCallBack(this.mescroll);
+			},
+			back() {
+				uni.navigateBack();
+			},
+			toDetail(item){
+				uni.navigateTo({
+					url:"/pages/sports/sportsDetail?shopId="+item.shopId+'&coordinate='+item.coordinate
+				})
+			},
+			//预定
+			telPhone:function(shopsPhone){
+				uni.makePhoneCall({
+					phoneNumber: shopsPhone,
+					success: () => {
+						//console.log("成功拨打电话");
+					}
+				})
+				
+			}
+		}
+	}
+</script>
+
+<style>
+</style>

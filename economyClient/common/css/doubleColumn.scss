@@ -1,0 +1,62 @@
+/**列表*/
+$column-list-item-width:50%;
+.column-list-item {
+	color:#000;
+	width: $column-list-item-width;
+	padding: 28rpx;
+	display: inline-block;
+	margin-bottom: 34rpx;
+
+	.top-img {
+		height: 338rpx;
+		border-radius: 15rpx;
+		margin-bottom: 10rpx;
+	}
+
+	.title {
+		display: -webkit-box;
+		overflow: hidden;
+		white-space: normal !important;
+		text-overflow: ellipsis;
+		word-wrap: break-word;
+		-webkit-line-clamp: 1;
+		-webkit-box-orient: vertical;
+			
+		font-size: 28rpx;
+		margin-bottom: 6rpx;
+		font-size: 28rpx;
+	}
+
+	.bt-bar {
+		display: flex;
+
+		.score {
+			.img {
+				width: 19rpx;
+				height: 19rpx;
+				margin-right: 8rpx;
+			}
+
+			.number {
+				font-size: 20rpx;
+				margin-left: 30rpx;
+			}
+		}
+		.bt-box {
+			height: 28rpx;
+			color: #7C7C7C;
+			font-size: 18rpx;
+			text-align: center;
+			line-height: 28rpx;
+			margin-right: 10rpx;
+			
+			&.box-yellow{
+				background-color: #FFF1E5;
+			}
+			
+			&.box-blue{
+				background-color: #CAE8FF;
+			}
+		}
+	}
+}

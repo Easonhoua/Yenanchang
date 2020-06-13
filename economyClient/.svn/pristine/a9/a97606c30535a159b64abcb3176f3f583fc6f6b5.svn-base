@@ -1,0 +1,158 @@
+<template>
+	<view class="Rankingview">
+		<image src="../../../static/img_new/Rankinglist/Rankingist.png" class="rankingbanner"></image>
+		<view class="rankinglistview">
+			<scroll-view class="reallist" scroll-y @scrolltolower="scrolltolower">
+				<view class="listitem" v-for="(item,index) in rankinglist" :key="index">
+					<view class="itemleft">
+						<view class="itemtitle">{{ item.contactsName}}</view>
+						<view class="rateview">
+							<uni-rate class="star" margin="3" :value="item.score" disabled="true" size="14" ></uni-rate>
+							<text class="scoretxt">{{item.score}}分</text>
+						</view>
+						
+						<view class="itemtips">
+							<image class="fangzi" src="../../../static/img_new/Rankinglist/s_zs@3x.png"></image>
+							<text class="tipstxt">{{item.platformLabelsName}}</text>
+						</view>
+					</view>
+					<image class="rightimg" :src="item.logo"></image>
+				</view>
+			</scroll-view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import uniRate from "@/components/uni-rate/uni-rate.vue";
+	export default {
+		components: {
+			uniRate
+		},
+		data() {
+			return {
+				rankingId: '',
+				rankingdata: {},
+				rankinglist:[],
+				bannerimg:''
+			}
+		},
+		onLoad(opt) {
+			if(opt.rankingId){
+				this.getRankinglist(opt.rankingId)
+			}
+			this.getRankinglist(opt.rankingId)
+		},
+		methods: {
+			getRankinglist(rankingId){
+				let url = '/memberapi/api/ranking/rankShopList.do';
+				let data = {
+					rankingId: 5,
+				};
+				this.request.get(url, data).then(res => {
+					console.log(res)
+					if(res.data.thumbnailPath){
+						this.bannerimg = this.util.formatImagePath(res.data.thumbnailPath)
+					}
+					
+					res.data.rankingShopsQueryList.forEach(item => {
+						if (item.logo) {
+							item.logo = this.util.formatImagePath(item.logo);
+						}
+						
+					});
+					console.log(res.data.rankingShopsQueryList)
+					this.rankinglist = res.data.rankingShopsQueryList;
+				}).catch(function(error){
+					console.log(error);
+				});
+			},
+			
+			scrolltolower(){
+				console.log('111')
+			}
+		}
+	}
+</script>
+
+<style>
+	.rankingbanner{
+		width: 100%;
+		height: 431rpx;
+	}
+	.rankinglistview{
+		width: 750rpx;
+		height: 1444rpx;
+		background: url(../../../static/img_new/Rankinglist/bg.png) no-repeat;
+		background-size: cover;
+		margin-top: -12rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding-top: 20rpx;
+		box-sizing: border-box;
+	}
+	.reallist{
+		width: 600rpx;
+		height: 1280rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	.listitem{
+		width: 584rpx;
+		height: 206rpx;
+		background: #5e7a8c;
+		border-radius: 15rpx;
+		margin-top: 30rpx;
+		margin-left: 12rpx;
+		padding: 10rpx;
+		box-sizing: border-box;
+	}
+	.itemleft{
+		height: 100%;
+		float: left;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-around;
+	}
+		
+	.itemtitle{
+		width: 320rpx;
+		overflow: hidden;
+		text-overflow:ellipsis;
+		white-space: nowrap;
+		font-size: 32rpx;
+		color: #ffffff;
+		/* margin-bottom: 30rpx; */
+	}	
+	.rateview{
+		display: flex;
+		align-items: center;
+	}
+	.scoretxt{
+		color: #ffffff;
+		margin-left: 20rpx;
+		font-size:24rpx;
+	}
+	.itemtips{
+		display: flex;
+		align-items: center;
+	}
+	.fangzi{
+		width: 40rpx;
+		height: 40rpx;
+		margin-right: 20rpx;
+	}
+	.tipstxt{
+		font-size: 24rpx;
+		color: #ffffff;
+		
+	}
+	
+	.rightimg{
+		float: right;
+		width: 207rpx;
+		height: 188rpx;
+	}
+</style>

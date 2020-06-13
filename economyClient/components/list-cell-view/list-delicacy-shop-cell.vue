@@ -1,0 +1,80 @@
+<template>
+	<view class="commentlist recommend">
+		<view class="title">
+			<view class="txt">{{shopTitle}}</view>
+		</view>
+		<view class="list" v-for="(item,index) in theShopList" :key="index" @click="toShopDetail(item)">
+			<view class="imgbox">
+				<image class="img" :src="item.thumbnailPath"></image>
+			</view>
+			<view class="righttxt">
+				<view class="name">{{item.shopName}}</view>
+				<view class="score"><text class="label">{{item.score}}分</text><text class="label">{{item.commentNum}}条点评分</text><text class="tag"></text></view>
+				<view class="category"><text class="label">{{item.platformLabelsName}}</text><text class="label">{{item.standardPrice}}元/人</text></view>
+				<view class="distance">距您{{item.distance}}m</view>
+			</view>
+		</view>
+		<view class="comment-more line-top" @click="toShopList">
+			附近推荐
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		props: {
+			// 店铺列表
+			shopList: {
+				type: Array,
+				default () {
+					return []
+				}
+			},
+			// 标题
+			shopTitle:{
+				type:String,
+				default:''
+			},
+			coordinate:{
+				type:String,
+				default:''
+			},
+		},
+		data() {
+			return {
+				theShopList:[],
+				logo:""
+			};
+		},
+		created() {
+			this.setCellData(this.shopList);
+		},
+		watch: {
+			shopList(newShopList,oldShopList){
+				this.formattingList(newShopList);
+			}
+		},
+		methods: {
+			setCellData:function(shopList){
+				this.formattingList(shopList);
+			},
+			formattingList:function(shopList){
+				this.util.formatShopList(shopList);
+				this.theShopList = shopList;
+			},
+			toShopDetail:function(item){
+				this.util.gotoShopDetail(item); 
+			},
+			toShopList:function(){
+				uni.navigateTo({
+					url: '/pages/culture/nearPlaceList?coordinate=' + this.coordinate+"&platformTypeId=7"
+				});
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "@/common/css/other_new.scss";
+</style>

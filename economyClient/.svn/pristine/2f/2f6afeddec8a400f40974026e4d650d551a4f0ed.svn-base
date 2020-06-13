@@ -1,0 +1,277 @@
+<template>
+	<view class="layout letime content">
+		<!-- <screenComponent platformTypeId="2" @screenLike="screenLike" ref="myScreen"></screenComponent> -->
+		<view class="contain">
+			<mescroll-uni @down="downCallBack" @init="initMescroll" @up="upCallback">
+				<view>
+				<view class="content signup hotel-signup">
+					<view class="topbox" style="background: #F5F5F5;">
+						<view class="explain">
+							<view class="inner">
+								<view class="explain-cell bottom-line name">南昌</view>
+								<view class="explain-cell" @click="selectDate">
+									<view class="item">
+										<text class="font28">入住日期</text>
+										<view><text class="date">{{util.formatMinutesDay(reserveDate.inDate)}}</text><text class="week">{{util.getDateWeekend(reserveDate.inDate)}}</text></view>
+									</view>
+									<view class="item">
+										<text class="font28">离店日期</text>
+										<view><text class="date">{{util.formatMinutesDay(reserveDate.outDate)}}</text><text class="week">{{util.getDateWeekend(reserveDate.outDate)}}</text></view>
+									</view>
+									<view class="item item-right-arrow">
+										<text>共{{reserveDate.days}}晚</text>
+									</view>
+
+								</view>
+								<view class="searchbox">
+									<input class="search" placeholder="输入关键词" placeholder-style="color:rgba(152, 152, 152, 1);" v-model="keyword"/>
+								</view>
+								<view class="btnbar">
+									<view class="btn" @click="searchButtonClick">查询</view>
+								</view>
+							</view>
+						</view>
+					</view>
+				</view>
+				
+				
+				<view class="recommend-view">
+					<view class="recommend-title">精选推荐</view>
+					<scroll-view v-if="recommendList.length" class="recommend-scroll" scroll-x="true">
+						<view class="recommend-item" v-for="(item,index) in recommendList" :key="index" @click="shopListItemClick(item)">
+							<!-- #ifdef APP-PLUS -->
+							<image class="recommend-item-image" :src="item.thumbnailPath" mode="aspectFill"></image>
+							<!-- #endif -->
+							<!-- #ifdef H5 -->
+							<image class="recommend-item-image" :src="item.thumbnailPath" mode="aspectFill"></image>
+							<!-- #endif -->
+							<view class="recommend-item-title">{{item.shopName}}</view>
+							<view class="display-row">
+								<uni-rate :value="item.score" disabled="true" size="14" style="margin-right: 20rpx;margin-left: 6rpx;"></uni-rate>
+								<text>{{item.score}}分</text>
+							</view>
+							<!-- <view class="recommend-item-price">￥{{item.hotelMinPrice}}起</view> -->
+						</view>
+					</scroll-view>
+					<text v-else style="width: 100vw;padding-left: 30rpx;">暂无相关数据</text>
+				</view>
+				
+				<date-picker :show="showDatePicker" type="range" :value="dateValue" :show-tips="true" beginText="入住1" endText="离店"  :show-seconds="true" @confirm="dateOnSelected" @cancel="dateOnSelected"></date-picker>
+				<scroll-navi-bar class="top-scroll" :itemList="topList" @naviItemClick="naviItemClick"></scroll-navi-bar>
+				<list-shop-cell :shopList="hotelList" @shopListItemClick="shopListItemClick"></list-shop-cell>
+				</view>
+			</mescroll-uni>
+		</view>
+	</view>
+</template>
+
+<script>
+	import screenComponent from '@/components/screen-component/screen-component.vue'
+	import listShopCell from "@/components/list-cell-view/list-shop-cell.vue"
+	import scrollNaviBar from "@/components/navi-bar/scroll-navi-bar.vue"
+	import uniRate from "@/components/uni-rate/uni-rate.vue"
+	import datePicker from "@/components/date-picker/date-picker.vue"
+	export default {
+		components: {
+			uniRate,
+			listShopCell,
+			scrollNaviBar,
+			screenComponent,
+			datePicker
+		},
+		data() {
+			return {
+				mescroll: '',
+				platformTypeId: 2, //酒店
+				hotelList: [],
+				keyword: '',
+				searchData: {},
+				longtitude: '',
+				latitude: '',
+				recommendList: [],
+				topList:[],
+				platformItem:{},
+				topItemTap:false,
+				showDatePicker:false,
+				dateValue: ['2019-12-10','2019-12-11'],
+				reserveDate:{
+					inDate:'2019-12-10',//入住时间
+					outDate:'2019-12-11',//离店时间
+					days:"1"//入住天数
+				}
+			}
+		},
+		mounted() {
+			// this.$refs.myScreen.getTypeLabel();
+		},
+		// onShow() {
+		// 	uni.getLocation({
+		// 		type: 'gcj02',
+		// 		success: function(res) {
+		// 			this.longtitude = res.longitude;
+		// 			this.latitude = res.latitude;
+		// 			//console.log('当前位置的经度：' + res.longitude);
+		// 			//console.log('当前位置的纬度：' + res.latitude);
+		// 		}
+		// 	})
+		// },
+		
+		onLoad(option) {
+			var inDate = new Date();
+			this.reserveDate.inDate = this.util.formatDate(inDate);
+			this.reserveDate.outDate = this.util.getDateWithCount(1);
+			this.dateValue = [this.reserveDate.inDate,this.reserveDate.outDate];
+		},
+		
+		methods: {
+			
+			initMescroll(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll) {
+				let url = '/memberapi/api/platform/queryLabelsByType.do';
+				let data = {
+					platformTypeId: 2 //酒店
+				};
+				this.request.get(url, data, mescroll).then(res => {
+					this.topList = res.list;
+					if(!this.topItemTap){
+						this.platformItem.content = this.topList[0];
+					}
+					mescroll.resetUpScroll();
+				})
+			},
+			upCallback(mescroll,topItemTap) {
+				if (this.topList.length) {
+					// let url = '/memberapi/api/shops/shopsAndExtendsList.do';
+					let url = '/memberapi/api/shops/queryShopList.do';
+					let data = {
+						pageNo: mescroll.num,
+						pageSize: mescroll.size,
+						platformTypeId: this.platformItem.content.typeId, //大类ID
+						platformLabels: this.platformItem.content.labelId ,//小类id
+						sortFlag: "distance-asc"
+					};
+					this.request.get(url, data, mescroll, true).then(res => {
+						if(mescroll.num == 1){
+							this.hotelList = [];
+							this.recommendList = [];
+						}
+						let currListData=res.list;
+						this.util.formatShopList(currListData);
+						if (topItemTap) {
+							this.hotelList = currListData;
+						} else {
+							this.hotelList = this.hotelList.concat(currListData);
+							for (let item of currListData) {
+								if(item.essenceType == 1){
+									this.recommendList.push(item);
+								}
+							}
+						}	
+					})
+				}
+			},
+			naviItemClick:function(item){
+				this.platformItem = item;
+				this.mescroll.num = 1;
+				this.topItemTap = true;
+				this.upCallback(this.mescroll,true);
+			},
+			shopListItemClick: function(obj) {
+				uni.navigateTo({
+					url: "hotelDetail?shopId=" + obj.shopId + '&coordinate=' + obj.coordinate
+				})
+			},
+			searchButtonClick:function(){
+				uni.setStorageSync("reserveDate",this.reserveDate);
+				uni.navigateTo({
+					url:"/pages/hotel/hotelSearch?keyword="+this.keyword
+				})
+			},
+			selectDate:function(){
+				this.showDatePicker = true;
+			},
+			dateOnSelected:function(e) {//选择
+				this.showDatePicker = false;
+				if(e) {
+					this.reserveDate.inDate = e.value[0];
+					this.reserveDate.outDate = e.value[1];
+					this.reserveDate.days = this.util.getDaysByDateString(this.reserveDate.inDate,this.reserveDate.outDate)-1;
+				}
+			},
+			screenLike(searchData) {
+				this.searchData = searchData;
+				//console.log("this.searchData: " + JSON.stringify(this.searchData));
+				this.downCallBack(this.mescroll);
+			},
+			onNavigationBarSearchInputChanged(input) {
+				//console.log(input);
+				this.keyword = input.text;
+				this.downCallBack(this.mescroll);
+			}
+		}
+	}
+</script>
+
+<style>
+	
+	.top-scroll {
+		display: flex;
+		flex-direction: row;
+		white-space: nowrap;
+		z-index: 99;
+		position: -webkit-sticky;
+		position: sticky;
+		/* top: 0; */
+		background-color: #FFFFFF;
+		border-top: 2rpx solid #F5F5F5;
+	}
+	
+	.recommend-view {
+		/* margin: 20rpx; */
+		margin-top: 275rpx;
+		margin-bottom: 20rpx;
+		padding: 50rpx 30rpx;
+		padding: 40rpx 0rpx;
+		background-color: #FFFFFF;
+		/* border-radius: 16rpx; */
+		color: #000000;
+	}
+
+	.recommend-scroll {
+		width: 100%;
+		white-space: nowrap;
+		background-color: #FFFFFF;
+	}
+
+	.recommend-title {
+		font-size: 36rpx;
+		font-weight: bold;
+		padding: 30rpx;
+		padding-top: 0rpx;
+
+	}
+
+	.recommend-item {
+		width: 300rpx;
+		margin-left: 24rpx;
+		display: inline-block;
+		line-height: 40rpx;
+	}
+
+	.recommend-item-image {
+		width: 300rpx;
+		height: 200rpx;
+		border-radius: 16rpx;
+		background-color: #F5F5F5;
+	}
+
+	.recommend-item-title {
+		margin: 6rpx;
+		font-size: 28rpx;
+		max-width: 290rpx;
+		overflow: hidden;
+		font-weight: bold;
+	}
+</style>

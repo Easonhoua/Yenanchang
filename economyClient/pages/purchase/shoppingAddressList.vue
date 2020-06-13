@@ -1,0 +1,159 @@
+<template>
+	<view class="content-white payment address">
+		<mescroll-body @down="downCallBack" @init ="initMescroll" @up="upCallback">
+			<view class="input-group">
+				<radio-group style="width: 100%;">
+					<view class="input-cell" v-for="(item,index) in shoppingAddressList" :key="index">
+						<view class="input-cell-bd" @click="selectAddressMethod(item)">
+							<view class="namebox"><text class="name">{{item.shipTo}}</text><text class="phone">{{item.phone}}</text><text class="tag orange">{{item.defaultFlag == 1?'默认':''}}</text><text class="tag blue">{{item.labelTypeName}}</text></view>
+							<view class="addressbox">
+							<text style="width: 80%;">{{item.areaAddress}}{{item.address}}</text>
+							<image class="editicon" src="/static/img/common/icon_delete2.png" @click.stop="shoppingAddressDelete(item.addressId,index)"></image>
+							<image class="editicon" src="/static/img/common/icon_edit.png" @click.stop="shoppingAddressEdit(item.addressId)"></image>
+							</view>
+						</view>
+					</view>
+				</radio-group>	
+			</view>
+		</mescroll-body>		
+		<view class="bottombar" style="z-index: 9;"  @tap="addressAddMethod()">
+			<view class="btn">+ 新建收货地址</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	var date = new Date();
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		data() {
+			return {
+				mescroll : '',
+				shoppingAddressList:{}, //list列表
+				loading:false,
+				selectId:'',
+				selectFlag:false
+			}
+		},
+		onLoad(e) {
+			if(e.selectFlag){
+				this.selectFlag = e.selectFlag;
+			}
+			var that = this;
+			uni.$on("updateAddress",function(){
+				that.downCallBack(that.mescroll);
+			});
+		},
+		onUnload() {
+			uni.$off("updateAddress");
+		},
+		methods: {
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.shoppingAddressList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				//获取菜品信息列表
+				let url = '/memberapi/api/shippingAddresses/list.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size
+				};
+				var that = this;
+				this.request.post(url,data,mescroll).then(res=>{
+					if(res.list.length === 0 || this.mescroll.num === 1)  this.shoppingAddressList = [];
+					this.shoppingAddressList = this.shoppingAddressList.concat(res.list); //追加新数据
+				})
+			},
+			shoppingAddressEdit:function(addressId){
+				uni.navigateTo({
+					url:"/pages/purchase/shoppingAddressEdit?addressId="+addressId
+				})
+			},
+			shoppingAddressDelete(addressId,index){
+				var that = this;
+				uni.showModal({
+				    title: '提示',
+				    content: '确定要删除该收货地址吗？',
+				    success: function (res) {
+				        if (res.confirm) {
+							let url = '/memberapi/api/shippingAddresses/delete.do';
+							let data = {
+								addressId:addressId
+							};
+							
+							that.request.post(url,data).then(res=>{
+								that.request.toastTips("删除成功");
+								that.shoppingAddressList.splice(index,1);
+							})
+							
+				        } else if (res.cancel) {
+				        }
+				    }
+				});
+			},
+			selectAddressMethod:function(item){
+				this.selectId = item.addressId;
+				this.selectAddress = item;
+				if(this.selectFlag && this.selectAddress){
+					 uni.$emit('checkedAddress', this.selectAddress);
+					 uni.navigateBack();
+				}
+			},
+			addressAddMethod:function() {
+				uni.navigateTo({
+					url:"/pages/purchase/shoppingAddressEdit"
+				})
+			}
+			
+		},
+	}
+</script>
+
+<style>
+	.address {
+		font-size:32rpx;
+	}
+	.address .input-cell-bd{
+		width:100%;
+	}
+	.address .input-cell-bd .namebox{
+		font-weight:650;
+		margin-bottom:15rpx;
+	}
+	.address .input-cell-bd .namebox .name{
+		margin-right:80rpx;
+	}
+	.address .input-cell-bd .namebox .tag{
+		padding:0rpx 16rpx;
+		color:#fff;
+		font-size:28rpx;
+		border-radius: 8rpx;
+		display: inline-block;
+		margin:0 8rpx;
+	}
+	.address .input-cell-bd .namebox .tag.orange{
+		background: #FDBE48;
+	}
+	.address .input-cell-bd .namebox .tag.blue{
+		background: #31A2F8;
+	}
+	.address .input-cell-bd .addressbox{
+		font-size:28rpx;
+		color:#4A4A4A;
+	}
+	.address .input-cell-bd .addressbox{
+		display: flex;
+		justify-content: space-between;
+	}
+	.address .input-cell-bd .addressbox .editicon{
+		width:40rpx;
+		height:40rpx;
+	}
+</style>

@@ -1,0 +1,122 @@
+<template>
+	<view class="page tidepurchase">
+		<mescroll-uni @down="downCallBack" @init ="initMescroll" @up="upCallback" >
+		<view class="main">
+			<view class="topbanner">
+				<image v-if="banner" class="img" :src="banner.photo" mode="aspectFill"></image>
+				<image v-else class="img" src="/static/img_new/shopping/topbanner@3x.png" mode="aspectFill"></image>
+			</view>
+			
+			<view class="listbox">
+				<view class="list" v-for="(item,index) in supermarketList" :key="index" @tap="toShopDetail(item)">
+					<view class="imgbox">
+						<image class="img" :src="item.thumbnailPath" mode="aspectFill"></image>
+					</view>
+					<view class="righttxt">
+						<view class="name">
+							<text class="txt">{{item.shopName}}</text>
+							<text>好评{{item.goodRate?item.goodRate:0}}%</text>
+						</view>
+						<view class="recommend" v-if="item.goodList">
+							<view class="userbox" v-for="(good,i) in item.goodList" :key="i">
+								<image class="user" :class="'img'+i+1" :src="good.photo"></image>
+							</view>
+							<text>{{item.likeNum}}人推荐</text>
+						</view>
+						<view class="Promotion">特价优惠, 限时购</view>
+						<view class="list-distance">距您{{item.distance?item.distance:'0'}}km</view>
+					</view>
+				</view>
+			</view>
+		</view>
+		</mescroll-uni>
+	</view>
+</template>
+
+<script>
+	
+	var date = new Date();
+	export default {
+		data() {
+			return {
+				mescroll : '',
+				supermarketList:[], //list列表
+				loading:false,
+				subjectId:4,
+				bannerList:[],
+				banner:{}
+			}
+		},
+		onLoad() {
+			const app = getApp();
+			if(app.globalData.purchaseRecommend){
+				this.bannerList=app.globalData.purchaseRecommend;
+				this.banner = this.bannerList[0];
+				console.log("this.banner = ",this.banner.photo);
+			}
+		},
+		methods: {
+			initMescroll(mescroll){
+				this.mescroll = mescroll;
+			},
+			downCallBack(mescroll)
+			{
+				this.supermarketList=[];
+				mescroll.resetUpScroll();
+			},
+			upCallback(mescroll)
+			{
+				
+				const url = '/memberapi/api/shops/queryPurchaseShopList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					platformTypeId:8,
+					labelId:48,
+					subjectId: this.subjectId
+				};
+				
+				if (this.longitude && this.latitude) {
+					data.coordinate = this.longitude + "," + this.latitude;
+					// //data.distance = "5000";; //距离
+				}
+				
+				var that = this;
+				this.request.get(url, data,mescroll).then(res => {
+					var currtList = res.list;
+					currtList.forEach(item => {
+						if(item.thumbnailPath){
+							item.thumbnailPath = this.util.formatImagePath(item.thumbnailPath);
+						}else{
+							item.thumbnailPath = this.util.formatImagePath(item.logo);
+						}
+						if(item.goodList){
+							item.goodList.forEach(good => {
+								if(item.photo){
+									item.photo = this.util.formatImagePath(item.photo);
+								}
+							});
+						}
+						
+					});
+					this.supermarketList = this.supermarketList.concat(currtList);
+				})
+			},
+			toShopDetail(item){
+				this.util.gotoShopDetail(item);
+			},
+			goBack:function(){
+				uni.navigateBack({
+				})
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	/*其他scss */
+	@import "../../common/css/other_new.scss";
+	.tidepurchase{
+		background: #f5f9fc;
+	}
+</style>

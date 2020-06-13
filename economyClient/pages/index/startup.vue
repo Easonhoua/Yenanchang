@@ -1,0 +1,92 @@
+<template>
+    <view class="conten-view">
+		<view @tap="setupLaunchGuide" class="goto">跳过{{second}}</view>
+		<image class="launch-swiper" :src="ad.photo" mode="aspectFill" ></image>
+	</view>
+</template>
+
+<script>
+export default {
+    data() {
+        return {
+			second:3,
+			sid:0, 
+			ad:{}
+		}
+    },
+	onShow() {
+	},
+    onLoad() {
+		const app = getApp();
+		var ad1=uni.getStorageSync("globalDataAd");
+		if(ad1){
+			this.ad=ad1;
+		}else{
+			this.ad=app.globalData.ad;
+		}
+		var _this =this;
+		this.sid=setInterval(function(){
+			_this.second--;
+			if(_this.second<=0){
+				_this.second=0;
+				clearInterval(_this.sid);
+				_this.sid=0;
+				_this.setupLaunchGuide();
+			
+			}
+		},1000);
+		// #ifdef APP-PLUS
+		this.util.checkAppVersion();
+		// #endif
+        //this.setupLaunchGuide();
+    },
+    methods: {
+        setupLaunchGuide: function() {
+			if(this.sid!=0){
+				clearInterval(this.sid);
+			}
+			// #ifdef APP-PLUS
+				if (!(uni.getStorageSync("launchGuide") === "hide")) {
+					uni.redirectTo({
+						url: "/pages/launchGuide/launchGuide"
+					})
+				}else{
+					uni.switchTab({
+						url:"/pages/newPage/newcultrue/newcultrue"
+					})
+				}
+			// #endif
+			
+			// #ifdef H5
+				uni.switchTab({
+					// url:"/pages/culture/culture"
+					url:"/pages/newPage/newcultrue/newcultrue"
+				})
+			// #endif
+			
+        }
+    }
+};
+</script>
+<style>
+	.conten-view{
+		width: 100vw;
+		height: 99vh;
+	}
+	.launch-swiper{
+		width: 100vw;
+		height: 100vh;
+	}
+	.goto{
+		float: right;
+		padding: 10rpx;
+		border: 1px #ffffff solid;
+		border-radius: 16rpx;
+		position: absolute;
+		right: 30rpx;
+		color: #ffffff;
+		top: 30rpx;z-index: 10;font-size: 28rpx;
+		margin-top:	var(--status-bar-height);
+	}
+	
+</style>

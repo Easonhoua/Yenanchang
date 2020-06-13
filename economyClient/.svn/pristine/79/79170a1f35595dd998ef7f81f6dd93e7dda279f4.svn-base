@@ -1,0 +1,596 @@
+<template>
+	<view class="content-white" style="height: 100vh;">
+		<view class="status-bar" :style="isShowColor?'background-color:#267EFF;':'background-color:transparent;'"></view>
+		<view class="navi-bar" :style="isShowColor?'background-color:#267EFF;':'background-color:transparent;'">
+			<view class="info">
+				<image src="/static/img/index2/dw.png" style="width: 30rpx; height: 30rpx;"></image>
+				<view class="address">南昌</view>
+				<!-- <view>14℃ 晴</view> -->
+			</view>
+			<view class="search display-row">
+				<image class="icon" src="/static/img/index/ss.png"></image>
+				<input class="input" type="text" v-model="keyword" placeholder="输入商家或者商圈" placeholder-style="color:#8a8a8a"
+				 @input="searchShop"></input>
+			</view>
+			<image class="code"></image>
+		</view>
+		<!-- 防止下拉刷新时状态栏和导航栏看不清的问题 -->
+		<view style="width: 100vw;height: 400rpx;background-color:#267EFF;"></view>
+		
+		<mescroll-body @down="downCallBack" @up="upCallback" @init="initMescroll" :up="upOption" @scroll="pageScroll">
+			<view class="conten-view">
+				<view class="header-view">
+					<!-- 轮播swiper -->
+					<swiper v-if="bannerList.length" class="swiper" indicator-dots circular indicator-color="#FFFFFF" indicator-active-color="#267EFF" :interval="3000" :duration="1000">
+						<swiper-item v-for="(item,index) in bannerList" :key="index" @click="bannerClick(item)">
+							<image class="image" :src="item.photo"></image>
+						</swiper-item>
+					</swiper>
+					<image v-else class="bg-image" src="/static/img/index2/top_banner.png"></image>
+					<view class="weather-vr" >
+						<view class="temperature">{{weatherData.temperature}}°<text style="font-size: 24rpx;">{{weatherData.weather}}</text></view>
+						<image class="vr-image" src="/static/img/index2/vr.png" @click="goToVr"></image>
+					</view>
+					<view class="topic-view">
+						<view class="item" v-for="(item,index) in topicList" :key="index" @click="topicItemClick(index)">
+							<image class="image" :src="'/static/img/index2/home_icon'+(index+1)+'.png' "></image>
+							<view class="text">{{item}}</view>
+						</view>
+					</view>
+					<image class="street-image" src="/static/img/index2/cp1.png" @click="gotoPlayMap"></image>
+					<view class="display-row" style="background-color: #FFFFFF;padding-top: 20rpx;margin-top: -20rpx;">
+						<image class="card-image" src="/static/img/index2/cp2.png" @tap="towonderful"></image>
+						<image class="info-image" src="/static/img/index2/cp3.png" @tap="toconsult"></image>
+					</view>
+
+				</view>
+
+				<!-- 精彩活动 -->
+				<view v-if="activitys !=null && activitys.length > 0" class="list-title">精彩活动</view>
+				<scroll-view class="activity-scrollview" scroll-x="true">
+					<view class="activity-item" v-for="(item,index) in activitys" :key="index" @tap="toActivityDetail(item.activityId)">
+						<image class="activity-image" :src="item.imagePath[0]" mode="aspectFill"></image>
+						<view class="activity-name">{{item.activityTitle}}</view>
+						<view class="activiy-time">{{item.startDate}}-{{item.endDate}}</view>
+					</view>
+				</scroll-view>
+				<!-- 精选推荐 -->
+				<view class="list-title" style="margin-top: 20rpx;padding-bottom: 20rpx;">精选推荐</view>
+				<!-- 滚动标签 -->
+				<scroll-navi-bar class="top-scroll" :itemList="topList" @naviItemClick="naviItemClick" ></scroll-navi-bar>
+				<!-- 店铺列表 -->
+				<list-shop-cell :shopList="shopsList" ></list-shop-cell>
+			</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	var utils = require('@/common/js/util.js');
+	import scrollNaviBar from "@/components/navi-bar/scroll-navi-bar.vue"
+	import listShopCell from "@/components/list-cell-view/list-shop-cell.vue"
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		components: {
+			scrollNaviBar,
+			listShopCell
+		},
+		data() {
+			return {
+				mescroll: '',
+				upOption: {
+					onScroll: true
+				},
+				isShowColor: false,
+				activitys: [], //精彩活动
+				keyword: '',
+				longtitude: '', //经纬度
+				latitude: '',
+				topList: [],
+				topClickItem: {
+					// content: {}
+					// labelId: ""
+				},
+				bannerList: [],
+				shopsList: [], //精选推荐list列表
+				topicList: ["游洪城", "赏文创", "品佳肴", "购潮货", "习科普", "健体魄"],
+				weatherData: {
+					temperature:10,
+					weather:'晴'
+				},
+			}
+		},
+		onLoad() {
+			// this.$refs.versionCheck.checkAppVersion();
+			// this.setupLaunchGuide();
+		},
+		onShow() {
+			
+			var self = this;
+			uni.getLocation({
+				type: 'gcj02',
+				success: function(res) {
+					self.longtitude = res.longitude;
+					self.latitude = res.latitude;
+					//console.log('当前位置的经度：' + res.longitude);
+					//console.log('当前位置的纬度：' + res.latitude);
+				}
+			});
+		},
+		methods: {
+			setupLaunchGuide: function() {
+				if (!(uni.getStorageSync("launchGuide") === "hide")) {
+					uni.reLaunch({
+						url: "/pages/launchGuide/launchGuide"
+					})
+				}
+			},
+			pageScroll: function(e) {
+
+				this.isShowColor = (e.scrollTop > 30);
+			},
+			naviItemClick: function(item) {
+				this.topClickItem = item;
+				this.mescroll.num = 1;
+				this.upCallback(this.mescroll, true);
+			},
+			searchShop: function(event) {
+				this.keyword = event.detail.value;
+				this.mescroll.num = 1;
+				this.upCallback(this.mescroll,false);
+			},
+			initMescroll: function(mescroll) {
+				this.mescroll = mescroll;
+			},
+			downCallBack: function(mescroll) {
+				this.queryBanner();
+				this.getActivityList();
+				this.queryWeatherData();
+				let url = '/memberapi/api/platform/queryEssenceInfo.do';
+				this.request.get(url, {}, mescroll).then(res => {
+					this.topList = [];
+					var labelIds = [];
+					for (let item of res.list) {
+						labelIds.push(item.labelId);
+					}
+					var recomendItem = {
+						essenceType: 1,
+						labelName: "附近",
+						labelId: labelIds.join(",")
+					}
+					this.topList.push(recomendItem);
+					this.topList = this.topList.concat(res.list);
+					if (!this.topClickItem.content) {
+						this.topClickItem.content = this.topList[0];
+					}
+					mescroll.resetUpScroll();
+				})
+			},
+			upCallback: function(mescroll, showLoading) { //获取店铺信息列表
+				// let url = '/memberapi/api/shops/shopsAndExtendsList.do';
+				let url = '/memberapi/api/shops/queryShopList.do';
+				let data = {
+					pageNo: mescroll.num,
+					pageSize: mescroll.size,
+					essenceType: 1, //精选
+					sortFlag:"distance-asc"
+				};
+				if (this.keyword) {
+					data.keyword = this.keyword;
+				}
+				if (this.topClickItem.content.labelId) {
+					data.labelId = this.topClickItem.content.labelId
+				}
+				
+				// if (this.topClickItem.content.labelName == '附近') {
+				// 	if (this.longtitude && this.latitude) {
+				// 		data.coordinate = this.longtitude + "," + this.latitude;
+				// 		data.distance = "500"; //距离
+				// 	}
+				// }
+				this.request.get(url, data, mescroll, showLoading).then(res => {
+					if (mescroll.num == 1) this.shopsList = [];
+					this.shopsList = this.shopsList.concat(res.list);
+				})
+			},
+			queryBanner:function(){
+				var url = "/memberapi/api/bannerPicture/list.do";
+				var data = {
+					"bannerType" : "2"
+				}
+				this.request.get(url,data).then(res=>{
+					for (let item of res.list) {
+						item.photo = this.util.formatImagePath(item.photo);
+					}
+					this.bannerList = res.list;
+				})
+			},
+			queryWeatherData: function() {
+				//高德天气接口
+				var url = 'https://restapi.amap.com/v3/weather/weatherInfo';
+				var data = {
+					city: "360100",
+					key: "6ee25e3f24ef6a38dc71762e8011cd4b" //ye南昌-web服务天气key
+				}
+				uni.request({
+					url: url,
+					data: data,
+					success: (res) => {
+						if(res.data.lives[0]){
+							this.weatherData = res.data.lives[0];
+							if(this.weatherData.temperature == 'undefined') this.weatherData.temperature = 10;
+							if(this.weatherData.weather == 'undefined') this.weatherData.weather = 晴;
+						}
+					}
+				})
+			},
+			getActivityList: function() {
+				let url = '/memberapi/api/activity/list.do';
+				let data = {
+					pageNo: 1,
+					pageSize: 10
+				};
+				this.request.get(url, data).then(res => {
+
+					var now = new Date();
+					for (let item of res.list) {
+						item.startDate = this.util.formatMinutesDay(item.startDate);
+						item.endDate = this.util.formatMinutesDay(item.endDate);
+						item.imagePath = this.util.formatImagePaths(item.imagePath);
+						//console.log("item.imagePath = ",item.imagePath);
+						item.statusStr = item.endDate > this.util.formatMinutesDay(now) ? 1 : 2;
+					}
+					this.activitys = res.list;
+				});
+			},
+			bannerClick:function(item){
+				this.util.bannerClick(item);
+				// this.util.gotoWebView('https://www.baidu.com');
+			},
+			topicItemClick: function(index) {
+				var urls = ['/pages/index/plateform',
+					'/pages/literature/literature',
+					'/pages/delicacies/delicacies',
+					'/pages/purchase/purchase',
+					"/pages/science/science", "/pages/sports/sports"
+				];
+				uni.navigateTo({
+					url: urls[index]
+				})
+			},
+			//活动详情
+			toActivityDetail: function(activityId) {
+				let statusStr = 0;
+				this.activitys.forEach(item => {
+					if (item.activityId == activityId)
+						statusStr = item.statusStr;
+				});
+				uni.navigateTo({
+					url: "/pages/activity/activityDetail?activityId=" + activityId + "&statusStr=" + statusStr
+				})
+			},
+			//南昌名片
+			towonderful: function() {
+				uni.navigateTo({
+					url: '../wonderful/wonderful'
+				})
+			},
+			//资讯
+			toconsult: function() {
+				uni.navigateTo({
+					url: "../consult/consult"
+				})
+			},
+			//特色街
+			gotoPlayMap: function() {
+				uni.navigateTo({
+					url: "../playMap/playMap"
+				})
+			},
+			//vr
+			goToVr: function() {
+				uni.navigateTo({
+					url: '../webView/webView?webUrl=https://vr.chinavryan.com//tour/35c8ddf4cf676fad' + '&webTitle='
+				});
+			}
+
+		}
+	}
+</script>
+
+<style lang="scss">
+	.top-bg {
+		width: 750rpx;
+		height: 300rpx;
+		z-index: -2;
+		position: absolute;
+	}
+
+	.top-scroll {
+		display: flex;
+		flex-direction: row;
+		white-space: nowrap;
+		z-index: 99;
+		position: -webkit-sticky;
+		position: sticky;
+		top: calc(var(--status-bar-height) + 88rpx);
+		background-color: #FFFFFF;
+	}
+
+	.status-bar {
+		height: var(--status-bar-height);
+		width: 100%;
+		z-index: 3;
+		position: fixed;
+	}
+
+	.navi-bar {
+		width: 100vw;
+		display: flex;
+		flex-direction: row;
+		height: 88rpx;
+		position: fixed;
+		top: var(--status-bar-height);
+		z-index: 4;
+		align-items: center;
+		color: #FFFFFF;
+
+		.info {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			width: 120rpx;
+			height: 64rpx;
+			// line-height: 34rpx;
+			text-align: center;
+			.address {
+				margin-left: 8rpx;
+				font-size: 28rpx;
+			}
+		}
+
+		.search {
+			margin-left: 10rpx;
+			margin-right: 10rpx;
+			width: 510rpx;
+			height: 60rpx;
+			background-color: #FFFFFF;
+			border-radius: 8rpx;
+
+			.icon {
+				width: 60rpx;
+				height: 60rpx;
+				padding: 14rpx;
+			}
+
+			.input {
+				font-size: 28rpx;
+				color: #000000;
+			}
+		}
+
+		.code {
+			width: 84rpx;
+			height: 84rpx;
+			background: url(..~@/static/img/index2/code.png) no-repeat center center;
+			background-size: 50rpx 50rpx;
+			margin-top: -3rpx;
+		}
+	}
+
+	.conten-view {
+		width: 100vw;
+		background-color: #FFFFFF;
+	}
+
+	.header-view {
+		width: 100vw;
+		background-color: #F5F5F5;
+		.swiper{
+			width: 750rpx;
+			height: 590rpx;
+			z-index: 0;
+			.image {
+				width: 100%;
+				height: 100%;
+			}
+		}
+		.bg-image {
+			width: 750rpx;
+			height: 590rpx;
+			z-index: 0;
+		}
+		.weather-vr{
+			position: absolute;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+			width: 100vw;
+			padding: 0rpx 30rpx;
+			color: #FFFFFF;
+			z-index: 6;
+			top: calc(var(--status-bar-height) + 88rpx);
+			.temperature{
+				font-size: 86rpx;
+			}
+			.weather{
+				margin-top: -30rpx;
+				font-size: 24rpx;
+			}
+			.vr-image{
+				width: 92rpx;
+				height: 48rpx;
+			}
+		}
+		// .vr-image {
+		// 	position: absolute;
+		// 	width: 92rpx;
+		// 	height: 48rpx;
+		// 	top: 170rpx;
+		// 	left: auto;
+		// 	right: 30rpx;
+		// 	z-index: 6;
+		// }
+
+		.topic-view {
+			z-index: 8;
+			width: 100vw;
+			height: 200rpx;
+			padding: 40rpx 20rpx;
+			position: absolute;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+			margin-top: -200rpx;
+
+			.item {
+				width: 110rpx;
+				height: 150rpx;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				text-align: center;
+
+				.image {
+					width: 86rpx;
+					height: 86rpx;
+				}
+
+				.text {
+					margin-top: 10rpx;
+					width: 100%;
+					height: 40rpx;
+					font-size: 26rpx;
+					color: #FFFFFF;
+				}
+			}
+		}
+
+		.street-image {
+			width: 750rpx;
+			height: 250rpx;
+			padding: 10rpx 20rpx;
+			padding-top: 20rpx;
+			background-color: #FFFFFF;
+		}
+
+		.card-image {
+			width: 385rpx;
+			height: 160rpx;
+			padding-left: 20rpx;
+			padding-right: 20rpx;
+
+		}
+
+		.info-image {
+			width: 345rpx;
+			height: 160rpx;
+		}
+	}
+
+	.list-title {
+		width: 100vw;
+		background-color: #FFFFFF;
+		font-size: 42rpx;
+		margin-top: 20rpx;
+		padding: 10rpx 20rpx 30rpx 20rpx;
+		font-weight: 500;
+		color: #000000;
+	}
+
+	.activity-scrollview {
+		background-color: #FFFFFF;
+		color: #000000;
+		width: 100%;
+		overflow: hidden;
+		white-space: nowrap;
+		padding-right: 20rpx;
+	}
+
+	.activity-item {
+		width: 300rpx;
+		height: 280rpx;
+		display: inline-block;
+		margin-left: 20rpx;
+	}
+
+	.activity-image {
+		width: 300rpx;
+		height: 210rpx;
+		background-color: #F5F5F5;
+		border-radius: 10rpx;
+	}
+
+	.activity-name {
+		font-size: 28rpx;
+		font-weight: bold;
+		padding: 10rpx 0rpx;
+		overflow: hidden;
+	}
+
+	.activiy-time {
+		font-size: 24rpx;
+		color: #4A4A4A;
+	}
+
+
+
+
+	// .scroll-h {
+	// 	width: 750rpx;
+	// 	height: 68rpx;
+	// 	display: flex;
+	// 	flex-direction: row;
+	// 	white-space: nowrap;
+
+	// 	&.fixed {
+	// 		position: fixed;
+	// 		background: #ffffff;
+	// 		top: 88rpx;
+	// 		margin-top: var(--status-bar-height);
+	// 		left: 0;
+	// 		right: 0;
+	// 		z-index: 100;
+	// 		padding-top: 5px;
+	// 	}
+
+	// 	.uni-tab-item {
+	// 		display: inline-block;
+	// 		flex-wrap: nowrap;
+	// 		margin-right: 42rpx;
+
+	// 		&:first-child {
+	// 			margin-left: 35rpx;
+	// 		}
+	// 	}
+
+	// 	.uni-tab-item-title {
+	// 		color: #555;
+	// 		font-size: 32rpx;
+	// 		height: 45rpx;
+	// 		line-height: 45rpx;
+	// 		flex-wrap: nowrap;
+	// 		white-space: nowrap;
+	// 	}
+
+	// 	.uni-tab-item-title-active {
+	// 		color: #31a2f8;
+
+	// 		.bottom_line {
+	// 			width: 48rpx;
+	// 			height: 6rpx;
+	// 			line-height: 1;
+	// 			display: block;
+	// 			background: #31a2f8;
+	// 			border-radius: 2rpx;
+	// 			position: relative;
+	// 			margin: auto;
+	// 			top: 8rpx;
+	// 		}
+	// 	}
+	// }
+</style>

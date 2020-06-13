@@ -1,0 +1,70 @@
+<template>
+	<view>
+		<view class="voucher" style="height: 100vh;" v-if="orderData.itemList && orderData.itemList.length > 0">
+			<view class="couponbox"  v-for="(item,index) in orderData.itemList" :key="index">
+				<view class="name">
+					<image class="img" :src="util.formatImagePath(orderData.logo)"></image>
+					<view class="name-bd">
+						<view>{{item.productName}}</view>
+						<view class="time">有效期至：{{item.expiryDate}}</view>
+						<view class="time">使用状态：{{item.useStatusName}}</view>
+					</view>
+					<image class="arrow-right" src="/static/img/common/right-choose-arrow.png" @click="gotoOrderDetail(orderData)"></image>
+				</view>
+				<view class="coupon-bd" style="padding-bottom: 40rpx;background-color: #FFFFFF;">
+					<view class="password"><text class="label">券码:{{item.orderItemNo}}({{item.useStatusName}})</text></view>
+					<view class="codebox ">
+						<image class="code box-shadow" :src="item.img"></image>
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	//多订单，如团购 代金券，一次性可以购买多张的
+	import wxqrcode from "@/common/js/wxqrcode.js" // 二维码生成器
+	export default {
+		data() {
+			return {
+				orderData:{}
+			}
+		},
+		onLoad(e) {
+			if(e.orderId){
+				this.orderData.orderId = e.orderId;
+				this.queryDetail(e.orderId);
+			}
+		},
+		methods: {
+			queryDetail: function(orderId) {
+				let data = {
+					orderId: orderId,
+				};
+				let url = "/memberapi/api/orders/readByItem.do";
+				var that = this;
+				this.request.post(url, data).then(res => {
+					if (res.returncode === 0) {
+						that.orderData = res.data;
+						console.log("that.orderData == ",that.orderData);
+						
+						if(that.orderData  && that.orderData.itemList && that.orderData.itemList.length > 0){
+							that.orderData.itemList.forEach(item => {
+								item.img = wxqrcode.createQrCodeImg(item.orderItemNo.toString(), {
+									size: parseInt(300) //二维码大小  
+								});
+							});
+						}
+					}
+				});
+			}, 
+			gotoOrderDetail:function(item){
+				this.util.gotoOrderDetail(item.orderType,item.orderId);
+			},
+		},
+	}
+</script>
+
+<style>
+</style>

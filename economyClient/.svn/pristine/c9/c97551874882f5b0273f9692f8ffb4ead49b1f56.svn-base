@@ -1,0 +1,777 @@
+<template>
+	<view>
+		<!-- 菜单 (悬浮,预先隐藏)-->
+		<app-tabs v-if="isShowSticky" v-model="tabIndex" :fixed="true" :tabs="tabs" @change="tabChange"></app-tabs>
+		 <mescroll-body ref="mescrollRef" @init="mescrollInit" @down="downCallback" @up="upCallback" :up="upOption" @scroll="scroll" @topclick="topClick">
+			<view  class="sub-banner1" style="padding: 25rpx">
+				<swiper v-if="bannerList.length" :autoplay="true" class="screen-swiper1" :class="dotStyle?'square-dot':'round-dot'"
+				 :indicator-dots="true" :circular="true" interval="5000" duration="500">
+					<swiper-item v-for="(item,index) in bannerList" :key="index" @click="bannerClick(item)">
+						<image :src="item.photo" class="bannerimg" mode="aspectFill" v-if="item.bannerClassification=='1'"></image>
+						<video style="width: 100%;height: 100%;" :src="item.bannerCover" autoplay loop muted :show-play-btn="false"
+						 :controls="false" objectFit="cover" v-if="item.bannerClassification=='2'"></video>
+					</swiper-item>
+				</swiper>
+			</view>
+			
+			<!-- 引导icon -->
+			<view class="cul-iconbox" v-if="untitledList.length">
+				<view class="item" @click="gotoTrade">
+					<image class="item-icon" src="../../../static/img_new/newculture/synthesis.png"></image>
+					<view class="txt">综合体</view>
+				</view>
+				<view class="item" @click="gotoFeature">
+					<image class="item-icon" src="../../../static/img_new/newculture/Characteristicstreet.png"></image>
+					<view class="txt">特色街</view>
+				</view>
+				<view class="item" v-for="(item,index) in untitledList" :key="index" @click="gotoPlace(item)">
+					<image class="item-icon" :src="item.untitledLogo"></image>
+					<view class="txt">{{item.untitledName}}</view>
+				</view>
+			</view>
+			
+			<!-- 广告图 -->
+			<view class="centerad">
+				<view class='topview' @click="goGubjectMap()">
+					<image src="../../../static/img_new/newculture/CultureMap_big.png" class="adtopimg"></image>
+				</view>
+				<!-- <view class="bottomview">
+					<image src="../../../static/img_new/newculture/Limitedseckill.png" class="adbottomimg"></image>
+					<image src='../../../static/img_new/newculture/Popularitygroup.png' class="adbottomimg"></image>
+				</view> -->
+			</view>
+			
+			<!-- 城事 -->
+			<view class="cityStory">
+				<view class="findtop">
+					<text class="findtitle">城事</text>
+					<view class='more' @click="gotoAtivityList">更多></view>
+				</view>
+				<scroll-view  scroll-x="true">
+					<view class="oul">
+						<view class="li" v-for="(item,index) in chengshiList" :key="index" @click="toActivityDetail(item.activityId,item.activityChildType)">
+							<image class="topimg" :src="item.imagePath[0]"></image>
+							<text class="bottomtxt">{{ item.activityTitle }}</text>
+						</view>
+					</view>
+				</scroll-view>
+			</view>
+			
+			<!-- 发现 -->
+			<view class="find">
+				<view class="findtop">
+					<text class="findtitle">攻略</text>
+					<view class='more' @click="findmore">更多></view>
+				</view>
+				<scroll-view  scroll-x='true' scroll-with-animation>
+					<view class="findoul" >
+						<view class="findli" v-for="(item,index) in findlist" :key="index" @click="gotoStrategy(item.guideId)">
+							<image class="findtopimg"  v-if="item.thumbnailPath && item.thumbnailPath.length > 0 " :src="item.thumbnailPath[0]"></image>
+							<view class="findbottomcontent">
+								<text class="contenttitle">{{ item.guideTitle }}</text>
+								<view class="tips">
+									<view class="tipsitem" v-if="item.guideLabel1">{{ item.guideLabel1 }}</view>
+									<view class="tipsitem" v-if="item.guideLabel2">{{ item.guideLabel2 }}</view>
+									<view class="tipsitem" v-if="item.guideLabel3">{{ item.guideLabel3 }}</view>
+								</view>
+								<view class="contentbottom">
+									<!-- <image class="img" :src="item.photo"></image> -->
+									<text class="bottomleft">{{ item.guideIntroduction }}</text>
+									<view class="bottomright">{{ item.likeNum }}人感兴趣</view>
+								</view>
+							</view>
+						</view>
+					</view>
+				</scroll-view>
+			</view>
+			
+			<!-- 推荐 -->
+			<view class="findtop">
+				<text class="tuijiantext">推荐</text>
+			</view>
+			
+			<!-- 菜单 (在mescroll-uni中不能使用fixed,否则iOS滚动时会抖动, 所以需在mescroll-uni之外存在一个一样的菜单) -->
+			<view id="tabInList">
+				<app-tabs v-model="tabIndex" :tabs="tabs" @change="tabChange"></app-tabs>
+			</view>
+			<view>
+				<shopFlowCell ref="shopCell"></shopFlowCell>
+			</view>
+		</mescroll-body>
+	</view>
+</template>
+
+<script>
+	import MescrollMixin from "@/components/mescroll-uni/mescroll-mixins.js";
+	import AppTabs from "@/components/navi-bar/app-tabs.vue";
+	import shopFlowCell from "@/components/list-cell-view/shop-flow-cell.vue"
+	export default {
+		mixins: [MescrollMixin], // 使用mixin (在main.js注册全局组件)
+		components: {
+			AppTabs,
+			shopFlowCell
+		},
+		data() {
+			return {
+				upOption: {
+					// 如果用mescroll-uni 则需要onScroll: true, 且需要 @scroll="scroll"; 而mescroll-body最简单只需在onPageScroll处理即可
+					// onScroll: true // 是否监听滚动事件, 默认false (配置为true时,可@scroll="scroll"获取到滚动条位置和方向)
+				},
+				tabs: [{
+						subjectId: '1',
+						labelName: "精选推荐",
+						platformTypeId: "",
+						labelId: ""
+					},
+					{
+						subjectId: '3',
+						labelName: "发现美食",
+						platformTypeId: "",
+						labelId: ""
+					},
+					{
+						subjectId: '',
+						labelName: "酒店住宿",
+						platformTypeId: "2",
+						labelId: ""
+					}, {
+						subjectId: '',
+						labelName: "游玩佳地",
+						platformTypeId: "7",
+						labelId: "26,219,220"
+					}],
+				tabIndex: 0, // tab下标
+				navTop: null, // nav距离到顶部的距离 (如计算不准确,可直接写死某个值)
+				isShowSticky: false, // 是否悬浮
+				longtitude: '115.857963', //经纬度
+				latitude: '28.683016',
+				topClickItem:{},
+				tradeList:[],
+				chengshiList:[],//城事
+				bannerList: [], //banner
+				untitledList: [], //引导集合
+				dotStyle: false,
+				findlist:[],
+				address: '南昌',
+				searchFlag: false,
+				isChangeTab: false
+			}
+		},
+		onLoad() {
+			if(!this.topClickItem.content) this.topClickItem.content = this.tabs[0];
+			
+		},
+		onReady() {
+			var agree = uni.getStorageSync("agreeUserDeal");
+			if (!agree) {
+				// #ifdef APP-PLUS
+				const subNVue = uni.getSubNVueById('userDealPrivacy');
+				subNVue.show();
+				// #endif
+			}
+		},
+		methods: {
+			/*下拉刷新的回调 */
+			downCallback() {
+				// 这里加载你想下拉刷新的数据, 比如刷新轮播数据
+				// loadSwiper();
+				// 下拉刷新的回调,默认重置上拉加载列表为第一页 (自动执行 page.num=1, 再触发upCallback方法 )
+				this.getLocation();//获取地理位置
+				this.queryBannerList(); //banner
+				this.queryUntitledList(); //引导
+				this.getActivityList();//城事
+				this.querfindlist();//发现
+				this.mescroll.resetUpScroll()
+			},
+			
+			
+			
+			/*上拉加载的回调: 其中page.num:当前页 从1开始, page.size:每页数据条数,默认10 */
+			upCallback(page) {
+				//联网加载数据
+				if(this.isChangeTab){
+					this.mescroll.hideUpScroll(); // 切换菜单,不显示mescroll进度, 显示系统进度条
+					uni.showLoading();
+				}
+				let keyword = this.tabs[this.tabIndex]
+				let coordinate = this.longtitude + "," + this.latitude;
+				let url = '/memberapi/api/shops/queryRecommendShopList.do';
+							
+				let data = {
+					pageNo: page.num,
+					pageSize: page.size,
+					coordinate:coordinate
+				};
+					
+				if (keyword.subjectId) {
+					data.subjectId = keyword.subjectId;
+				}
+				if (keyword.labelId) {
+					data.labelId = keyword.labelId;
+				}
+				if (keyword.platformTypeId) { //精选推荐不用传platformTypeId
+					data.platformTypeId = keyword.platformTypeId;
+				}
+				
+				
+				
+				this.request.get(url, data,page).then(res => {
+					this.$refs.shopCell.formattingList(res.list, page.num);
+					// 数据渲染完毕再隐藏加载状态
+					this.$nextTick(()=>{
+						this.mescroll.endSuccess(res.list.length);
+						// 设置nav到顶部的距离 (需根据自身的情况获取navTop的值, 这里放到列表数据渲染完毕之后)
+						// 也可以放到onReady里面,或者菜单顶部的数据(轮播等)加载完毕之后..
+						if(!this.navTop) this.setNavTop()
+						// 保持tab悬浮,列表数据显示第一条
+						if(this.isChangeTab){
+							this.isChangeTab = false;
+							uni.hideLoading();
+							if(this.isShowSticky) this.mescroll.scrollTo(this.navTop, 0)
+						}
+					})
+				}).catch(()=>{
+					//联网失败, 结束加载
+					this.mescroll.endErr();
+				})
+			},
+			
+			//获取经纬度
+			getLocation: function() {
+				var _self = this;
+				uni.getLocation({
+					type: 'gcj02',
+					geocode: true,
+					success: function(res) {
+						_self.longtitude = res.longitude;
+						_self.latitude = res.latitude;
+						if (res.address) {
+							let addr=res.address.district;
+							addr = addr.replace("区", "").replace("新区", "");
+							//动态设置地理位置（未测）
+							// #ifdef APP-PLUS
+							var currentWebview = _self.$scope.$getAppWebview();
+							console.log("===>"+currentWebview)
+							var tn = currentWebview.getStyle().titleNView;   
+							tn.buttons[2].text = addr;     //[0] 按钮的下标
+							currentWebview.setStyle({  
+								titleNView: tn  
+							});
+						// #endif
+						}
+					},
+					fail(res) {
+						console.log("res = ",res);
+					}
+				});
+			},
+			
+			
+			//查询发现列表
+			querfindlist(){
+				let url = '/memberapi/api/guide/list.do';
+				let data = {
+					pageNo: 1,
+					pageSize: 10,
+					userType:1,
+				};
+				this.request.get(url, data).then(res => {
+					res.list.forEach(item => {
+						if (item.thumbnailPath) {
+							item.thumbnailPath = this.util.formatImagePaths(item.thumbnailPath);
+						}
+						if (item.photo) {
+							item.photo = this.util.formatImagePath(item.photo);
+						}
+						if (item.guideDetail) {
+							item.guideDetail = item.guideDetail.replace(/<\/?.+?>/g, "");
+						}
+					});
+					this.findlist = res.list;
+				});
+			},
+			
+			
+			//引导
+			gotoPlace(item) {
+				uni.navigateTo({
+					url: '/pages/culture/placeList?placeName=' + item.untitledName + "&platformLabels=" + item.platformLabels +
+						"&platformTypeId=" + item.platformTypeId
+			
+				});
+			},
+			
+			// 更多攻略
+			findmore() {
+				uni.navigateTo({
+					url:"/pages/strategy/strategySearch?userType=1" 
+				})
+			},
+			
+			//特色街
+			gotoFeature() {
+				uni.navigateTo({
+					url: '/pages/discover/discover?tradeType=1'
+				});
+			},
+			
+			//综合体
+			gotoTrade() {
+				uni.navigateTo({
+					url: '/pages/discover/discover?tradeType=2'
+				});
+			},
+			
+			//引导列表
+			queryUntitledList() {
+				var url = "/memberapi/api/untitled/list.do";
+				var data = {};
+				this.request.get(url, data).then(res => {
+					for (let item of res.list) {
+						item.untitledLogo = this.util.formatImagePath(item.untitledLogo);
+					}
+					this.untitledList = res.list;
+				})
+			},
+			
+			
+			//点击banner
+			bannerClick: function(item) {
+				this.util.bannerClick(item);
+			},
+			
+			//banner
+			// 获取banner列表
+			queryBannerList:function(){
+				const app = getApp();
+				if(app.globalData.main){
+					this.bannerList=app.globalData.main;
+				}
+			},
+			
+			
+			// 更多城事
+			gotoAtivityList(){
+				uni.setStorageSync("addData",0);
+				uni.navigateTo({
+					url:"/pages/column/column"
+				})
+			},
+			
+			//进入城事详情
+			toActivityDetail(activityId,activityChildType) {
+				let statusStr = 0;
+				this.chengshiList.forEach(item => {
+					if (item.activityId == activityId)
+						statusStr = item.statusStr;
+				});
+				if(activityChildType == 1){
+					uni.navigateTo({
+						url: "/pages/newPage/activity/activity?activityId="+ activityId
+					})
+					return;
+				}
+				uni.navigateTo({
+					url: "/pages/activity/activityDetail?activityId=" + activityId + "&statusStr=" + statusStr
+				})
+			},
+			gotoStrategy(guideId){
+				uni.navigateTo({
+					url: '/pages/strategy/strategyDetail?guideId='+guideId
+				});
+			},
+			//南昌文化地图
+			goGubjectMap(){
+				uni.navigateTo({
+					url: "/pages/webView/mapWebView?webUrl=https://ye.ncnews.com.cn/html/map.html"
+				})
+			},
+			
+			//城事
+			getActivityList() {
+				let url = '/memberapi/api/activity/list.do';
+				let data = {
+					pageNo: 1,
+					pageSize: 10,
+					activityType:2
+				};
+				this.request.get(url, data).then(res => {
+					for (let item of res.list) {
+						item.imagePath = this.util.formatImagePaths(item.imagePath);
+					}
+					this.chengshiList = res.list;
+				});
+			},
+			
+			// 设置nav到顶部的距离 (滚动条为0, 菜单顶部的数据加载完毕获取到的navTop数值是最精确的)
+			setNavTop(){
+				let view = uni.createSelectorQuery().select('#tabInList');
+				view.boundingClientRect(data => {
+					this.navTop = data.top // 到屏幕顶部的距离
+					
+				}).exec();
+			},
+			// mescroll-uni的滚动事件 (需在up配置onScroll:true才生效)
+			// 而mescroll-body最简单只需在onPageScroll处理即可
+			scroll(){
+				// 菜单悬浮的原理: 监听滚动条的位置大于某个值时,控制顶部菜单的显示和隐藏
+				if (this.mescroll.getScrollTop() >= this.navTop) {
+					this.isShowSticky = true // 显示悬浮菜单
+				} else {
+					this.isShowSticky = false // 隐藏悬浮菜单
+				}
+			},
+			// 点击回到顶部按钮时,先隐藏悬浮菜单,避免闪动
+			topClick(){
+				this.isShowSticky = false
+			},
+			// 切换菜单
+			tabChange () {
+				this.isChangeTab = true;
+				this.mescroll.resetUpScroll()
+			}
+		},
+		// 使用mescroll-body最简单只需在onPageScroll处理即可
+		onPageScroll(e){
+			if (e.scrollTop >= this.navTop) {
+				this.isShowSticky = true // 显示悬浮菜单
+			} else {
+				this.isShowSticky = false // 隐藏悬浮菜单
+			}
+		},
+		
+		onNavigationBarSearchInputClicked(){
+			uni.navigateTo({
+				url: "/pages/search/search"
+			})
+		},
+		
+		//头部按钮事件
+		onNavigationBarButtonTap(e){
+			if(e.index == 0){
+				uni.scanCode({
+				    success: function (res) {
+				    }
+				});
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	
+	.demo-tip{
+		padding: 18rpx;
+		font-size: 28rpx;
+		font-weight: bold;
+		text-align: center;
+		background: #CFE0DA;
+	}
+	
+	.cul-iconbox{
+			width: 100%;
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-around;
+			align-items: center;
+			/* padding: 0 10; */
+		}
+		.sub-banner1{
+			width: 750rpx;
+			height: 460rpx;
+			background: #fff;
+			border-top: 2px solid #f9f9f9;
+			box-sizing: border-box;
+		}
+		.item{
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin: 0 20rpx 16rpx;
+		}
+		.item-icon{
+			width: 104rpx;
+			height: 104rpx;
+			/* box-shadow:0px 2px 6px 0px rgba(242,130,17,1); */
+		}
+		.txt{
+			font-size:24rpx;
+			color: #000000;
+		}
+		.centerad{
+			width: 100%;
+			padding: 0 32rpx;
+			box-sizing: border-box;
+			margin-top: 26rpx;
+		}	
+		.topview{
+			width: 686rpx;
+			height: 316rpx;
+			margin-bottom: 16rpx;
+		}
+		.adtopimg{
+			width: 686rpx;
+			height: 316rpx;
+		}
+		.bottomview{
+			display: flex;
+			justify-content: space-between;
+		}
+		.adbottomimg{
+			width: 336rpx;
+			height: 192rpx;
+		}
+		.cityStory{
+			width: 100%;
+			/* height: ; */
+			padding: 0 32rpx;
+			margin-top: 26rpx;
+			margin-bottom: 26rpx;
+		}
+		.oul{
+			/* width: 300%; */
+			height: 280rpx;
+			display: flex; 
+			flex-direction: row;
+		}
+		.li{
+			display: inline-block;
+			width: 252rpx;
+			height: 274rpx;
+			background:rgba(255,255,255,1);
+			box-shadow:0px 6rpx 16rpx 0px rgba(209,204,202,0.5);
+			border-radius:12rpx;
+			margin-right: 24rpx;
+		}
+		.topimg{
+			width: 252rpx;
+			height: 202rpx;
+			background:rgba(216,216,216,1);
+			border-radius:12rpx 12rpx 0px 0px;
+		}
+		.bottomtxt{
+			font-size: 28rpx;
+			font-weight: 900;
+			color: #000000;
+			padding-left: 10rpx;
+			line-height: 20rpx;
+		}
+		.find{
+			width: 100%;
+			height: 520rpx;
+			padding:0 32rpx;
+		}
+		.findtop{
+			width: 100%;
+			height: 80rpx;
+	/* 		padding: 0 32rpx; */
+			box-sizing: border-box;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: center;
+		}
+		.tuijiantext{
+			width: 100%;
+			height: 80rpx;
+			font-size: 36rpx;
+			font-weight: 900;
+			box-sizing: border-box;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			text-indent: 40rpx;
+		}
+		.findtitle{
+			display: block;
+			font-size: 36rpx;
+			color: #000000;
+			font-weight: 900;
+			margin-bottom: 16rpx;
+		}
+		.more{
+			font-size:16px;
+			color:rgba(113,113,113,1);
+			line-height:22px;
+		}
+		.findoul{
+			/* width: 300%; */
+			height: 440rpx;
+			display: flex;
+			flex-direction: row;
+		}
+		.findli{
+			display: inline-block;
+			width: 504rpx;
+			height: 394rpx;
+			background:rgba(255,255,255,1);
+			box-shadow:0px 6rpx 16rpx 0px rgba(226,226,225,1);
+			border-radius:12rpx;
+			margin-right: 24rpx;
+			
+		}
+		.findtopimg{
+			width: 504rpx;
+			height: 220rpx;
+			background:rgba(216,216,216,1);
+			border-radius:12rpx 12rpx 0px 0px;	
+		}
+		.findbottomcontent{
+			width: 504rpx;
+			height: 166rpx;
+			padding: 8rpx 16rpx 16rpx 16rpx;
+			box-sizing: border-box;
+			display: flex;
+			flex-direction: column;
+		}
+		.contenttitle{
+			width: 460rpx;
+			font-size:28rpx;
+			font-weight:600;
+			color:rgba(0,0,0,1);
+			line-height:42rpx;
+			margin-bottom: 8rpx;
+			overflow: hidden;
+			text-overflow:ellipsis;
+			white-space: nowrap;
+		}
+		.tips{
+			/* display: flex; */
+			width: 100%;
+			overflow-x: scroll;
+			height: 40rpx;
+			margin-bottom: 12rpx;
+		}
+		.tipsitem{
+			display: inline-block;
+			padding: 2rpx 8rpx;
+			color: #F3703A;
+			border-radius:2rpx;
+			border:2rpx solid rgba(243,112,58,1);
+			margin-right: 12rpx;
+			font-size: 22rpx;
+		}
+		.contentbottom{
+			
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+		}
+		.bottomleft{
+			width: 300rpx;
+			overflow: hidden;
+			text-overflow:ellipsis;
+			white-space: nowrap;
+			font-size: 20rpx;
+			color: #676767;
+		}
+		.bottomright{
+			font-size: 20rpx;
+			color: #FD4C2A;
+		}
+		.tuijain{
+			width: 100%;
+			height: 680rpx;
+			padding: 22rpx 0;
+			box-sizing: border-box;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+		}
+		.tuijaimitem{
+			width:332rpx;
+			height:512rpx;
+			background:rgba(255,255,255,1);
+			box-shadow:0px 6rpx 16rpx 0px rgba(209,204,202,0.5);
+			border-radius:12rpx;
+		}
+		.tuijianimg{
+			width: 332rpx;
+			height: 288rpx;
+			background:rgba(216,216,216,1);
+			border-radius:12rpx 12rpx 0px 0px;	
+		}
+		.bottomcontent{
+			padding: 0 16rpx;
+		}
+		.tuijiantitle{
+			font-size: 28rpx;
+			color: #000000;
+			font-weight: 900;
+		}
+		.centercontent{
+			position: relative;
+			height: 50rpx;
+			display: flex;
+			align-items: center;
+		}
+		.content1{
+			font-size: 26rpx;
+			color: #FF9125;
+		}
+		.content2{
+			font-size: 20rpx;
+			color: #717171;
+			position: absolute;
+			left: 88rpx;
+		}
+		.content3{
+			font-size: 10rpx;
+			color: #000000;
+			position: absolute;
+			right: 0;
+		}
+		.addressinfo{
+			color: #959595;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: center;
+			height: 60rpx;
+		}
+		.address{
+			width: 168rpx;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			overflow: hidden;
+			word-break: break-all;
+			font-size: 24rpx;
+		}
+		.distance{
+			font-size: 20rpx;
+		}
+		.price{
+			color: #FD4C2A;
+			font-size: 28rpx;
+			font-weight: 500;
+		}
+		.bannerimg{
+			width:100%;
+			height: 420rpx;
+			border-radius: 16rpx;
+		}
+		.screen-swiper1{
+			min-height: 420rpx;
+		}
+		.img{
+			width: 40rpx;
+			height: 40rpx;
+			border-radius: 50%;
+			background: #007AFF;
+		}
+	// 解决推荐列表店铺不对齐的问题 
+	.shop-list {
+		margin-top: -40rpx;
+		
+		.conten {
+			width: 335rpx;
+			.item {
+				width: 335rpx;
+				margin-left: 0rpx;
+				.star{
+					margin-left: 10rpx;
+				}
+			}
+		}
+	}
+</style>
